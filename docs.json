@@ -37,14 +37,14 @@
             ]
           },
           {
-            "group": "Customization",
+            "group": "Docs configuration",
             "pages": [
               "essentials/settings",
               "essentials/navigation"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Writing D-Sports docs",
             "pages": [
               "essentials/markdown",
               "essentials/code",
@@ -53,7 +53,7 @@
             ]
           },
           {
-            "group": "AI tools",
+            "group": "AI assistants",
             "pages": [
               "ai-tools/cursor",
               "ai-tools/claude-code",

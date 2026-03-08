@@ -7,7 +7,7 @@ It covers:
 - **Getting started** — Quickstart, local development, and the [ecosystem overview](repositories/ecosystem-overview) of our four repositories
 - **Repositories** — [d-sports-api](repositories/d-sports-api), [d-sports-site](repositories/d-sports-site), [d-sports-engage-native](repositories/d-sports-engage-native), [d-sports-mic-d-up](repositories/d-sports-mic-d-up)
 - **API reference** — Introduction and endpoint examples for the d-sports-api backend
-- **Customization and writing** — How we configure and write these docs (Mintlify, MDX, AGENTS.md)
+- **Docs configuration and Writing D-Sports docs** — How we configure and write these docs (docs.json, MDX, AGENTS.md)
 
 ## Development
 
@@ -25,7 +25,7 @@ To use Cursor, Claude Code, or Windsurf with this repo:
 npx skills add https://mintlify.com/docs
 ```
 
-See the [AI tools guides](/ai-tools) in the docs for tool-specific setup. The repo’s **AGENTS.md** defines D-Sports terminology, style, and a Mintlify MDX quick reference.
+See the [AI assistants](/ai-tools) section in the docs for Cursor, Claude Code, and Windsurf setup. The repo’s **AGENTS.md** defines D-Sports terminology, style, and a Mintlify MDX quick reference.
 
 ## Links
 

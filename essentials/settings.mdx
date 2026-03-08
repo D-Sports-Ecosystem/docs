@@ -1,5 +1,5 @@
 ---
-title: 'Global settings'
+title: 'Site configuration'
 description: 'How we configure the D-Sports docs site using docs.json: theme, colors, logo, navigation.'
 icon: 'gear'
 ---
@@ -9,9 +9,9 @@ The D-Sports docs site at [docs.d-sports.org](https://docs.d-sports.org) is driv
 ## Properties
 
 <ResponseField name="name" type="string" required>
-Name of your project. Used for the global title.
+Name of the site. Used for the global title (e.g. in the browser tab and header).
 
-Example: `mintlify`
+Example: `D-Sports Docs`
 
 </ResponseField>
 
@@ -21,13 +21,13 @@ Example: `mintlify`
     <ResponseField name="group" type="string">
     The name of the group.
 
-    Example: `Settings`
+    Example: `Getting started`
 
     </ResponseField>
     <ResponseField name="pages" type="string[]">
-    The relative paths to the markdown files that will serve as pages.
+    The relative paths to the MDX files (no extension).
 
-    Example: `["customization", "page"]`
+    Example: `["index", "quickstart", "repositories/ecosystem-overview"]`
 
     </ResponseField>
 
@@ -90,7 +90,7 @@ Example: `mintlify`
     Example: `Contact us`
     </ResponseField>
     <ResponseField name="url" type="string">
-    The url once you click on the button. Example: `https://mintlify.com/docs`
+    The url once you click on the button. Example: `https://docs.d-sports.org`
     </ResponseField>
 
   </Expandable>
@@ -250,8 +250,8 @@ Example: `mintlify`
   Example: 
   ```json
   {
-    "x": "https://x.com/mintlify",
-    "website": "https://mintlify.com"
+    "x": "https://x.com/dsportsorg",
+    "website": "https://d-sports.org"
   }
   ```
   <Expandable title="FooterSocials">
@@ -263,7 +263,7 @@ Example: `mintlify`
     <ResponseField name="property" type="string">
     The URL to the social platform.
     
-    Example: `https://x.com/mintlify`
+    Example: `https://x.com/dsportsorg`
     </ResponseField>
   </Expandable>
 </ResponseField>
