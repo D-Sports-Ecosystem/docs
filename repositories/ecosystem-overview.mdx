@@ -1,0 +1,62 @@
+---
+title: "D-Sports ecosystem overview"
+description: "Overview of the D-Sports repositories and how they fit together"
+---
+
+## Overview
+
+The D-Sports ecosystem consists of four main repositories that power fan engagement for sports teams (primarily hockey).
+
+| Repository                 | Purpose                         | Port |
+| -------------------------- | ------------------------------- | ---- |
+| **d-sports-api**           | PWA, API, and backend           | 3004 |
+| **d-sports-site**          | Marketing and public website    | 3005 |
+| **d-sports-engage-native** | Native mobile app (iOS/Android) | —    |
+| **d-sports-mic-d-up**      | Live audio rooms app            | —    |
+
+## d-sports-api
+
+**Package name:** `d-sports-pwa`
+
+The main application: a Progressive Web App (PWA) that provides the full fan engagement experience. This is the backend and web client combined.
+
+- **Stack:** Next.js 16, React 19, Prisma, PostgreSQL, Clerk, RevenueCat, Thirdweb
+- **Features:** Social feed (locker room), gamification (quests, leaderboards), digital collectibles, shop, wallet, trivia, wheel spin, pack opening
+- **Run:** `bun dev` (or `yarn dev`)
+
+## d-sports-site
+
+**Package name:** `d-sports-site`
+
+The public-facing marketing website. Lightweight compared to the API/PWA.
+
+- **Stack:** Next.js 16, React 19, Tailwind CSS 4, shadcn/ui
+- **Features:** Home, about, profile, shop, wallet, leaderboard, support, privacy/terms
+- **Run:** `yarn dev` → http://localhost:3005
+
+## d-sports-engage-native
+
+**Package name:** `engage-native`
+
+Native mobile app for iOS and Android. Mirrors core PWA features on mobile.
+
+- **Stack:** Expo 54, React Native 0.81, Clerk, RevenueCat, Thirdweb, Zustand, MMKV
+- **Features:** Wallet, shop, leaderboard, locker room, profile, crypto checkout
+- **Run:** `bunx expo start` (or `bun run start`)
+
+## d-sports-mic-d-up
+
+**Package name:** `micd-up`
+
+Live audio rooms ("Mic'd Up") for real-time voice discussions between fans.
+
+- **Stack:** React Native (Expo 54), Agora, WebRTC, Express.js backend, Prisma, PostgreSQL
+- **Features:** Live voice rooms, speaker/listener roles, home feed, profiles, search
+- **Run:** Backend: `cd backend && yarn dev` (port 3001). Mobile: `yarn android` or `yarn ios`
+
+## How they connect
+
+- **d-sports-api** is the primary backend and PWA; native and site likely consume its APIs.
+- **d-sports-site** is the marketing site (e.g., d-sports.org).
+- **d-sports-engage-native** targets mobile with a similar feature set to the PWA.
+- **d-sports-mic-d-up** is a separate live-audio product with its own backend.
