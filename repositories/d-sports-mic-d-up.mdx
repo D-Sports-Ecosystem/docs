@@ -1,0 +1,64 @@
+---
+title: "d-sports-mic-d-up"
+description: "Live audio rooms for D-Sports fans. React Native, Agora, WebRTC, Express backend."
+icon: "mic"
+---
+
+## Overview
+
+**d-sports-mic-d-up** (package name: `micd-up`) is the Mic'd Up app: live audio rooms where fans join real-time voice discussions about games, trades, and news. It uses its own backend (Express + PostgreSQL) and Agora/WebRTC for audio.
+
+- **Backend port:** 3001 — run from `backend/` with `bun dev`
+- **Mobile:** `bun run android` or `bun run ios` (or Expo scripts) from the repo root
+
+## Tech stack
+
+### Mobile (client)
+
+| Category   | Technology                |
+| ---------- | ------------------------- |
+| Framework  | React Native (Expo 54)    |
+| Styling    | NativeWind (Tailwind)     |
+| Navigation | React Navigation v7       |
+| Real-time  | Agora (react-native-agora), Agora RTM, WebRTC |
+| Auth       | JWT (backend-issued)      |
+
+### Backend (server)
+
+| Category   | Technology     |
+| ---------- | -------------- |
+| Runtime    | Node.js        |
+| Framework  | Express.js     |
+| Database   | PostgreSQL     |
+| ORM        | Prisma        |
+| Real-time  | WebSockets     |
+
+## Features
+
+- **Live audio rooms** — Create or join rooms; speaker/listener roles; hand raising, invite-to-speak, mute sync via Agora RTM
+- **Audio quality** — AI noise suppression, 3D spatial audio (Agora)
+- **Broadcast mode** — Scale to many listeners with low latency
+- **Home feed** — Trending posts, active rooms, upcoming events
+- **Profiles** — User profiles, stats, post history, followers
+- **Search** — Find fans, rooms, or topics
+
+## Getting started
+
+### Backend
+
+1. `cd backend`, run `bun install`.
+2. Copy `.env.example` to `.env` and set `DATABASE_URL` (PostgreSQL).
+3. Run `bun run db:generate` and `bun run db:push` (or your migration flow).
+4. Run `bun dev` — server is at http://localhost:3001.
+
+### Mobile app
+
+1. From repo root, run `bun install`.
+2. Configure app to point at your backend (and Agora credentials if required).
+3. Run `bun run android` or `bun run ios` (or use Expo scripts from package.json).
+
+Mic'd Up is a separate product from the main PWA/site/native stack; it has its own backend and real-time stack.
+
+<Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
+  See how Mic'd Up fits with the PWA, site, and native app.
+</Card>

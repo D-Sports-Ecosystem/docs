@@ -1,70 +1,62 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Development"
+description: "Contribute to the D-Sports docs site. Preview locally, validate links, and deploy to docs.d-sports.org."
 ---
 
 <Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
+  **Prerequisites:**
+  - Node.js 19 or higher
+  - The D-Sports docs repo with a `docs.json` file at the root
 </Info>
 
-Follow these steps to install and run Mintlify on your operating system.
+This page is for contributing to **this documentation site** (D-Sports Docs at [docs.d-sports.org](https://docs.d-sports.org)). To work on the PWA, site, native app, or Mic'd Up, see the [Repositories](/repositories/ecosystem-overview) section.
 
 <Steps>
-<Step title="Install the Mintlify CLI">
-
-```bash
-npm i -g mint
-```
-</Step>
-
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
-
-```bash
-mint dev
-```
-
-A local preview of your documentation will be available at `http://localhost:3000`.
-
-</Step>
+  <Step title="Install the Mintlify CLI">
+    ```bash
+    npm i -g mint
+    ```
+  </Step>
+  <Step title="Preview locally">
+    In the docs directory (where `docs.json` is), run:
+    ```bash
+    mint dev
+    ```
+    The site is available at http://localhost:3000.
+  </Step>
 </Steps>
 
 ## Custom ports
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+Use the `--port` flag to run on a different port:
 
 ```bash
 mint dev --port 3333
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+If the default port is in use, Mintlify will try the next available port.
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+## Keeping the CLI up to date
 
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
+If the local preview doesn’t match production, update the CLI:
 
 ```bash
-npm mint update
+mint update
 ```
 
 ## Validating links
 
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+Check for broken internal links:
 
 ```bash
 mint broken-links
 ```
 
+You can also run `mint validate` to check that the docs build correctly.
+
 ## Deployment
 
-If the deployment is successful, you should see the following:
+When you push to the default branch, the docs deploy automatically (if the repo is connected via the Mintlify GitHub app). The live site is [docs.d-sports.org](https://docs.d-sports.org).
 
 <Frame>
   <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
@@ -72,23 +64,20 @@ If the deployment is successful, you should see the following:
 
 ## Code formatting
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+Use IDE support for MDX: for example, the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for formatting. See [AGENTS.md](https://github.com/d-sports/docs/blob/main/AGENTS.md) in the repo for D-Sports docs style and the Mintlify skill.
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
+    Often caused by an outdated Node version. Try:
+    1. Remove the CLI: `npm remove -g mint`
     2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
+    3. Reinstall: `npm i -g mint`
   </Accordion>
-
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
+  <Accordion title="Unknown error or odd behavior">
+    Delete the `~/.mintlify` folder on your machine, then run `mint dev` again.
   </Accordion>
 </AccordionGroup>
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+For Mintlify CLI changes, see the [CLI changelog](https://www.npmjs.com/package/mint?activeTab=versions).

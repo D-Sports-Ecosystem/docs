@@ -1,10 +1,10 @@
 ---
 title: "Windsurf setup"
-description: "Configure Windsurf for your documentation workflow"
+description: "Use Windsurf Cascade with the D-Sports docs repo: Mintlify skill and AGENTS.md"
 icon: "water"
 ---
 
-Set up Windsurf's Cascade AI assistant to help you write and maintain your Mintlify documentation.
+Set up Windsurf's Cascade AI to work on the D-Sports docs (this repo). Cascade can use the Mintlify skill for components and style, and [AGENTS.md](https://github.com/d-sports/docs/blob/main/AGENTS.md) for D-Sports-specific rules.
 
 ## Prerequisites
 
@@ -13,27 +13,20 @@ Set up Windsurf's Cascade AI assistant to help you write and maintain your Mintl
 ## Setup
 
 <Steps>
-<Step title="Open your docs directory in Windsurf">
-  Open the root of your documentation repository where `docs.json` is located.
-</Step>
-
-<Step title="Install the Mintlify skill">
-  In the integrated terminal, run:
-
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Windsurf Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Cascade">
-  Open a file and use Cascade to draft and edit documentation.
-</Step>
+  <Step title="Open the D-Sports docs repo in Windsurf">
+    Open the root of this documentation repository (where `docs.json` is). This repo builds [docs.d-sports.org](https://docs.d-sports.org).
+  </Step>
+  <Step title="Install the Mintlify skill">
+    In the integrated terminal, run:
+    ```bash
+    npx skills add https://mintlify.com/docs
+    ```
+    This gives Windsurf Mintlify's component reference and writing standards so Cascade can suggest correct MDX and components.
+  </Step>
+  <Step title="Use AGENTS.md">
+    The repo's `AGENTS.md` includes D-Sports terminology, style preferences, and a Mintlify MDX quick reference. Configure workspace rules or mention "D-Sports docs" / "Mintlify" so Cascade follows our style.
+  </Step>
+  <Step title="Write and preview">
+    Use Cascade to draft or edit MDX; run `mint dev` to preview at http://localhost:3000.
+  </Step>
 </Steps>

@@ -1,0 +1,48 @@
+---
+title: "d-sports-site"
+description: "Marketing and public website for D-Sports. Next.js 16, Tailwind CSS 4, shadcn/ui."
+icon: "globe"
+---
+
+## Overview
+
+**d-sports-site** is the public-facing marketing website for D-Sports. It is lighter than the PWA and focuses on information, discovery, and linking to the app.
+
+- **Default port:** 3005
+- **Run:** `bun dev` then open http://localhost:3005
+
+## Tech stack
+
+| Category   | Technology           |
+| ---------- | -------------------- |
+| Framework  | Next.js 16, React 19  |
+| Styling    | Tailwind CSS 4       |
+| Components | shadcn/ui (Radix UI) |
+| Icons      | Lucide React         |
+| Forms      | React Hook Form, Zod |
+| Charts     | Recharts              |
+| Package    | Bun                   |
+
+## Pages and features
+
+- **Home** — Landing and feature overview
+- **About** — D-Sports mission and team
+- **Profile** — User profile (when applicable)
+- **Shop** — Digital collectibles marketplace
+- **Wallet** — Digital wallet for crypto and collectibles
+- **Leaderboard** — Fan rankings and competitions
+- **Support** — FAQ and contact (e.g. Resend for email)
+- **Privacy policy** and **Terms of service**
+
+## Getting started
+
+1. Clone the repository and run `bun install`.
+2. Add `.env.local` if needed (e.g. `RESEND_API_KEY` for support form).
+3. Run `bun dev` — site is at http://localhost:3005.
+4. Build for production with `bun run build` and `bun run start`.
+
+The site is designed to be deployed to Vercel and can be served at your main domain (e.g. d-sports.org).
+
+<Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
+  See how d-sports-site fits with the PWA, native app, and Mic'd Up.
+</Card>

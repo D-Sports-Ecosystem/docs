@@ -1,10 +1,10 @@
 ---
 title: "Cursor setup"
-description: "Configure Cursor for your documentation workflow"
+description: "Use Cursor with the D-Sports docs repo: Mintlify skill and AGENTS.md"
 icon: "arrow-pointer"
 ---
 
-Set up Cursor to help you write and maintain your Mintlify documentation.
+Set up Cursor to write and edit the D-Sports docs (this repo). Cursor will use the Mintlify skill for components and style, and [AGENTS.md](https://github.com/d-sports/docs/blob/main/AGENTS.md) in the repo for D-Sports-specific terminology and preferences.
 
 ## Prerequisites
 
@@ -13,27 +13,20 @@ Set up Cursor to help you write and maintain your Mintlify documentation.
 ## Setup
 
 <Steps>
-<Step title="Open your docs directory in Cursor">
-  Open the root of your documentation repository where `docs.json` is located.
-</Step>
-
-<Step title="Install the Mintlify skill">
-  In the integrated terminal, run:
-
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Cursor Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Cursor">
-  Open a file and use Cursor's AI features to draft and edit documentation.
-</Step>
+  <Step title="Open the D-Sports docs repo in Cursor">
+    Open the root of this documentation repository (where `docs.json` is). This is the repo that builds [docs.d-sports.org](https://docs.d-sports.org).
+  </Step>
+  <Step title="Install the Mintlify skill">
+    In the integrated terminal, run:
+    ```bash
+    npx skills add https://mintlify.com/docs
+    ```
+    This gives Cursor Mintlify's component reference, writing standards, and workflow guidance so it can suggest Cards, Tabs, frontmatter, etc.
+  </Step>
+  <Step title="Use AGENTS.md">
+    The repo's `AGENTS.md` already includes D-Sports style preferences and a Mintlify MDX quick reference. Mention "Mintlify" or "docs" in your prompts so the agent uses the skill and follows our docs style.
+  </Step>
+  <Step title="Write and preview">
+    Edit MDX files and run `mint dev` to preview at http://localhost:3000. Use Cursor's AI to draft or refine pages.
+  </Step>
 </Steps>

@@ -1,10 +1,10 @@
 ---
 title: "Claude Code setup"
-description: "Configure Claude Code for your documentation workflow"
+description: "Use Claude Code with the D-Sports docs repo: Mintlify skill and AGENTS.md"
 icon: "asterisk"
 ---
 
-Set up Claude Code to help you write and maintain your Mintlify documentation.
+Set up Claude Code to work on the D-Sports docs (this repo). Use the Mintlify skill for components and style, and [AGENTS.md](https://github.com/d-sports/docs/blob/main/AGENTS.md) for D-Sports-specific guidance.
 
 ## Prerequisites
 
@@ -13,31 +13,22 @@ Set up Claude Code to help you write and maintain your Mintlify documentation.
 ## Setup
 
 <Steps>
-<Step title="Install Claude Code">
-  ```bash
-  npm install -g @anthropic-ai/claude-code
-  ```
-</Step>
-
-<Step title="Install the Mintlify skill">
-  In your docs directory, run:
-
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Claude Code Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Claude Code">
-  ```bash
-  claude
-  ```
-</Step>
+  <Step title="Install Claude Code">
+    ```bash
+    npm install -g @anthropic-ai/claude-code
+    ```
+  </Step>
+  <Step title="Open the D-Sports docs repo and install the Mintlify skill">
+    In the docs repo root, run:
+    ```bash
+    npx skills add https://mintlify.com/docs
+    ```
+    This gives Claude Code Mintlify's component reference and writing standards for [docs.d-sports.org](https://docs.d-sports.org).
+  </Step>
+  <Step title="Use AGENTS.md">
+    The repo's `AGENTS.md` defines D-Sports terminology, style, and a Mintlify MDX quick reference. Keep it in mind when asking Claude to edit docs.
+  </Step>
+  <Step title="Start writing">
+    Run `claude` in the repo and ask it to edit or create MDX pages. Preview with `mint dev`.
+  </Step>
 </Steps>

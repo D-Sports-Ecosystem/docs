@@ -1,97 +1,87 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "D-Sports documentation"
+description: "Fan engagement platform for sports teams. Docs for the PWA, site, native app, and Mic'd Up."
 ---
 
-## Setting up
+## Welcome
 
-Get your documentation site up and running in minutes.
+D-Sports is a fan engagement platform for sports teams, with a focus on hockey. Our ecosystem includes a Progressive Web App, a marketing site, a native mobile app, and live audio rooms (Mic'd Up).
+
+<img src="/images/og-image.png" alt="D-Sports" style={{ borderRadius: '0.5rem', maxWidth: '100%' }} />
+
+## Explore the ecosystem
 
 <Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
+  title="Ecosystem overview"
+  icon="map"
+  href="/repositories/ecosystem-overview"
   horizontal
 >
-  Follow our three step quickstart guide.
+  How the four repositories fit together and what each one does.
 </Card>
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
+## Repositories
 
 <Columns cols={2}>
   <Card
-    title="Edit locally"
+    title="d-sports-api"
+    icon="server"
+    href="/repositories/d-sports-api"
+  >
+    PWA and backend: locker room, quests, leaderboards, collectibles, shop, wallet.
+  </Card>
+  <Card
+    title="d-sports-site"
+    icon="globe"
+    href="/repositories/d-sports-site"
+  >
+    Marketing site: home, about, shop, wallet, leaderboard, support.
+  </Card>
+  <Card
+    title="d-sports-engage-native"
+    icon="smartphone"
+    href="/repositories/d-sports-engage-native"
+  >
+    Native iOS/Android app: wallet, shop, leaderboard, locker room, profile.
+  </Card>
+  <Card
+    title="d-sports-mic-d-up"
+    icon="mic"
+    href="/repositories/d-sports-mic-d-up"
+  >
+    Live audio rooms for real-time voice discussions between fans.
+  </Card>
+</Columns>
+
+## Get started
+
+<Columns cols={2}>
+  <Card
+    title="Quickstart"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Run the docs locally or one of the apps in three steps.
+  </Card>
+  <Card
+    title="Development"
     icon="pen-to-square"
     href="/development"
   >
-    Edit your docs locally and preview them in real time.
+    Contribute to this docs site: Mintlify CLI, validation, deployment.
   </Card>
   <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
+    title="API reference"
     icon="terminal"
     href="/api-reference/introduction"
   >
-    Auto-generate API documentation from OpenAPI specifications.
+    API documentation for the d-sports-api backend.
   </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
   <Card
-    title="Write with MDX"
+    title="Writing content"
     icon="pen-fancy"
     href="/essentials/markdown"
   >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+    How we write and structure D-Sports docs with MDX.
   </Card>
 </Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>

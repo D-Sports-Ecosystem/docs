@@ -1,0 +1,47 @@
+---
+title: "d-sports-engage-native"
+description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+icon: "smartphone"
+---
+
+## Overview
+
+**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+
+- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+
+## Tech stack
+
+| Category   | Technology                |
+| ---------- | ------------------------- |
+| Framework  | Expo 54, React Native 0.81, React 19 |
+| Auth       | Clerk (Expo)              |
+| Payments   | RevenueCat (react-native-purchases) |
+| Web3       | Thirdweb                  |
+| State      | Zustand                   |
+| Storage    | MMKV                      |
+| UI         | Lucide React Native       |
+| Navigation | Expo Router               |
+| Package    | Bun                       |
+
+## Features
+
+- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
+- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Leaderboard** — Rankings and filters
+- **Locker room** — Social feed and engagement
+- **Profile** — User profile and settings
+- **Theme** — Dark/light mode (default dark)
+
+## Getting started
+
+1. Clone the repository and run `bun install`.
+2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+3. Run `bunx expo start`.
+4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+
+The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+<Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
+  See how the native app fits with the PWA, site, and Mic'd Up.
+</Card>

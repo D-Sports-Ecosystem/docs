@@ -1,55 +1,33 @@
-# Mintlify Starter Kit
+# D-Sports Docs
 
-Use the starter kit to get your docs deployed and ready to customize.
+This repository contains the documentation for the D-Sports fan engagement platform, published at **[docs.d-sports.org](https://docs.d-sports.org)**.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+It covers:
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+- **Getting started** — Quickstart, local development, and the [ecosystem overview](repositories/ecosystem-overview) of our four repositories
+- **Repositories** — [d-sports-api](repositories/d-sports-api), [d-sports-site](repositories/d-sports-site), [d-sports-engage-native](repositories/d-sports-engage-native), [d-sports-mic-d-up](repositories/d-sports-mic-d-up)
+- **API reference** — Introduction and endpoint examples for the d-sports-api backend
+- **Customization and writing** — How we configure and write these docs (Mintlify, MDX, AGENTS.md)
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## Development
+
+1. Install the [Mintlify CLI](https://www.npmjs.com/package/mint): `npm i -g mint`
+2. In this repo root (where `docs.json` is), run: `mint dev`
+3. Open http://localhost:3000 to preview.
+
+Changes are deployed to **docs.d-sports.org** automatically when you push to the default branch (with the Mintlify GitHub app connected).
 
 ## AI-assisted writing
 
-Set up your AI coding tool to work with Mintlify:
+To use Cursor, Claude Code, or Windsurf with this repo:
 
 ```bash
 npx skills add https://mintlify.com/docs
 ```
 
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
+See the [AI tools guides](/ai-tools) in the docs for tool-specific setup. The repo’s **AGENTS.md** defines D-Sports terminology, style, and a Mintlify MDX quick reference.
 
-See the [AI tools guides](/ai-tools) for tool-specific setup.
+## Links
 
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
-npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+- **Live docs:** [docs.d-sports.org](https://docs.d-sports.org)
+- **Mintlify docs:** [mintlify.com/docs](https://mintlify.com/docs)

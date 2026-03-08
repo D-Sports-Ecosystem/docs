@@ -1,0 +1,54 @@
+---
+title: "d-sports-api"
+description: "PWA and backend for the D-Sports fan engagement platform. Next.js, Prisma, Clerk, RevenueCat, Thirdweb."
+icon: "server"
+---
+
+## Overview
+
+**d-sports-api** (package name: `d-sports-pwa`) is the main application: a Progressive Web App that provides the full fan engagement experience. It is both the backend and the web client.
+
+- **Default port:** 3004
+- **Run:** `bun dev`
+
+## Tech stack
+
+| Category   | Technology                    |
+| ---------- | ----------------------------- |
+| Framework  | Next.js 16, React 19          |
+| Database   | PostgreSQL, Prisma 6.8        |
+| Auth       | Clerk 6.x                     |
+| Styling    | Tailwind CSS 4, Radix UI, shadcn/ui |
+| Web3       | Thirdweb, Viem, Wagmi        |
+| Payments   | RevenueCat (purchases-js)     |
+| State      | TanStack Query, TanStack Store |
+| Secrets    | HashiCorp Vault (optional)    |
+| Package    | Bun                           |
+
+## Features
+
+- **Locker room** — Social feed, posts, comments, likes, following
+- **Gamification** — Quests, points, achievements, leaderboards, Frontline Pass
+- **Digital collectibles** — NFT-style collectibles, rarity tiers, pack opening, inventory
+- **Shop** — Product catalog, cart, RevenueCat purchases
+- **Wallet** — Web3 wallet, token balances, Thirdweb integration
+- **Interactive games** — Trivia, wheel spin
+- **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
+- **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
+
+## Getting started
+
+1. Clone the repository and install dependencies (`bun install`).
+2. Set up environment variables (see repo `.env.example` or Vault setup in README).
+3. Configure PostgreSQL and run `bun prisma db pull` then `bun prisma generate`.
+4. Run `bun dev` — app is at http://localhost:3004.
+
+For full setup (Vault, seeds, migrations), see the repository README.
+
+## API
+
+This app is the primary API surface for the D-Sports platform. The [API reference](/api-reference/introduction) in these docs covers endpoints and usage; detailed OpenAPI or API specs live in the repo.
+
+<Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
+  See how d-sports-api fits with the site, native app, and Mic'd Up.
+</Card>

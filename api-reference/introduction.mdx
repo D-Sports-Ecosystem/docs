@@ -1,33 +1,31 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introduction"
+description: "API reference for the D-Sports platform. The main backend and API surface is d-sports-api."
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## D-Sports API
 
-## Welcome
+The primary API and backend for the D-Sports platform is **[d-sports-api](/repositories/d-sports-api)** (the PWA). It serves the web app, the native app (d-sports-engage-native), and is used by the marketing site (d-sports-site) where needed. Authentication, quests, leaderboards, collectibles, shop, and wallet flows all go through this API.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+**Mic'd Up** ([d-sports-mic-d-up](/repositories/d-sports-mic-d-up)) has its own backend (Express + PostgreSQL) for live audio rooms and does not use the d-sports-api backend.
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+## How this reference is built
+
+D-Sports Docs can show API reference in two ways:
+
+- **OpenAPI** — Add an OpenAPI spec (e.g. from d-sports-api) to `docs.json` or link to it; Mintlify generates interactive playground and docs from it.
+- **MDX** — Write endpoint pages manually with the `openapi` or `api` frontmatter field for small APIs or custom docs.
+
+The **Endpoint examples** in the sidebar are reference examples (GET, POST, DELETE, webhook) that demonstrate how we document endpoints. Over time they can be replaced or extended with real d-sports-api paths when an OpenAPI spec or manual endpoint docs are added. For the latest API surface, see the [d-sports-api](/repositories/d-sports-api) repo and its README or any OpenAPI/spec files there.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+d-sports-api uses **Clerk** for authentication. API requests that require a user typically use Bearer tokens or session-based auth as configured in the app. Exact auth scheme (e.g. `bearerAuth`) is defined in the OpenAPI spec when one is published.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+<Card title="d-sports-api" icon="server" href="/repositories/d-sports-api">
+  Backend and PWA: stack, features, and how to run it.
+</Card>
+
+<Card title="Mic'd Up backend" icon="mic" href="/repositories/d-sports-mic-d-up">
+  Separate backend for live audio rooms.
+</Card>

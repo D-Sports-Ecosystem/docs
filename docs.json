@@ -1,13 +1,18 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "D-Sports Docs",
+  "description": "Documentation for the D-Sports fan engagement platform.",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#F5C842",
+    "light": "#FDE68A",
+    "dark": "#D4A84B"
   },
   "favicon": "/favicon.svg",
+  "logo": "/logo/d-sports-logo.png",
+  "thumbnails": {
+    "background": "/images/og-image.png"
+  },
   "navigation": {
     "tabs": [
       {
@@ -20,6 +25,15 @@
               "quickstart",
               "development",
               "repositories/ecosystem-overview"
+            ]
+          },
+          {
+            "group": "Repositories",
+            "pages": [
+              "repositories/d-sports-api",
+              "repositories/d-sports-site",
+              "repositories/d-sports-engage-native",
+              "repositories/d-sports-mic-d-up"
             ]
           },
           {
@@ -72,33 +86,29 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Website",
+          "href": "https://d-sports.org",
+          "icon": "globe"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "App",
+          "href": "https://app.d-sports.org",
+          "icon": "rocket"
         }
       ]
     }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
   },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:contact@d-sports.org"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "App",
+      "href": "https://app.d-sports.org"
     }
   },
   "contextual": {
@@ -115,9 +125,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/dsportsorg",
+      "github": "https://github.com/d-sports",
+      "website": "https://d-sports.org"
     }
   }
 }
