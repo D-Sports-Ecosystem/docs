@@ -14,9 +14,6 @@
   },
   "favicon": "/favicon.svg",
   "logo": "/logo/d-sports-logo.png",
-  "thumbnails": {
-    "background": "/images/og-image.png"
-  },
   "navigation": {
     "tabs": [
       {
