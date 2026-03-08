@@ -1,16 +1,18 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "D-Sports API",
+    "description": "API for the D-Sports fan engagement platform (PWA backend). Authentication via Clerk Bearer token.",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://app.d-sports.org",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:3004",
+      "description": "Local development"
     }
   ],
   "security": [
@@ -19,76 +21,100 @@
     }
   ],
   "paths": {
-    "/plants": {
+    "/api/leaderboard": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "summary": "Get leaderboard",
+        "description": "Returns leaderboard entries for the global leaderboard or a specific leaderboard/team. Requires authentication.",
         "parameters": [
           {
-            "name": "limit",
+            "name": "leaderboardId",
             "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
+            "description": "Fetch a specific leaderboard by ID",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "teamId",
+            "in": "query",
+            "description": "Fetch leaderboard for a specific team",
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Leaderboard with entries and current user ID",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "properties": {
+                    "leaderboard": { "type": "object" },
+                    "leaderboardEntries": { "type": "array" },
+                    "currentUserId": { "type": "string" },
+                    "season": { "type": "object" }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/locker-room": {
+      "get": {
+        "summary": "Get locker room posts",
+        "description": "Get paginated locker room posts. Query params: page, limit, filter (trending|latest|following).",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "filter", "in": "query", "schema": { "type": "string", "enum": ["trending", "latest", "following"] } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated locker room posts" }
+        }
+      },
+      "post": {
+        "summary": "Create locker room post",
+        "description": "Create a new post in the locker room. Body: { content: string, imageUrl?: string }.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "content": { "type": "string" },
+                  "imageUrl": { "type": "string" }
                 }
               }
             }
           }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
         },
         "responses": {
+          "200": { "description": "Created post" },
+          "400": { "description": "Content is required" }
+        }
+      }
+    },
+    "/api/teams": {
+      "get": {
+        "summary": "List teams",
+        "description": "List all teams with enriched stats (fans, totalPoints, rank, lastWinner).",
+        "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Teams with stats",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": { "teams": { "type": "array" } }
+                    }
+                  }
                 }
               }
             }
@@ -96,121 +122,74 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+    "/api/packs": {
+      "get": {
+        "summary": "List active packs",
+        "description": "List all active packs for the shop.",
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "Active packs",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": { "packs": { "type": "array" } }
                 }
               }
             }
           }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/api/teams/{id}/follow": {
+      "delete": {
+        "summary": "Unfollow team",
+        "description": "Unfollow a team. Path param: team ID.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Unfollowed" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/webhooks/revenuecat": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "summary": "RevenueCat webhook",
+        "description": "Handles RevenueCat purchase events (dsports-cash, Frontline Pass). Requires Bearer token matching REVENUECAT_WEBHOOK_SECRET.",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
-          "description": "Plant added to the store",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string" },
+                      "app_user_id": { "type": "string" },
+                      "product_id": { "type": "string" }
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
+          "200": { "description": "Webhook processed" }
         }
       }
     }
   },
   "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "Clerk session token. Use Bearer <token> in Authorization header."
       }
     }
   }

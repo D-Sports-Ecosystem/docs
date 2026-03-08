@@ -8,6 +8,10 @@
     "light": "#FDE68A",
     "dark": "#D4A84B"
   },
+  "openapi": ["api-reference/openapi.json"],
+  "api": {
+    "baseUrl": "https://app.d-sports.org"
+  },
   "favicon": "/favicon.svg",
   "logo": "/logo/d-sports-logo.png",
   "thumbnails": {
