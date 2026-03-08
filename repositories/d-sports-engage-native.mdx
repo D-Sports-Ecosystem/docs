@@ -21,17 +21,41 @@ icon: "smartphone"
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
+| Animation  | React Native Reanimated   |
 | Package    | Bun                       |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Shop** — Collectibles, cart, coin bundles, crypto checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, quests, daily games (Pick'Em, Spin Wheel, Guess the Player)
 - **Profile** — User profile and settings
+- **Onboarding** — New user onboarding flow
 - **Theme** — Dark/light mode (default dark)
+
+## Architecture
+
+The app follows a modular screen architecture:
+
+- **Screen files** (`wallet.tsx`, `shop.tsx`) contain only JSX — all state, effects, and handlers live in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **Extracted sub-components** in `components/wallet/`, `components/shop/`, and `components/locker-room/` with barrel exports
+- **Shared types and constants** in `types/` and `constants/` directories
+- **API client layer** in `lib/api/` with MMKV cache fallback
+
+### Key directories
+
+| Directory | Purpose |
+| --------- | ------- |
+| `app/(tabs)/` | Main tab screens (wallet, shop, leaderboard, locker room, profile) |
+| `app/(auth)/` | Login, signup, password reset |
+| `app/(onboarding)/` | New user onboarding flow |
+| `app/settings/` | Settings pages with nested modals |
+| `components/` | Reusable UI components organized by feature |
+| `hooks/` | Custom hooks for screen logic |
+| `lib/api/` | API client modules |
+| `context/` | React Context providers (user, collectibles, navbar) |
 
 ## Getting started
 
