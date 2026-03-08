@@ -1,0 +1,13 @@
+{
+  "name": "d-sports-docs",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^25.3.5"
+  },
+  "scripts": {
+    "sync-openapi": "bun run scripts/sync-openapi.ts",
+    "predev": "bun run sync-openapi",
+    "dev": "mint dev"
+  }
+}
