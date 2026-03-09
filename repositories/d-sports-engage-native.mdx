@@ -8,21 +8,22 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
-
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Package      | Version |
+| ------------ | ------- |
+| Expo         | 54.0    |
+| React Native | 0.81.5  |
+| React        | 19.1.0  |
+| TypeScript   | 5.9.2   |
+| Expo Router  | 6.0     |
+| Clerk        | 2.19    |
+| RevenueCat   | 1.26    |
+| Thirdweb     | 5.118   |
+| Zustand      | 5.0     |
+| MMKV         | 4.1     |
+| Reanimated   | 4.1     |
+| Lucide Icons | 0.562   |
 
 ## Features
 
@@ -35,12 +36,82 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bunx expo start
+# Press 'a' for Android, 'i' for iOS, or scan QR with Expo Go
+
+# TypeScript check
+bun tsc --noEmit
+```
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Project structure
+
+```tree
+app/
+├── (auth)/              # Login/signup screens
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation
+│   ├── wallet.tsx       # Wallet screen (JSX only — logic in hook)
+│   ├── shop.tsx         # Shop screen (JSX only — logic in hook)
+│   ├── leaderboard.tsx  # Leaderboard screen
+│   ├── locker-room.tsx  # Social feed
+│   ├── profile.tsx      # User profile
+│   └── styles/          # Extracted StyleSheet files
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers + auth protection
+
+components/
+├── wallet/              # 9 extracted wallet sub-components
+├── shop/                # 7 extracted shop sub-components
+├── locker-room/         # Locker room components
+├── layout/              # AppScreen wrapper (responsive web max-width)
+├── ui/                  # Reusable UI primitives
+├── Icon/                # Icon wrapper using lucide-react-native
+└── theme-provider.tsx   # Theme context (dark/light)
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+└── useScrollHandler.ts  # Scroll-based navbar visibility
+
+lib/
+├── api/                 # API client modules
+├── revenuecat/          # RevenueCat in-app purchases provider
+└── utils.ts             # Shared utilities
+
+context/
+├── user-context.tsx     # Authentication, user profile, team membership
+├── collectibles-context.tsx # Owned packs and items
+└── navbar-visibility-context.tsx
+```
+
+## Architecture patterns
+
+- **File-based routing** via Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Modular screen architecture** — screen files contain only JSX; all state/effects/handlers live in dedicated hooks
+- **Extracted sub-components** — wallet and shop screens decomposed into `components/wallet/` and `components/shop/` with barrel exports
+- **Zustand + MMKV** for global state with synchronous persistence
+- **React Context** for auth, collectibles, navbar visibility
+- **API client layer** in `lib/api/` with MMKV cache fallback
+- **Crypto checkout** via Thirdweb SDK calling PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
+- **PWA-ready** — `display: standalone`, responsive desktop layout, web hover states, keyboard nav
+- **Path alias** `@/*` maps to project root
+
+## Branding
+
+| Element          | Value     |
+| ---------------- | --------- |
+| Base background  | `#0a0e1a` |
+| Accent gold      | `#F5C842` |
+| Primary blue     | `#4169E1` |
+
+Default theme is dark mode.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
