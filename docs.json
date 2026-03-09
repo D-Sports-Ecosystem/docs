@@ -12,6 +12,9 @@
   "api": {
     "baseUrl": "https://app.d-sports.org"
   },
+  "seo": {
+    "indexing": "all"
+  },
   "favicon": "/favicon.svg",
   "logo": "/logo/d-sports-logo.png",
   "navigation": {
