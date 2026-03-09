@@ -33,6 +33,20 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Authentication
+
+The app uses [Clerk](https://clerk.com) for authentication with both email/password and social login (Google, Apple, X).
+
+### Continue sign-up flow
+
+When users sign up via social OAuth (Google, Apple, X), Clerk may not capture all required profile fields. The app handles this with a **continue-sign-up** screen that prompts for missing information:
+
+- **Username** — Required if not provided by the OAuth provider
+- **First name** — Required if missing from the social profile
+- **Last name** — Required if missing from the social profile
+
+The flow automatically detects `missingFields` from Clerk's sign-up session and only prompts for what's needed. Once all fields are provided, the session is activated and the user proceeds to onboarding.
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
