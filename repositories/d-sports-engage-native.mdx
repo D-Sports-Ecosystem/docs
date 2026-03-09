@@ -15,11 +15,11 @@ icon: "smartphone"
 | Category   | Technology                |
 | ---------- | ------------------------- |
 | Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
+| Auth       | Clerk (Expo) with SSO/OAuth support |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
-| Storage    | MMKV                      |
+| Storage    | MMKV (native), SecureStore (tokens) |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
 | Package    | Bun                       |
@@ -33,10 +33,28 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Authentication
+
+The app uses **Clerk** for authentication with full SSO/OAuth support:
+
+- **Token storage** — `expo-secure-store` on native, `localStorage` on web
+- **SSO callback** — Dedicated `/(auth)/sso-callback` route handles OAuth redirects
+- **Auth protection** — `AuthProtection` component in root layout automatically redirects based on authentication and onboarding state
+- **OAuth completion** — `WebBrowser.maybeCompleteAuthSession()` runs at the top level to ensure OAuth popups close correctly on any route
+
+The auth flow automatically routes users:
+1. Unauthenticated users → login screen
+2. Authenticated but not onboarded → onboarding flow
+3. Fully onboarded → main app (profile tab)
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Configure environment variables:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk authentication
+   - `EXPO_PUBLIC_API_URL` — API backend URL
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` — RevenueCat API key
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
