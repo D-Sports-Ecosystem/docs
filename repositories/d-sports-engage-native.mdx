@@ -33,6 +33,20 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Authentication flow
+
+The app uses **Clerk** for authentication with support for email, SSO (Apple, Google), and phone number verification.
+
+### Sign-up and continue-sign-up
+
+After initial sign-up (email or SSO), the `continue-sign-up` screen collects any missing fields:
+
+- **username** — Required if not provided
+- **first_name** / **last_name** — Required if not provided
+- **phone_number** — Required; triggers SMS verification via `phone_code` strategy
+
+If the sign-up status is `awaiting_verification`, the user enters the SMS code to complete registration. The screen handles both `phone_number` and `email_address` verification flows.
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
