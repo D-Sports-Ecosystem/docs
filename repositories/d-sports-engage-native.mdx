@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native 0.81, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -21,7 +21,8 @@ icon: "smartphone"
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6.0           |
+| Animations | React Native Reanimated 4.1 |
 | Package    | Bun                       |
 
 ## Features
@@ -29,9 +30,55 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, daily games (Pick Em, Spin Wheel, Guess the Player), quests, and fan engagement
 - **Profile** — User profile and settings
+- **Settings** — Account, notifications, privacy, accessibility, appearance, audio, data, and support options
+- **Onboarding** — New user onboarding flow
 - **Theme** — Dark/light mode (default dark)
+- **PWA-ready** — Responsive desktop layout, web hover states, keyboard navigation
+
+## Project structure
+
+```tree
+app/
+├── (auth)/              # Login/signup/SSO screens
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation
+│   ├── wallet.tsx       # Wallet screen
+│   ├── shop.tsx         # Shop screen
+│   ├── leaderboard.tsx  # Leaderboard screen
+│   ├── locker-room.tsx  # Social feed
+│   └── profile.tsx      # User profile
+└── settings/            # Settings pages (account, privacy, notifications, etc.)
+
+components/
+├── wallet/              # Wallet sub-components
+├── shop/                # Shop sub-components
+├── locker-room/         # Locker room components (games, quests, feed)
+├── leaderboard/         # Leaderboard components
+├── settings/            # Settings modals and tabs
+├── layout/              # AppScreen wrapper (responsive web max-width)
+├── ui/                  # Reusable UI primitives
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/
+├── use-wallet-screen.ts # Wallet state and handlers
+├── use-shop-screen.ts   # Shop state and handlers
+└── use-feed-section.ts  # Feed section logic
+
+lib/api/                 # API client modules
+```
+
+## Architecture patterns
+
+- **File-based routing** via Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Modular screen architecture** — screen files contain only JSX; all state/effects/handlers live in dedicated hooks
+- **Extracted sub-components** — wallet, shop, locker-room, and settings decomposed into component directories with barrel exports
+- **Zustand + MMKV** for global state with synchronous persistence
+- **React Context** for auth, collectibles, navbar visibility
+- **API client layer** in `lib/api/` with MMKV cache fallback
+- **Crypto checkout** via Thirdweb SDK calling PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
+- **Path alias** `@/*` maps to project root
 
 ## Getting started
 
