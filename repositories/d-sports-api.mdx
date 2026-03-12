@@ -49,6 +49,27 @@ For full setup (Vault, seeds, migrations), see the repository README.
 
 This app is the primary API surface for the D-Sports platform. The [API reference](/api-reference/introduction) in these docs covers endpoints and usage; detailed OpenAPI or API specs live in the repo.
 
+## Season 0.5 leaderboard infrastructure
+
+- Points events are now scoped in `PointsHistory` by both leaderboard and season.
+- Season reset/wipe behavior is unchanged.
+- Legacy Season 0 rows with null scoping are intentionally preserved for backward compatibility.
+
+### Leaderboard scoring behavior
+
+- Team boards now compute totals from `PointsHistory` rows filtered by both active `seasonId` and the team `leaderboardId`.
+- The global board computes totals from `PointsHistory` rows filtered by active `seasonId` only (cross-board season aggregate).
+- New point writes (quests, onboarding, daily actions, backfill scripts) include `seasonId` and `leaderboardId` where available.
+- Some historical/backfill paths can intentionally write `leaderboardId: null` when a board cannot be determined yet.
+- Legacy Season 0 rows with null season/board scope remain in storage and are intentionally excluded from Season 0.5+ scoped calculations.
+
+### API contract notes
+
+- `GET /api/leaderboard?leaderboardId=<id>` resolves and scores a specific board.
+- `GET /api/leaderboard?teamId=<teamId>` resolves (or creates) that team board, then scores it.
+- `GET /api/leaderboard` (no params) returns global leaderboard scoring for the active season.
+- This release does not introduce season reset/archiving behavior changes, and does not remove `LeaderboardEntry.points` yet (planned Season 2 cleanup).
+
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how d-sports-api fits with the site, native app, and Mic'd Up.
 </Card>
