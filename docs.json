@@ -23,7 +23,7 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
               "quickstart",
@@ -36,11 +36,11 @@
             "pages": [
               "repositories/d-sports-api",
               {
-                "group": "d-sports-api deep dives",
+                "group": "D-Sports API Deep Dives",
                 "pages": [
                   "repositories/d-sports-api/gamification/index",
                   {
-                    "group": "Gamification architecture",
+                    "group": "Gamification Architecture",
                     "pages": [
                       "repositories/d-sports-api/gamification/architecture-overview",
                       "repositories/d-sports-api/gamification/quests",
@@ -59,14 +59,14 @@
             ]
           },
           {
-            "group": "Docs configuration",
+            "group": "Docs Configuration",
             "pages": [
               "essentials/settings",
               "essentials/navigation"
             ]
           },
           {
-            "group": "Writing D-Sports docs",
+            "group": "Writing D-Sports Docs",
             "pages": [
               "essentials/markdown",
               "essentials/code",
@@ -75,7 +75,7 @@
             ]
           },
           {
-            "group": "AI assistants",
+            "group": "AI Assistants",
             "pages": [
               "ai-tools/cursor",
               "ai-tools/claude-code",
@@ -85,10 +85,10 @@
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "API Documentation",
             "pages": [
               "api-reference/introduction"
             ]
