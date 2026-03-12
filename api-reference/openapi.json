@@ -27,7 +27,15 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
-    { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" }
+    { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
+    { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
+    { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
+    { "name": "Gamification", "description": "Domain grouping for quests, leaderboards, points-facing outcomes, and rewards" },
+    { "name": "Commerce and purchases", "description": "Domain grouping for checkout, cash balance, webhooks, and store purchase flows" },
+    { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
+    { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
+    { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
   ],
   "paths": {
     "/api/auth/native-token": {
@@ -153,7 +161,7 @@
     },
     "/api/leaderboard": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": ["Leaderboard", "Gamification"],
         "summary": "Get leaderboard",
         "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global.",
         "parameters": [
@@ -579,6 +587,8 @@
       "get": {
         "tags": ["User"],
         "summary": "Get dev card settings",
+        "description": "Internal/debug card settings endpoint.",
+        "x-hidden": true,
         "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, isDev, user, settings }" } }
@@ -586,6 +596,8 @@
       "post": {
         "tags": ["User"],
         "summary": "Update dev card settings",
+        "description": "Internal/debug card settings mutation endpoint.",
+        "x-hidden": true,
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success }" } }
@@ -665,7 +677,7 @@
     },
     "/api/quests": {
       "get": {
-        "tags": ["Quests"],
+        "tags": ["Quests", "Gamification"],
         "summary": "Get quests",
         "description": "Query: category (optional) for QuestCategory; else active quests.",
         "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
@@ -734,7 +746,7 @@
     },
     "/api/rewards": {
       "get": {
-        "tags": ["Rewards"],
+        "tags": ["Rewards", "Gamification"],
         "summary": "List rewards",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ rewards, currentUserId }" } }
@@ -772,13 +784,13 @@
     },
     "/api/wallets": {
       "get": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "List wallets",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ wallets }" } }
       },
       "post": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Add wallet",
         "requestBody": {
           "content": {
@@ -797,7 +809,7 @@
         "responses": { "200": { "description": "{ wallet }" } }
       },
       "delete": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Remove wallet",
         "requestBody": {
           "content": {
@@ -812,7 +824,7 @@
     },
     "/api/wallets/set-pin": {
       "post": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Set PIN",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
@@ -821,7 +833,7 @@
     },
     "/api/wallets/verify-pin": {
       "post": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Verify PIN",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
@@ -830,7 +842,7 @@
     },
     "/api/wallets/private-key": {
       "post": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Get private key",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
@@ -839,7 +851,7 @@
     },
     "/api/wallets/coin-prices": {
       "get": {
-        "tags": ["Wallets"],
+        "tags": ["Wallets", "Wallet and web3"],
         "summary": "Get coin prices",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "Coin prices" } }
@@ -847,7 +859,7 @@
     },
     "/api/checkout/crypto": {
       "post": {
-        "tags": ["Checkout"],
+        "tags": ["Checkout", "Commerce and purchases"],
         "summary": "Create crypto checkout",
         "requestBody": {
           "content": {
@@ -871,7 +883,7 @@
     },
     "/api/checkout/crypto/verify": {
       "post": {
-        "tags": ["Checkout"],
+        "tags": ["Checkout", "Commerce and purchases"],
         "summary": "Verify crypto payment",
         "requestBody": {
           "content": {
@@ -893,7 +905,7 @@
     },
     "/api/checkout/dsports-cash": {
       "post": {
-        "tags": ["Checkout"],
+        "tags": ["Checkout", "Commerce and purchases"],
         "summary": "Checkout with D-Sports Cash",
         "requestBody": {
           "content": {
@@ -916,7 +928,7 @@
     },
     "/api/dsports-cash": {
       "get": {
-        "tags": ["D-Sports Cash"],
+        "tags": ["D-Sports Cash", "Commerce and purchases"],
         "summary": "Get D-Sports Cash balance",
         "description": "Query: userId (admin impersonation).",
         "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
@@ -965,7 +977,7 @@
     },
     "/api/products": {
       "get": {
-        "tags": ["Products"],
+        "tags": ["Products", "Commerce and purchases"],
         "summary": "List products",
         "parameters": [
           { "name": "type", "in": "query", "schema": { "type": "string" } },
@@ -980,7 +992,7 @@
     },
     "/api/webhooks/revenuecat": {
       "post": {
-        "tags": ["Webhooks"],
+        "tags": ["Webhooks", "Commerce and purchases"],
         "summary": "RevenueCat webhook",
         "description": "Handles RevenueCat purchase events. Use Authorization: Bearer with REVENUECAT_WEBHOOK_SECRET.",
         "security": [{ "webhookSecret": [] }],
@@ -1008,7 +1020,7 @@
     },
     "/api/image-proxy": {
       "get": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Platform and infrastructure"],
         "summary": "Image proxy",
         "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
         "security": [],
@@ -1017,7 +1029,7 @@
     },
     "/api/crypto-prices": {
       "get": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Wallet and web3"],
         "summary": "Crypto prices",
         "security": [],
         "responses": { "200": { "description": "Crypto prices" } }
@@ -1025,7 +1037,7 @@
     },
     "/api/upload/banner": {
       "post": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Platform and infrastructure"],
         "summary": "Upload banner",
         "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
@@ -1034,7 +1046,7 @@
     },
     "/api/feedback/bug-report": {
       "post": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Moderation and reporting"],
         "summary": "Submit bug report",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [],
@@ -1043,7 +1055,7 @@
     },
     "/api/feedback/native-crash": {
       "post": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Moderation and reporting"],
         "summary": "Submit native crash report",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [],
@@ -1052,8 +1064,10 @@
     },
     "/api/sync-quest-points": {
       "post": {
-        "tags": ["Misc"],
+        "tags": ["Misc", "Platform and infrastructure"],
         "summary": "Sync quest points",
+        "description": "Internal maintenance route for quest/points reconciliation.",
+        "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
