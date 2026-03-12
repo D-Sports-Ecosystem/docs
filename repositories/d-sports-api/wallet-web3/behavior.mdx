@@ -1,0 +1,39 @@
+---
+title: "Wallet and web3 behavior"
+description: "Runtime behavior of non-admin wallet and web3 endpoints."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `GET /api/wallets`
+- `POST /api/pregen-wallet`
+- `POST /api/wallets/set-pin`
+- `POST /api/wallets/verify-pin`
+- `POST /api/wallets/private-key`
+- `GET /api/wallets/coin-prices`
+- `GET /api/crypto-prices`
+- `POST /api/thirdweb-link`
+- `POST /api/thirdweb-proxy`
+
+## Runtime behavior highlights
+
+- Wallet routes return or provision user wallet context depending on prior state.
+- PIN routes establish and verify credential gates before private-key access.
+- Private-key access route is guarded and requires prior validation path.
+- Coin/crypto price routes provide market data used by wallet and checkout experiences.
+- Provider proxy/link routes bridge client flow to external web3 integrations.
+
+## Side effects and dependencies
+
+- Wallet identity and session state link directly to user auth context.
+- Wallet flows are consumed by collectibles and crypto checkout paths.
+
+## Known caveats
+
+- External web3 provider behavior can introduce transient errors and retry requirements.
+- Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
+
+## Exclusions
+
+- Staff-only wallet debug or administrative override behavior is excluded.

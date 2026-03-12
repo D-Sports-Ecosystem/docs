@@ -17,28 +17,28 @@ Status values used in this page:
 ## Domain coverage matrix (non-admin backend)
 
 - **Gamification** — `Documented`  
-  Quests, points, leaderboards, rewards, and current achievements behavior are covered in dedicated subsections.
+  Quests, points, leaderboards, rewards, and achievements are documented with dedicated pages.
 
-- **Auth, user profile, onboarding** — `Partially documented`  
-  High-level mention exists, but no deep-dive behavior docs yet for auth/session/profile/onboarding lifecycle.
+- **Auth, user profile, onboarding** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/auth-onboarding/*`.
 
-- **Social / locker room** — `Not documented yet`  
-  No dedicated behavior or architecture page yet for posts, comments, reactions, and follow graph.
+- **Social / locker room** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/social-locker-room/*`.
 
-- **Commerce / purchases / catalog** — `Not documented yet`  
-  No dedicated non-admin backend behavior docs yet for product, purchase, and payment lifecycle.
+- **Commerce / purchases / catalog** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/commerce/*`.
 
-- **Collectibles / packs / inventory / minting** — `Not documented yet`  
-  Feature is listed at repository level only; no detailed backend flow docs yet.
+- **Collectibles / packs / inventory / minting** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/collectibles/*`.
 
-- **Wallet / web3 integrations** — `Not documented yet`  
-  Feature is listed at repository level only; no dedicated backend behavior docs yet.
+- **Wallet / web3 integrations** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/wallet-web3/*`.
 
-- **Moderation / reporting** — `Not documented yet`  
-  No dedicated documentation section yet for report lifecycle and moderation flows.
+- **Moderation / reporting** — `Documented`  
+  Dedicated overview, architecture, and behavior docs exist under `/repositories/d-sports-api/moderation/*`.
 
 - **Platform/infrastructure (non-admin operational endpoints/scripts)** — `Partially documented`  
-  Some operational behavior is implied in API/reference and repository notes, but no dedicated operational runbook pages.
+  Dedicated pages exist under `/repositories/d-sports-api/platform-infra/*`, but runbook-level operating procedures remain intentionally lightweight.
 
 ## Known exclusions
 
@@ -49,6 +49,13 @@ Status values used in this page:
 
 - Repository overview and platform summary: `/repositories/d-sports-api`
 - Gamification docs hub: `/repositories/d-sports-api/gamification/index`
+- Auth/onboarding docs hub: `/repositories/d-sports-api/auth-onboarding/index`
+- Social docs hub: `/repositories/d-sports-api/social-locker-room/index`
+- Commerce docs hub: `/repositories/d-sports-api/commerce/index`
+- Collectibles docs hub: `/repositories/d-sports-api/collectibles/index`
+- Wallet/web3 docs hub: `/repositories/d-sports-api/wallet-web3/index`
+- Moderation docs hub: `/repositories/d-sports-api/moderation/index`
+- Platform/infra docs hub: `/repositories/d-sports-api/platform-infra/index`
 - Gamification architecture: `/repositories/d-sports-api/gamification/architecture-overview`
 - Quests: `/repositories/d-sports-api/gamification/quests`
 - Points: `/repositories/d-sports-api/gamification/points`
@@ -59,18 +66,14 @@ Status values used in this page:
 
 ## What is not documented yet (full-detail level)
 
-- Full backend architecture and behavior pages for:
-  - auth/profile/onboarding
-  - social/locker room
-  - commerce/purchases/catalog
-  - collectibles/packs/inventory/minting
-  - wallet/web3
-  - moderation/reporting
-- Route-by-route examples and troubleshooting playbooks across non-gamification domains.
+- Domain-specific troubleshooting playbooks and incident-response runbooks.
+- Exhaustive route-by-route payload examples for every non-admin endpoint.
+- Cross-client integration matrix (web vs native) for each backend domain.
+- Versioned migration history pages for each major backend domain.
 
 ## Next docs waves (recommended order)
 
-1. Auth/profile/onboarding deep dive (highest user funnel impact).
-2. Social/locker room backend behavior and data lifecycle.
-3. Commerce + collectibles + wallet integration behavior docs.
-4. Moderation/reporting flow docs and non-admin operational runbooks.
+1. Add route-level example libraries for each domain page.
+2. Add troubleshooting playbooks (symptom -> cause -> verification -> fix).
+3. Add cross-client integration notes for web and native consumers.
+4. Add operational runbooks for platform-infra maintenance scripts.

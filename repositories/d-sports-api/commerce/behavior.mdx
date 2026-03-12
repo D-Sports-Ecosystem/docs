@@ -1,0 +1,36 @@
+---
+title: "Commerce behavior"
+description: "Runtime behavior of non-admin commerce and payment endpoints."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `GET /api/products`
+- `POST /api/checkout/crypto`
+- `POST /api/checkout/crypto/verify`
+- `POST /api/checkout/dsports-cash`
+- `GET /api/dsports-cash`
+- `POST /api/webhooks/revenuecat`
+- `GET /api/v1/product_entitlement_mapping`
+
+## Runtime behavior highlights
+
+- Product endpoints return active catalog entities suitable for client storefront rendering.
+- Checkout endpoints initialize and verify purchase attempts before final persistence.
+- Webhook path reconciles provider-side purchase state into app-side records.
+- dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
+
+## Side effects and dependencies
+
+- Successful purchases update purchase models and can affect wallet/inventory-visible state.
+- Entitlement mapping endpoints provide external integration interoperability.
+
+## Known caveats
+
+- External provider latency can produce temporary states between initiation and final verification.
+- Reconciliation scripts may be used for historical purchase correction.
+
+## Exclusions
+
+- Admin stock override and privileged catalog mutation paths are excluded.

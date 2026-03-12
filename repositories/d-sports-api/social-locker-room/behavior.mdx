@@ -1,0 +1,36 @@
+---
+title: "Social and locker room behavior"
+description: "Runtime behavior for non-admin social routes and follow interactions."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `GET/POST /api/locker-room`
+- `GET/POST /api/locker-room/[id]/comments`
+- `POST /api/locker-room/[id]/react`
+- `GET /api/locker-room/stream`
+- `POST /api/user/follow`
+- `GET /api/user/followers`
+- `GET /api/user/recommended`
+
+## Runtime behavior highlights
+
+- Post creation updates feed-visible entities with author-linked identity.
+- Comment and reaction routes mutate child entities tied to post IDs.
+- Follow routes enforce self-consistency and update follower/following graph edges.
+- Recommendation and follower endpoints read from current social graph state.
+
+## Side effects and integration points
+
+- Social actions can trigger quest progression checks in onboarding/gamification flows.
+- Team follow actions can influence team-scoped user experiences.
+
+## Known caveats
+
+- Stream endpoints are transport-sensitive and clients should support reconnection behavior.
+- Some recommendation heuristics are derived from current follow state and may evolve independently from route contracts.
+
+## Exclusions
+
+- Moderation enforcement and privileged content management workflows are documented under moderation, not this section.

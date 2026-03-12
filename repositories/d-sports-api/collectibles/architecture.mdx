@@ -1,0 +1,45 @@
+---
+title: "Collectibles architecture"
+description: "Backend architecture for collectibles, packs, inventory, and minting."
+icon: "workflow"
+---
+
+## Primary backend components
+
+- `server/collectible-actions.ts`
+- `server/pack-actions.ts`
+- `server/featured-collectible-actions.ts`
+- `server/minting-actions.ts`
+- `app/api/packs/route.ts`
+- `app/api/packs/[id]/route.ts`
+- `app/api/packs/[id]/purchase/route.ts`
+- `app/api/packs/[id]/open/route.ts`
+- `app/api/user/collectibles/route.ts`
+- `app/api/user/packs/route.ts`
+
+## Core model touchpoints
+
+- `Collectible`
+- `Pack`
+- `PackCollectible`
+- `PackPurchase`
+- `UserCollectible`
+- `MintedNFT`
+
+## High-level flow
+
+```mermaid
+flowchart LR
+  packBrowse[PackBrowse] --> packPurchase[PackPurchase]
+  packPurchase --> purchaseRecord[PackPurchaseRecord]
+  purchaseRecord --> packOpen[PackOpenAction]
+  packOpen --> collectibleAward[UserCollectibleAward]
+  collectibleAward --> mintPath[OptionalMintPersistence]
+  collectibleAward --> inventoryRead[InventoryAndOwnershipReads]
+```
+
+## Architectural notes
+
+- Pack open behavior resolves weighted contents and persists ownership outcomes.
+- Collectible ownership and mint records are related but not identical entities.
+- Featured collectible views are read-optimized on top of core ownership models.

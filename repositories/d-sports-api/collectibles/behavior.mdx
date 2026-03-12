@@ -1,0 +1,36 @@
+---
+title: "Collectibles behavior"
+description: "Runtime behavior of non-admin collectibles, packs, and inventory endpoints."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `GET /api/packs`
+- `GET /api/packs/[id]`
+- `POST /api/packs/[id]/purchase`
+- `POST /api/packs/[id]/open`
+- `GET /api/user/packs`
+- `GET /api/user/packs/opened`
+- `GET /api/user/collectibles`
+
+## Runtime behavior highlights
+
+- Pack browse routes expose currently available packs and pack metadata.
+- Purchase route records pack purchase state for the user.
+- Open route resolves collectible outcomes and updates user ownership/inventory state.
+- User collectible and pack routes expose owned content for client rendering.
+
+## Side effects and dependencies
+
+- Purchase/open flows may integrate with checkout, wallet, and minting subsystems.
+- Historical fix/backfill scripts exist for pack purchase and rarity correction scenarios.
+
+## Known caveats
+
+- Deterministic guarantees depend on pack configuration integrity and weighted content setup.
+- Open and purchase flow state transitions can require reconciliation in rare partial-failure cases.
+
+## Exclusions
+
+- Admin collectible/pack creation and stock management flows are excluded.

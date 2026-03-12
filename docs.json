@@ -42,6 +42,8 @@
                   {
                     "group": "Gamification Architecture",
                     "pages": [
+                      "repositories/d-sports-api/gamification/architecture",
+                      "repositories/d-sports-api/gamification/behavior",
                       "repositories/d-sports-api/gamification/architecture-overview",
                       "repositories/d-sports-api/gamification/quests",
                       "repositories/d-sports-api/gamification/points",
@@ -50,7 +52,63 @@
                       "repositories/d-sports-api/gamification/achievements"
                     ]
                   },
-                  "repositories/d-sports-api/gamification/coverage-status"
+                  "repositories/d-sports-api/gamification/coverage-status",
+                  {
+                    "group": "Auth and onboarding",
+                    "pages": [
+                      "repositories/d-sports-api/auth-onboarding/index",
+                      "repositories/d-sports-api/auth-onboarding/architecture",
+                      "repositories/d-sports-api/auth-onboarding/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Social and locker room",
+                    "pages": [
+                      "repositories/d-sports-api/social-locker-room/index",
+                      "repositories/d-sports-api/social-locker-room/architecture",
+                      "repositories/d-sports-api/social-locker-room/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Commerce and purchases",
+                    "pages": [
+                      "repositories/d-sports-api/commerce/index",
+                      "repositories/d-sports-api/commerce/architecture",
+                      "repositories/d-sports-api/commerce/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Collectibles and packs",
+                    "pages": [
+                      "repositories/d-sports-api/collectibles/index",
+                      "repositories/d-sports-api/collectibles/architecture",
+                      "repositories/d-sports-api/collectibles/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Wallet and web3",
+                    "pages": [
+                      "repositories/d-sports-api/wallet-web3/index",
+                      "repositories/d-sports-api/wallet-web3/architecture",
+                      "repositories/d-sports-api/wallet-web3/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Moderation and reporting",
+                    "pages": [
+                      "repositories/d-sports-api/moderation/index",
+                      "repositories/d-sports-api/moderation/architecture",
+                      "repositories/d-sports-api/moderation/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Platform and infrastructure",
+                    "pages": [
+                      "repositories/d-sports-api/platform-infra/index",
+                      "repositories/d-sports-api/platform-infra/architecture",
+                      "repositories/d-sports-api/platform-infra/behavior"
+                    ]
+                  }
                 ]
               },
               "repositories/d-sports-site",

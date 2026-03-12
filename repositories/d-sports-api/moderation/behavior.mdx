@@ -1,0 +1,30 @@
+---
+title: "Moderation and reporting behavior"
+description: "Runtime behavior of non-admin reporting and feedback endpoints."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `POST /api/feedback/bug-report`
+- `POST /api/feedback/native-crash`
+
+## Runtime behavior highlights
+
+- User-facing feedback routes validate and persist report payloads.
+- Report metadata includes type/status fields for downstream moderation workflows.
+- Client-facing success responses indicate intake success, not final moderation outcome.
+
+## Side effects and dependencies
+
+- Reports become inputs to internal review/escalation systems.
+- Social and user features may generate reportable targets that feed these routes.
+
+## Known caveats
+
+- Final resolution and enforcement state is not exposed as a full non-admin workflow in current docs scope.
+- Operational escalation and privileged triage behavior is intentionally separated.
+
+## Exclusions
+
+- Admin/superadmin moderation actions, escalations, and enforcement controls are excluded.

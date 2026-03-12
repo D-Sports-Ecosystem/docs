@@ -1,0 +1,43 @@
+---
+title: "Social and locker room architecture"
+description: "Core models and backend flow for posts, comments, reactions, and follows."
+icon: "workflow"
+---
+
+## Primary backend components
+
+- `server/locker-room-actions.ts`
+- `server/reaction-actions.ts`
+- `server/team-follow-actions.ts`
+- `app/api/locker-room/route.ts`
+- `app/api/locker-room/[id]/comments/route.ts`
+- `app/api/locker-room/[id]/react/route.ts`
+- `app/api/user/follow/route.ts`
+- `app/api/user/followers/route.ts`
+
+## Core model touchpoints
+
+- `LockerRoomPost`
+- `LockerRoomPostComment`
+- `LockerRoomPostReaction`
+- `LockerRoomPostLike`
+- `UserFollow`
+- `TeamFollow`
+
+## High-level flow
+
+```mermaid
+flowchart LR
+  socialEvent[SocialEvent] --> postMutation[PostCommentReactionMutation]
+  socialEvent --> followMutation[FollowMutation]
+  postMutation --> socialModels[LockerRoomModels]
+  followMutation --> followModels[UserFollowAndTeamFollow]
+  socialModels --> feedRead[FeedAndThreadReads]
+  followModels --> recommendRead[FollowAndRecommendationReads]
+```
+
+## Architectural notes
+
+- Social endpoints combine immediate write paths with read endpoints for feed composition.
+- Stream endpoints support near-real-time update delivery patterns.
+- Social and follow features are separate model families that intersect through user identity.

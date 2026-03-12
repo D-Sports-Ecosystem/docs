@@ -1,0 +1,37 @@
+---
+title: "Auth and onboarding behavior"
+description: "Non-admin route behavior for auth-related profile and onboarding flows."
+icon: "list-checks"
+---
+
+## Main non-admin routes
+
+- `POST /api/user/profile`
+- `PATCH /api/user/profile`
+- `GET/POST /api/user/onboarding`
+- `POST /api/auth/native-token`
+- `POST /api/user/sync-clerk`
+
+## Runtime behavior highlights
+
+- Unauthenticated requests are rejected at route boundaries.
+- Profile updates upsert user records and persist profile fields.
+- Onboarding completion is idempotent and avoids duplicate onboarding reward entries.
+- Onboarding path can enroll users in global leaderboard and write initial points history.
+- Auth identity sync path updates app-side fields when identity provider data changes.
+
+## Common outputs and side effects
+
+- Updated user profile payloads
+- Onboarding completion state transitions
+- Conditional points history writes for onboarding reward
+- Cache revalidation for dashboard/leaderboard views after profile completion flows
+
+## Known caveats
+
+- Some onboarding and sync behavior depends on external auth provider availability.
+- Backfill scripts exist for historical onboarding and profile consistency corrections.
+
+## Exclusions
+
+- Admin role escalation and privileged identity management are not covered in this section.

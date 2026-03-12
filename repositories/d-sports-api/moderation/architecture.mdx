@@ -1,0 +1,33 @@
+---
+title: "Moderation and reporting architecture"
+description: "Backend architecture for user-facing reporting and moderation intake."
+icon: "workflow"
+---
+
+## Primary backend components
+
+- `server/moderation-actions.ts`
+- `app/api/feedback/bug-report/route.ts`
+- `app/api/feedback/native-crash/route.ts`
+
+## Core model touchpoints
+
+- `ModerationReport`
+- `ReportType`
+- `ReportStatus`
+
+## High-level flow
+
+```mermaid
+flowchart LR
+  userSubmission[UserSubmission] --> intakeRoute[FeedbackOrReportRoute]
+  intakeRoute --> reportWrite[ModerationReportWrite]
+  reportWrite --> statusLifecycle[ReportStatusLifecycle]
+  statusLifecycle --> downstreamReview[PrivilegedReviewSystems]
+```
+
+## Architectural notes
+
+- Non-admin routes focus on safe intake and structured report persistence.
+- Review, escalation, and resolution actions are downstream and generally privileged.
+- Feedback intake and moderation-report entities are related but may originate from separate route families.

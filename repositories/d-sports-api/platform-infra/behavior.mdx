@@ -1,0 +1,34 @@
+---
+title: "Platform and infrastructure behavior"
+description: "Runtime behavior for non-admin stream, sync, and maintenance-facing backend surfaces."
+icon: "list-checks"
+---
+
+## Representative non-admin platform routes
+
+- `GET /api/leaderboard/stream`
+- `GET /api/locker-room/stream`
+- `POST /api/cron/sync-trends`
+- feature-specific sync routes such as quest/leaderboard synchronization paths
+
+## Runtime behavior highlights
+
+- Stream routes deliver incremental updates and require reconnect-aware clients.
+- Sync routes refresh derived data used by dashboard and ranking experiences.
+- Maintenance scripts reconcile historical inconsistencies without changing primary route contracts.
+
+## Script categories in current backend
+
+- backfills (points, onboarding, packs, quests)
+- cleanup/deduplication tasks
+- repair scripts for ranking/order/state drift
+- seed and setup utilities
+
+## Known caveats
+
+- Script execution order matters for some repair workflows.
+- Stream routes are bounded by runtime constraints and should be treated as short-lived transport sessions.
+
+## Exclusions
+
+- Privileged admin operations and internal-only maintenance controls are excluded from this non-admin section.
