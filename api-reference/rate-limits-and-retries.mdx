@@ -1,0 +1,23 @@
+---
+title: "Rate limits and retries"
+description: "Practical retry guidance and request discipline for non-admin API consumers."
+---
+
+## Current guidance
+
+Non-admin API clients should assume conservative retry behavior:
+
+- Retry transient failures (`5xx`, transport timeouts) with exponential backoff.
+- Do not blind-retry writes unless route behavior is idempotent or guarded by server checks.
+- Avoid concurrent duplicate writes for the same user action.
+
+## Stream endpoints
+
+For SSE endpoints (leaderboard and locker room streams):
+
+- reconnect on disconnect with short backoff,
+- resume by re-fetching latest snapshot endpoints as needed.
+
+## Operational best practice
+
+Use client-side request deduplication and bounded retry budgets to prevent cascading failures.

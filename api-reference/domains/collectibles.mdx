@@ -1,0 +1,24 @@
+---
+title: "Collectibles and packs API"
+description: "Non-admin endpoint guide for packs, inventory, and collectible retrieval flows."
+---
+
+## Scope
+
+Collectibles APIs include pack browsing, purchase lifecycle, opening packs, and user inventory views.
+
+## Endpoint map
+
+- Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`
+- User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
+
+## Integration notes
+
+- Pack purchase and open are separate phases; preserve returned identifiers between calls.
+- Inventory endpoints should be refreshed after successful open/purchase mutations.
+
+## Deep-dive documentation
+
+- [Collectibles and packs overview](/repositories/d-sports-api/collectibles/index)
+- [Architecture](/repositories/d-sports-api/collectibles/architecture)
+- [Behavior](/repositories/d-sports-api/collectibles/behavior)

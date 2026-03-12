@@ -1,0 +1,26 @@
+---
+title: "Commerce and purchases API"
+description: "Non-admin endpoint guide for checkout, catalog, and D-Sports Cash purchase flows."
+---
+
+## Scope
+
+Commerce APIs cover checkout initiation/verification, catalog reads, and balance-aware purchase flows.
+
+## Endpoint map
+
+- Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`
+- Cash balance: `/api/dsports-cash`
+- Catalog: `/api/products`
+- Revenue webhooks (platform integration): `/api/webhooks/revenuecat`
+
+## Integration notes
+
+- Payment verification flows should be treated as asynchronous and failure-prone.
+- Use explicit item identifiers and quantity validation before checkout submission.
+
+## Deep-dive documentation
+
+- [Commerce and purchases overview](/repositories/d-sports-api/commerce/index)
+- [Architecture](/repositories/d-sports-api/commerce/architecture)
+- [Behavior](/repositories/d-sports-api/commerce/behavior)

@@ -11,12 +11,23 @@ The primary API and backend for the D-Sports platform is **[d-sports-api](/repos
 
 ## How this reference is built
 
-D-Sports Docs can show API reference in two ways:
+This API Reference uses a hybrid model:
 
-- **OpenAPI** — Add an OpenAPI spec (e.g. from d-sports-api) to `docs.json` or link to it; Mintlify generates interactive playground and docs from it.
-- **MDX** — Write endpoint pages manually with the `openapi` or `api` frontmatter field for small APIs or custom docs.
+- **OpenAPI endpoints** for broad, generated route coverage.
+- **Domain API guides** for workflow notes, caveats, and implementation context by backend domain.
 
-The **Endpoint examples** in the sidebar are real d-sports-api endpoints. They use the OpenAPI spec in `api-reference/openapi.json`, which documents leaderboard, teams, packs, locker room, follow, and RevenueCat webhook endpoints. For the full API surface and source, see the [d-sports-api](/repositories/d-sports-api) repo.
+Use the **API Fundamentals** section for authentication and error handling guidance, the **Domain API Guides** section for integration context, and the **Endpoints** section for generated request/response reference from `api-reference/openapi.json`.
+
+## Domain guides
+
+- [Auth and onboarding](/api-reference/domains/auth-onboarding)
+- [Social and locker room](/api-reference/domains/social-locker-room)
+- [Gamification](/api-reference/domains/gamification)
+- [Commerce and purchases](/api-reference/domains/commerce)
+- [Collectibles and packs](/api-reference/domains/collectibles)
+- [Wallet and web3](/api-reference/domains/wallet-web3)
+- [Moderation and reporting](/api-reference/domains/moderation)
+- [Platform and infrastructure](/api-reference/domains/platform-infra)
 
 ## Authentication
 

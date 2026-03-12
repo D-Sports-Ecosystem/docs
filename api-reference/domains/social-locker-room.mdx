@@ -1,0 +1,24 @@
+---
+title: "Social and locker room API"
+description: "Non-admin endpoint guide for feed, comments, reactions, and social graph APIs."
+---
+
+## Scope
+
+Social APIs power locker room activity and user-to-user interactions.
+
+## Endpoint map
+
+- Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
+- Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+
+## Integration notes
+
+- Read endpoints support pagination/query parameters; always pass explicit paging when available.
+- Mutations should handle auth failures and stale target IDs gracefully.
+
+## Deep-dive documentation
+
+- [Social and locker room overview](/repositories/d-sports-api/social-locker-room/index)
+- [Architecture](/repositories/d-sports-api/social-locker-room/architecture)
+- [Behavior](/repositories/d-sports-api/social-locker-room/behavior)

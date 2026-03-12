@@ -146,9 +146,25 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "API Fundamentals",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/authentication",
+              "api-reference/errors-and-status-codes",
+              "api-reference/rate-limits-and-retries"
+            ]
+          },
+          {
+            "group": "Domain API Guides",
+            "pages": [
+              "api-reference/domains/auth-onboarding",
+              "api-reference/domains/social-locker-room",
+              "api-reference/domains/gamification",
+              "api-reference/domains/commerce",
+              "api-reference/domains/collectibles",
+              "api-reference/domains/wallet-web3",
+              "api-reference/domains/moderation",
+              "api-reference/domains/platform-infra"
             ]
           },
           {

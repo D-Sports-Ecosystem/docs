@@ -1,0 +1,23 @@
+---
+title: "Moderation and reporting API"
+description: "Non-admin endpoint guide for user-facing reporting and moderation-adjacent submission APIs."
+---
+
+## Scope
+
+Current public, non-admin moderation-adjacent routes are primarily user report submission endpoints.
+
+## Endpoint map
+
+- Feedback and reports: `/api/feedback/bug-report`, `/api/feedback/native-crash`
+
+## Integration notes
+
+- These endpoints are write-oriented and should be called with validated, structured payloads.
+- For internal moderation tooling routes, refer to admin/private documentation (not public API reference).
+
+## Deep-dive documentation
+
+- [Moderation and reporting overview](/repositories/d-sports-api/moderation/index)
+- [Architecture](/repositories/d-sports-api/moderation/architecture)
+- [Behavior](/repositories/d-sports-api/moderation/behavior)

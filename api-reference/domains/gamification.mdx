@@ -1,0 +1,26 @@
+---
+title: "Gamification API"
+description: "Non-admin endpoint guide for quests, points-facing reads, leaderboards, and rewards."
+---
+
+## Scope
+
+Gamification APIs include quest progression, leaderboard reads/streams, rewards, and related user quest history.
+
+## Endpoint map
+
+- Quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
+- Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
+- Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
+- User quest history: `/api/user/completed-quests`
+
+## Integration notes
+
+- Leaderboard stream clients should reconnect with backoff and refresh snapshots.
+- Quest step completion can trigger side effects such as points history writes.
+
+## Deep-dive documentation
+
+- [Gamification overview](/repositories/d-sports-api/gamification/index)
+- [Architecture](/repositories/d-sports-api/gamification/architecture)
+- [Behavior](/repositories/d-sports-api/gamification/behavior)

@@ -1,0 +1,23 @@
+---
+title: "Errors and status codes"
+description: "Common status code semantics and error-handling expectations for non-admin API flows."
+---
+
+## Common status code patterns
+
+- `200` / `201`: successful read or mutation.
+- `400`: invalid payload or missing required fields.
+- `401`: authentication missing or invalid.
+- `404`: resource not found.
+- `409`: state conflict (when route-specific logic enforces uniqueness/state).
+- `500`: unexpected server-side failure.
+
+## Error handling guidance
+
+- Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
+- Surface response body messages in client logs for operational debugging.
+- Prefer route-specific error handling over global assumptions.
+
+## Where to verify
+
+Route-specific responses are defined in OpenAPI endpoint docs under the API Reference Endpoints group.

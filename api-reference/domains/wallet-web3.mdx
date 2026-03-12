@@ -1,0 +1,25 @@
+---
+title: "Wallet and web3 API"
+description: "Non-admin endpoint guide for wallet lifecycle, PIN, and chain price support APIs."
+---
+
+## Scope
+
+Wallet APIs manage user wallet registration, PIN validation, key retrieval flow, and pricing helpers.
+
+## Endpoint map
+
+- Wallet lifecycle: `/api/wallets` (GET/POST/DELETE)
+- Security flows: `/api/wallets/set-pin`, `/api/wallets/verify-pin`, `/api/wallets/private-key`
+- Prices: `/api/wallets/coin-prices`, `/api/crypto-prices`
+
+## Integration notes
+
+- Treat all private-key and PIN operations as sensitive user actions.
+- Pair price lookup APIs with freshness indicators on the client side.
+
+## Deep-dive documentation
+
+- [Wallet and web3 overview](/repositories/d-sports-api/wallet-web3/index)
+- [Architecture](/repositories/d-sports-api/wallet-web3/architecture)
+- [Behavior](/repositories/d-sports-api/wallet-web3/behavior)

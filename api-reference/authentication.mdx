@@ -1,0 +1,23 @@
+---
+title: "Authentication"
+description: "Authentication model for non-admin API endpoints in d-sports-api."
+---
+
+## Auth model
+
+Most non-admin API endpoints use Clerk-backed bearer authentication.
+
+- Send `Authorization: Bearer <token>` for protected routes.
+- Public routes explicitly set no auth requirement.
+- Webhook routes can use separate auth schemes (for example shared secrets).
+
+## In OpenAPI
+
+The primary scheme is `bearerAuth` in `api-reference/openapi.json`.
+
+Use the Endpoints section in API Reference to verify per-route security requirements.
+
+## Related docs
+
+- [API introduction](/api-reference/introduction)
+- [d-sports-api backend overview](/repositories/d-sports-api)

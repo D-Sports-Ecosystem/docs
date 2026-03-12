@@ -1,0 +1,25 @@
+---
+title: "Platform and infrastructure API"
+description: "Non-admin endpoint guide for platform utility endpoints and public infrastructure-facing routes."
+---
+
+## Scope
+
+Platform APIs include utility routes that support app infrastructure or cross-domain behavior.
+
+## Endpoint map
+
+- Utility and media: `/api/image-proxy`, `/api/upload/banner`
+- Platform status/data surfaces: `/api/dashboard`, `/api/dashboard/stats`, `/api/dashboard/balance`, `/api/dashboard/quests`
+- Maintenance utility: `/api/sync-quest-points`
+
+## Integration notes
+
+- Some utility routes are intended for specific client contexts; avoid treating all as generic public services.
+- Keep route usage aligned with deep-dive operational guidance.
+
+## Deep-dive documentation
+
+- [Platform and infrastructure overview](/repositories/d-sports-api/platform-infra/index)
+- [Architecture](/repositories/d-sports-api/platform-infra/architecture)
+- [Behavior](/repositories/d-sports-api/platform-infra/behavior)
