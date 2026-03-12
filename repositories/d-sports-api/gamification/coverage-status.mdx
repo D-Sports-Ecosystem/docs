@@ -1,0 +1,51 @@
+---
+title: "Gamification coverage status"
+description: "Tracking what is documented vs not yet documented for non-admin gamification."
+icon: "clipboard-list"
+---
+
+## Coverage summary
+
+This page tracks documentation completeness for non-admin gamification features in `d-sports-api`.
+
+## Documented now
+
+- Architecture overview and data model relationships.
+- Quests:
+  - core lifecycle
+  - step completion behavior
+  - action-based progress checks
+  - public/non-admin quest routes
+- Points:
+  - primary write paths
+  - points history schema semantics
+  - Season 0.5 board/season scoping behavior
+- Leaderboards:
+  - team vs global resolution behavior
+  - season-scoped aggregation behavior
+  - public leaderboard route modes
+- Rewards:
+  - availability/claim/redeem behavior
+  - non-admin reward endpoints
+- Achievements:
+  - current limited scope and constraints
+
+## Intentionally excluded from this section
+
+- Admin and superadmin-specific flows.
+- Operational or privileged overrides not used by regular product users.
+- Full platform areas outside gamification (social, commerce, web3 wallet, moderation).
+
+## Not yet documented in full detail
+
+- End-to-end sequence diagrams per individual route.
+- Full request/response examples for every endpoint (API reference remains source for full schema).
+- Background maintenance script runbooks and incident playbooks.
+- Formal migration history timeline across all historical seasons.
+- Cross-client behavior matrix (web vs native) for each gamification endpoint.
+
+## Next expansion candidates
+
+1. Add route-by-route examples for non-admin gamification endpoints.
+2. Add troubleshooting and "why points do not appear" playbook.
+3. Add explicit client integration guides for app and native surfaces.

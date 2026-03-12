@@ -1,0 +1,41 @@
+---
+title: "Quests"
+description: "Quest lifecycle, step progression, and completion behavior."
+icon: "list-checks"
+---
+
+## Quest API surface (non-admin)
+
+- `GET /api/quests`: fetch active quests.
+- `POST /api/quests/start`: start a quest for a user.
+- `POST /api/quests/complete-step`: mark a step complete and award step points.
+- `POST /api/quests/check-progress`: trigger action-based progression checks.
+- `POST /api/quests/daily-visit`: complete the daily dashboard visit quest.
+- `GET /api/user/completed-quests`: read quest-related completion history from points records.
+
+## Lifecycle
+
+1. Quest definitions come from `Quest` + ordered `QuestStep`.
+2. User progress is stored in `UserQuestStatus` + `UserStepStatus`.
+3. Completing a step writes points immediately (if step has points).
+4. Quest is marked complete only after all required steps are completed.
+
+## Action-based progression checks
+
+`checkAndCompleteQuestProgress()` evaluates user actions and conditionally completes steps.
+
+Current checks include:
+
+- Follow user
+- Upload profile picture
+- Choose favorite team
+- Complete profile
+- Get followers
+- Join leaderboard
+- Earn points threshold
+- Reach leaderboard rank threshold
+
+## Known caveats
+
+- Some step resolution currently relies on matching step titles. This is fragile if copy changes.
+- A future stable step code pattern is preferred for long-term reliability.

@@ -1,0 +1,40 @@
+---
+title: "Points"
+description: "How points are written, stored, and surfaced to users."
+icon: "coins"
+---
+
+## Points source of truth
+
+`PointsHistory` is the append-only ledger for awarded points.
+
+Common point write paths:
+
+- Quest step completion
+- Daily quest completion
+- Onboarding completion
+- Backfill/fix scripts
+
+## Points record fields
+
+Key fields in `PointsHistory`:
+
+- `userId`
+- `points`
+- `reason`
+- `timestamp`
+- `questId` (optional)
+- `leaderboardId` (optional; Season 0.5 scoping)
+- `seasonId` (optional; Season 0.5 scoping)
+
+## Read behavior
+
+- User totals are typically aggregated from `PointsHistory`.
+- Completed quest history endpoint derives quest-oriented history from points records.
+- Leaderboard APIs aggregate from points history with season/board scoping logic.
+
+## Migration-era behavior
+
+- Legacy Season 0 rows may have null `leaderboardId` and `seasonId`.
+- Season 0.5+ writes should include scoping data where available.
+- Some migration/backfill paths intentionally retain nullable board scope with TODO notes.

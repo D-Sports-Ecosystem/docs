@@ -1,0 +1,37 @@
+---
+title: "Leaderboards"
+description: "Team and global leaderboard behavior with season-scoped scoring."
+icon: "medal"
+---
+
+## Board types
+
+- **Team boards**: non-global boards tied to a team.
+- **Global board**: single global board aggregating active-season scoring.
+
+## Resolution behavior
+
+`GET /api/leaderboard` supports:
+
+- `?leaderboardId=<id>` for direct board lookup.
+- `?teamId=<teamId>` to resolve/create the team board.
+- no params for global board behavior.
+
+## Scoring behavior in Season 0.5
+
+- Team boards aggregate `PointsHistory` by:
+  - matching active `seasonId`
+  - matching requested board `leaderboardId`
+- Global board aggregates by:
+  - matching active `seasonId` only
+
+## Enrollment and write behavior
+
+- Some flows enroll users on global board paths.
+- `getUserLeaderboards()` currently returns global board IDs only in current implementation.
+- Points writes should include board + season scope when context is available.
+
+## Notes
+
+- Stream/search/stats leaderboard routes are available for consumption use cases.
+- Reset and archive lifecycle routes exist but are not covered in this non-admin gamification deep dive.

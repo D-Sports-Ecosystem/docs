@@ -1,0 +1,31 @@
+---
+title: "Rewards"
+description: "Reward catalog, unlock checks, claim flow, and redeem flow."
+icon: "gift"
+---
+
+## Reward surface (non-admin)
+
+- `GET /api/rewards`: list active rewards with user-aware unlock state.
+- `POST /api/rewards/claim`: claim a reward when requirements are met.
+- `POST /api/rewards/redeem`: redeem a previously claimed reward.
+
+## Data model
+
+- `Reward`: reward catalog entries (`pointsRequired`, `itemType`, active state).
+- `UserReward`: claim/redeem state per user and reward.
+
+## Runtime behavior
+
+- Availability uses current user points and reward status.
+- Claim checks:
+  - reward exists and is active
+  - user has enough points
+  - reward not already claimed
+- Redeem checks:
+  - reward is already claimed
+  - reward is not already redeemed
+
+## Implementation note
+
+There are multiple reward-related server files in the codebase; API routes should be treated as the runtime behavior source for product docs in this section.

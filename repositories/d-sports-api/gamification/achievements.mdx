@@ -1,0 +1,25 @@
+---
+title: "Achievements"
+description: "Current achievement behavior and limitations in d-sports-api."
+icon: "badge-check"
+---
+
+## Current state
+
+Achievement support is currently narrower than quests/points/leaderboards/rewards.
+
+Documented behavior includes:
+
+- Achievement order persistence/update via server action.
+- Static helper usage for specific achievement checks in utility code.
+
+## What this means for integrators
+
+- Treat achievements as profile-associated metadata and ordering behavior today.
+- Do not assume a full standalone achievement API surface exists yet.
+
+## Planned expansion areas (documentation placeholders)
+
+- Achievement award triggers by gameplay event type.
+- Achievement API surface (if introduced).
+- Badge rendering and client consumption contracts.

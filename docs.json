@@ -35,6 +35,24 @@
             "group": "Repositories",
             "pages": [
               "repositories/d-sports-api",
+              {
+                "group": "d-sports-api deep dives",
+                "pages": [
+                  "repositories/d-sports-api/gamification/index",
+                  {
+                    "group": "Gamification architecture",
+                    "pages": [
+                      "repositories/d-sports-api/gamification/architecture-overview",
+                      "repositories/d-sports-api/gamification/quests",
+                      "repositories/d-sports-api/gamification/points",
+                      "repositories/d-sports-api/gamification/leaderboards",
+                      "repositories/d-sports-api/gamification/rewards",
+                      "repositories/d-sports-api/gamification/achievements"
+                    ]
+                  },
+                  "repositories/d-sports-api/gamification/coverage-status"
+                ]
+              },
               "repositories/d-sports-site",
               "repositories/d-sports-engage-native",
               "repositories/d-sports-mic-d-up"
