@@ -15,6 +15,7 @@
     { "name": "Logout", "description": "Session logout" },
     { "name": "Mobile auth", "description": "OAuth flow for native apps" },
     { "name": "Teams", "description": "Teams list and follow/unfollow" },
+    { "name": "Leagues", "description": "Leagues list and metadata" },
     { "name": "Leaderboard", "description": "Leaderboards, seasons, winners, stats" },
     { "name": "Locker room", "description": "Social feed posts, comments, reactions" },
     { "name": "Packs", "description": "Packs list, purchase, open" },
@@ -157,6 +158,61 @@
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues", "Platform and infrastructure"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with colors, metadata, and team counts. Optionally filter by country (case-insensitive).",
+        "parameters": [
+          { "name": "country", "in": "query", "description": "Filter leagues by country (case-insensitive).", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { leagues } }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "leagues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "slug": { "type": "string" },
+                              "name": { "type": "string" },
+                              "fullName": { "type": "string", "nullable": true },
+                              "country": { "type": "string" },
+                              "logo": { "type": "string", "nullable": true },
+                              "logoFormat": { "type": "string", "nullable": true },
+                              "colors": { "type": "object", "description": "League brand colors." },
+                              "source": { "type": "string", "nullable": true },
+                              "createdAt": { "type": "string", "format": "date-time" },
+                              "updatedAt": { "type": "string", "format": "date-time" },
+                              "_count": {
+                                "type": "object",
+                                "properties": { "teams": { "type": "integer" } }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Failed to list leagues" }
+        }
       }
     },
     "/api/leaderboard": {
