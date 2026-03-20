@@ -1,7 +1,43 @@
 ---
 title: "Errors and status codes"
-description: "Common status code semantics and error-handling expectations for non-admin API flows."
+description: "Common status code semantics, the standardized response envelope, and error-handling expectations for non-admin API flows."
 ---
+
+## Response envelope
+
+API routes are being migrated to a standardized JSON envelope. Endpoints that have been migrated return responses in this shape:
+
+### Success
+
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
+
+### Error
+
+```json
+{
+  "success": false,
+  "error": "Human-readable message",
+  "code": "MACHINE_READABLE_CODE"
+}
+```
+
+**Common error codes:**
+
+| Code | Meaning |
+|------|---------|
+| `UNAUTHORIZED` | Authentication is missing or the token is invalid. |
+| `VALIDATION_ERROR` | The request is missing required fields or contains invalid values. |
+| `NOT_FOUND` | The requested resource does not exist. |
+| `INTERNAL_ERROR` | An unexpected server-side failure occurred. |
+
+<Note>
+Not every endpoint has been migrated yet. Some routes still return ad-hoc JSON shapes. Always check the `success` field first — if it is present, you can rely on the envelope format above.
+</Note>
 
 ## Common status code patterns
 
@@ -14,6 +50,8 @@ description: "Common status code semantics and error-handling expectations for n
 
 ## Error handling guidance
 
+- Check the `success` field to determine whether the request succeeded.
+- Use the `code` field for programmatic error handling and the `error` field for user-facing messages.
 - Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
 - Surface response body messages in client logs for operational debugging.
 - Prefer route-specific error handling over global assumptions.
