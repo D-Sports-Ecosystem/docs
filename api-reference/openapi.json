@@ -511,6 +511,40 @@
         "responses": { "200": { "description": "{ users, total, page, totalPages, query }" } }
       }
     },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List all community users",
+        "description": "Returns a paginated list of all onboarded community users. Each user includes follower count and total leaderboard points. Rate-limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "description": "Maximum number of users to return (1–100, default 50).", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 } },
+          { "name": "excludeFollowing", "in": "query", "description": "When `true`, excludes users the caller already follows.", "schema": { "type": "string", "enum": ["true", "false"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limit exceeded. Retry after the number of seconds in the Retry-After header." },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Checks whether a username (handle) is available. Performs a case-insensitive lookup. No authentication required.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "description": "The username to check.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success: true, data: { available: boolean } }" },
+          "400": { "description": "Username query parameter is missing" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/api/user/top-users": {
       "get": {
         "tags": ["User"],
@@ -1070,6 +1104,44 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create Thirdweb auth link",
+        "description": "Creates a Thirdweb authentication link for the current user's session. Used during Web3 wallet linking.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": { "payload": { "type": "string", "description": "Thirdweb authentication payload." } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ userId, email }" },
+          "400": { "description": "Payload is missing or falsy" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Get product-to-entitlement mapping",
+        "description": "Returns the mapping of RevenueCat product IDs to entitlements (D-Sports Cash tiers and Frontline Pass). No authentication required.",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success: true, data: { mappings: [{ productId, entitlement, metadata }] } }" },
+          "500": { "description": "Internal server error" }
+        }
       }
     }
   },
