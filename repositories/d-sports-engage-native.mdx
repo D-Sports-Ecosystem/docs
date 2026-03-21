@@ -33,10 +33,76 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## API client architecture
+
+All backend communication flows through a shared API client in `lib/api/`. The client automatically injects Clerk auth tokens and parses the normalized response envelope used by `d-sports-api`.
+
+### Normalized response envelope
+
+Every API response is unwrapped into a standard `ApiResponse<T>` shape:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string; // machine-readable error code from the backend
+}
+```
+
+The client detects whether a response uses the `{ success, data }` envelope or a legacy bare JSON body and normalizes both into `ApiResponse<T>`. On non-2xx responses the client extracts `error` and `code` fields from the body when available.
+
+### API modules
+
+You access all modules through the `useApi()` hook:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+const api = useApi();
+const result = await api.leaderboard.getLeaderboard();
+if (result.success) {
+  console.log(result.data);
+}
+```
+
+| Module | File | Endpoints |
+| --- | --- | --- |
+| **User** | `user-api.ts` | Profile, stats, follow/unfollow |
+| **Leaderboard** | `leaderboard-api.ts` | Rankings, stats, search, seasons, winners |
+| **Quests** | `quests-api.ts` | Quest list, start, complete step, daily visit, rewards |
+| **Collectibles** | `collectibles-api.ts` | Packs, purchase, open, inventory, opened packs |
+| **Wallet** | `wallet-api.ts` | Balances, transactions, connected wallets |
+| **Shop** | `shop-api.ts` | Product catalog and featured items |
+| **Locker room** | `locker-room-api.ts` | Social feed, posts, comments |
+| **Teams** | `teams-api.ts` | Team listings and membership |
+| **Checkout** | `checkout-api.ts` | Crypto checkout and verification |
+
+### MMKV cache layer
+
+The client includes a cache-first fetching utility (`lib/api/cache.ts`) backed by MMKV. Each domain has a configured TTL (for example, 2 minutes for leaderboard and quests, 5 minutes for teams). Stale cache entries are served as a fallback when the network request fails.
+
+## Environment variables
+
+Set these in your `.env` (or Expo config) before running the app:
+
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | Base URL for the d-sports-api backend |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| `EXPO_PUBLIC_THIRDWEB_CLIENT_ID` | Thirdweb client ID for web3 features |
+| `EXPO_PUBLIC_REVENUECAT_APPLE_KEY` | RevenueCat Apple API key |
+| `EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY` | RevenueCat Google API key |
+| `EXPO_PUBLIC_SENTRY_DSN` | Sentry DSN for error tracking |
+
+<Note>
+  On Android emulators the client automatically rewrites `localhost` / `127.0.0.1` in `EXPO_PUBLIC_API_URL` to `10.0.2.2` so requests reach the host machine.
+</Note>
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the values above.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
