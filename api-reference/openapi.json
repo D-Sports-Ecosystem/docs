@@ -27,6 +27,7 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Leagues", "description": "Leagues and league sync" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -1071,6 +1072,78 @@
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues", "Platform and infrastructure"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with team counts. Optionally filter by country.",
+        "parameters": [
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive country filter." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { leagues } }" },
+          "500": { "description": "Failed to list leagues" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List community users",
+        "description": "Paginated list of onboarded users with stats. Rate-limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 }, "description": "Max users to return (1–100)." },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "Exclude users the caller already follows." }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { users, total } }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limited" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Returns whether a handle is available. Used during onboarding and profile editing.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { available: boolean } }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns product-to-entitlement mapping for D-Sports Cash tiers and Frontline Pass. Consumed by RevenueCat for in-app purchase resolution.",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { mappings: [{ productId, entitlement, metadata }] } }" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks", "Leagues"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by GitHub Actions on push to the leagues repo. Runs a full leagues synchronization.",
+        "security": [{ "leaguesWebhookSecret": [] }],
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Sync failed" }
+        }
+      }
     }
   },
   "components": {
@@ -1084,6 +1157,12 @@
         "type": "http",
         "scheme": "bearer",
         "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+      },
+      "leaguesWebhookSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-webhook-secret",
+        "description": "LEAGUES_WEBHOOK_SECRET for /api/webhooks/leagues-sync."
       }
     }
   }
