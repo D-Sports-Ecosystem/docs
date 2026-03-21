@@ -682,7 +682,11 @@
         "description": "Query: category (optional) for QuestCategory; else active quests.",
         "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests, currentUserId }" }, "401": { "description": "Authentication required" } }
+        "responses": {
+          "200": { "description": "{ quests, currentUserId }" },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/quests/start": {
@@ -697,7 +701,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "responses": {
+          "200": { "description": "{ quest, success }" },
+          "400": { "description": "Quest ID is required (VALIDATION_ERROR). Domain errors from the action layer preserve their original status." },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/quests/complete-step": {
@@ -718,7 +727,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, pointsAwarded, questCompleted }" } }
+        "responses": {
+          "200": { "description": "{ success, pointsAwarded, questCompleted }" },
+          "400": { "description": "Quest ID and Step ID are required (VALIDATION_ERROR)" },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/quests/daily-visit": {
@@ -726,7 +740,12 @@
         "tags": ["Quests"],
         "summary": "Daily visit",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Daily visit result" } }
+        "responses": {
+          "200": { "description": "Daily visit result" },
+          "400": { "description": "Not eligible for daily visit (QUEST_DAILY_VISIT_NOT_ELIGIBLE)" },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/quests/check-progress": {
@@ -741,7 +760,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success, status, actionStatus }" },
+          "400": { "description": "A valid questType is required (VALIDATION_ERROR)" },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/rewards": {
@@ -749,7 +773,11 @@
         "tags": ["Rewards", "Gamification"],
         "summary": "List rewards",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ rewards, currentUserId }" } }
+        "responses": {
+          "200": { "description": "{ rewards, currentUserId }" },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/rewards/claim": {
@@ -764,7 +792,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
+        "responses": {
+          "200": { "description": "{ reward, success }" },
+          "400": { "description": "Reward ID is required (VALIDATION_ERROR). Domain errors from the action layer preserve their original status." },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/rewards/redeem": {
@@ -779,7 +812,14 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
+        "responses": {
+          "200": { "description": "{ reward, success }" },
+          "400": { "description": "Reward ID is required (VALIDATION_ERROR). Domain errors from the action layer preserve their original status." },
+          "401": { "description": "Authentication required (UNAUTHORIZED)" },
+          "404": { "description": "Reward not found (NOT_FOUND)" },
+          "409": { "description": "Reward already redeemed or must be claimed first (CONFLICT)" },
+          "500": { "description": "Unexpected server error (INTERNAL_ERROR)" }
+        }
       }
     },
     "/api/wallets": {
