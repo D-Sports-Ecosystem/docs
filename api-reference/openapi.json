@@ -14,7 +14,7 @@
     { "name": "Auth", "description": "Authentication and token exchange" },
     { "name": "Logout", "description": "Session logout" },
     { "name": "Mobile auth", "description": "OAuth flow for native apps" },
-    { "name": "Teams", "description": "Teams list and follow/unfollow" },
+    { "name": "Teams", "description": "Teams, leagues, and follow/unfollow" },
     { "name": "Leaderboard", "description": "Leaderboards, seasons, winners, stats" },
     { "name": "Locker room", "description": "Social feed posts, comments, reactions" },
     { "name": "Packs", "description": "Packs list, purchase, open" },
@@ -26,7 +26,7 @@
     { "name": "D-Sports Cash", "description": "D-Sports Cash balance" },
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
-    { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Webhooks", "description": "RevenueCat and leagues sync webhooks" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -157,6 +157,16 @@
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with team counts, colors, and metadata. Optionally filter by country.",
+        "parameters": [{ "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Filter by country (case-insensitive)." }],
+        "security": [],
+        "responses": { "200": { "description": "{ success, data: { leagues } }" } }
       }
     },
     "/api/leaderboard": {
@@ -511,6 +521,19 @@
         "responses": { "200": { "description": "{ users, total, page, totalPages, query }" } }
       }
     },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Checks whether a handle/username is available. Case-insensitive lookup.",
+        "parameters": [{ "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The username to check." }],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { available: boolean } }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
     "/api/user/top-users": {
       "get": {
         "tags": ["User"],
@@ -786,75 +809,232 @@
       "get": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "List wallets",
+        "description": "Returns all wallets belonging to the authenticated user.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ wallets }" } }
+        "responses": {
+          "200": { "description": "{ success, data: { wallets } }" },
+          "401": { "description": "Unauthorized" }
+        }
       },
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "Add wallet",
+        "description": "Creates a new wallet. The address is normalized to lowercase and validated as a hex Ethereum address (0x + 40 hex chars).",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["address", "encryptedPrivateKey"],
                 "properties": {
-                  "address": { "type": "string" },
-                  "encryptedPrivateKey": { "type": "string" }
+                  "address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Ethereum address. Normalized to lowercase on the server." },
+                  "encryptedPrivateKey": { "type": "string", "description": "Client-side encrypted private key." }
                 }
               }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ wallet }" } }
+        "responses": {
+          "201": { "description": "{ success, data: { wallet } }" },
+          "400": { "description": "Validation error — missing fields or invalid address format" },
+          "401": { "description": "Unauthorized" }
+        }
       },
       "delete": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "Remove wallet",
+        "description": "Deletes a wallet by address. The address is normalized to lowercase before lookup.",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "address": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Ethereum address to remove. Normalized to lowercase." }
+                }
+              }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ message }" } }
+        "responses": {
+          "200": { "description": "{ success, data: { message } }" },
+          "400": { "description": "Validation error — missing address or invalid format" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     },
     "/api/wallets/set-pin": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Set PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "summary": "Set wallet PIN",
+        "description": "Sets or updates the 6-digit PIN for a wallet.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["walletId", "pin"],
+                "properties": {
+                  "walletId": { "type": "string", "description": "ID of the wallet to set the PIN for." },
+                  "pin": { "type": "string", "pattern": "^\\d{6}$", "description": "Exactly 6 digits." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success, data: { pinSet: true } }" },
+          "400": { "description": "Validation error — missing fields or PIN not 6 digits" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     },
     "/api/wallets/verify-pin": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Verify PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "summary": "Verify wallet PIN",
+        "description": "Verifies the 6-digit PIN for a wallet before sensitive operations.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["walletId", "pin"],
+                "properties": {
+                  "walletId": { "type": "string", "description": "ID of the wallet to verify." },
+                  "pin": { "type": "string", "pattern": "^\\d{6}$", "description": "Exactly 6 digits." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success, data: { verified: boolean } }" },
+          "400": { "description": "Validation error — missing fields or PIN not 6 digits" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     },
     "/api/wallets/private-key": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "Get private key",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "description": "Returns the encrypted private key for a wallet. Only the wallet owner can access it. The address is normalized to lowercase before lookup.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Ethereum address. Normalized to lowercase." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success, data: { privateKey } }" },
+          "400": { "description": "Validation error — missing address or invalid format" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Wallet not found" }
+        }
       }
     },
     "/api/wallets/coin-prices": {
       "get": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "Get coin prices",
+        "description": "Returns real-time cryptocurrency prices from CoinMarketCap for supported coins (BTC, ETH, DOGE, SOL, XRP, DOT, USDC, USDT, BNB, POL, WBTC).",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Coin prices" } }
+        "responses": { "200": { "description": "Coin prices with 24h change data" } }
+      }
+    },
+    "/api/pregen-wallet": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Pregenerate in-app wallet",
+        "description": "Admin-only. Triggers pregeneration of a Thirdweb in-app wallet for a user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": { "type": "string", "description": "Target user ID (optional)." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message: 'Wallet pregeneration successful' }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create Thirdweb link",
+        "description": "Creates a Thirdweb session link for the authenticated user. Returns the user identity for wallet binding.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": {
+                  "payload": { "type": "string", "description": "Thirdweb link payload." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ userId, email }" },
+          "400": { "description": "Missing payload" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb proxy (GET)",
+        "description": "Proxies GET requests to allowed Thirdweb upstream URLs (RPC and embedded wallet endpoints).",
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Upstream Thirdweb URL to proxy." }],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied response" },
+          "400": { "description": "Invalid or missing url" }
+        }
+      },
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb proxy (POST)",
+        "description": "Proxies POST requests to allowed Thirdweb upstream URLs.",
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Upstream Thirdweb URL to proxy." }],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied response" },
+          "400": { "description": "Invalid or missing url" }
+        }
       }
     },
     "/api/checkout/crypto": {
@@ -1016,6 +1196,18 @@
           }
         },
         "responses": { "200": { "description": "{ received: true }" } }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks", "Platform and infrastructure"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by external CI on push to the leagues data repo. Requires x-webhook-secret header.",
+        "security": [{ "webhookSecret": [] }],
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "401": { "description": "Invalid webhook secret" }
+        }
       }
     },
     "/api/image-proxy": {
