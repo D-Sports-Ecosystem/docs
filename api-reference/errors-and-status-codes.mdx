@@ -1,22 +1,60 @@
 ---
 title: "Errors and status codes"
-description: "Common status code semantics and error-handling expectations for non-admin API flows."
+description: "Response envelope format, status codes, and machine-readable error codes used across the D-Sports API."
 ---
+
+## Response envelope
+
+All JSON endpoints use a standard envelope. SSE streams (`text/event-stream`) are the only exception.
+
+### Success
+
+```json
+{
+  "success": true,
+  "data": { … }
+}
+```
+
+The `data` field contains the route-specific payload.
+
+### Error
+
+```json
+{
+  "success": false,
+  "error": "Human-readable message",
+  "code": "MACHINE_READABLE_CODE"
+}
+```
+
+## Error codes
+
+| Code | HTTP status | Meaning |
+|------|-------------|---------|
+| `UNAUTHORIZED` | 401 | Authentication missing or invalid. |
+| `NOT_FOUND` | 404 | Requested resource does not exist. |
+| `VALIDATION_ERROR` | 400 | Invalid payload or missing required fields. |
+| `FORBIDDEN` | 403 | Authenticated but lacking permission (e.g. admin-only). |
+| `CONFLICT` | 409 | State conflict such as a duplicate handle. |
+| `INTERNAL_ERROR` | 500 | Unexpected server-side failure. |
 
 ## Common status code patterns
 
 - `200` / `201`: successful read or mutation.
-- `400`: invalid payload or missing required fields.
-- `401`: authentication missing or invalid.
-- `404`: resource not found.
-- `409`: state conflict (when route-specific logic enforces uniqueness/state).
-- `500`: unexpected server-side failure.
+- `400`: invalid payload or missing required fields (`VALIDATION_ERROR`).
+- `401`: authentication missing or invalid (`UNAUTHORIZED`).
+- `403`: insufficient permissions (`FORBIDDEN`).
+- `404`: resource not found (`NOT_FOUND`).
+- `409`: state conflict (`CONFLICT`).
+- `500`: unexpected server-side failure (`INTERNAL_ERROR`).
 
 ## Error handling guidance
 
+- Check the top-level `success` field before reading `data`.
+- Use the `code` field for programmatic error handling; use `error` for display.
 - Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
-- Surface response body messages in client logs for operational debugging.
-- Prefer route-specific error handling over global assumptions.
+- Surface `error` messages in client logs for operational debugging.
 
 ## Where to verify
 
