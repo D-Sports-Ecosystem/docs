@@ -396,29 +396,90 @@
       "get": {
         "tags": ["User"],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile.",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. All responses use the standard envelope.",
         "parameters": [
           { "name": "suggest", "in": "query", "schema": { "type": "string" } },
           { "name": "id", "in": "query", "schema": { "type": "string" } },
           { "name": "handle", "in": "query", "schema": { "type": "string" } }
         ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "User object or suggestions array" }, "401": { "description": "Unauthorized" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <user | suggestions[]> }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "patch": {
         "tags": ["User"],
         "summary": "Update user",
-        "description": "Body: user fields to update.",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "description": "Update current user fields. Accepts name, handle, location, favoriteSport, favoriteTeam, profileUrl, favoritePlayer, rivalTeam.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "handle": { "type": "string" },
+                  "location": { "type": "string" },
+                  "favoriteSport": { "type": "string" },
+                  "favoriteTeam": { "type": "string" },
+                  "favoritePlayer": { "type": "string" },
+                  "rivalTeam": { "type": "string" },
+                  "profileUrl": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Updated user" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <updatedUser> }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List all onboarded users",
+        "description": "Returns a paginated list of all onboarded users. Optionally excludes users the caller already follows.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 } },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true, data: { users, total } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "429": { "description": "{ success: false, error, code: 'RATE_LIMITED' }" },
+          "500": { "description": "{ success: false, error, code: 'FETCH_USERS_ERROR' }" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check username availability",
+        "description": "Returns whether the given username is available for registration. No authentication required.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success: true, data: { available: boolean } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/profile": {
-      "get": { "tags": ["User"], "summary": "Get profile", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Profile" } } },
       "patch": {
         "tags": ["User"],
         "summary": "Update profile",
+        "description": "Update profile images and theme. Accepts bannerUrl, profileUrl, and userTheme.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -430,15 +491,42 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { user } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["User"],
         "summary": "Create/onboard profile",
-        "description": "Onboarding payload.",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "description": "Onboarding payload. Creates the user profile, initialises leaderboard entry, and syncs quest points.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "handle": { "type": "string" },
+                  "profileUrl": { "type": "string" },
+                  "location": { "type": "string" },
+                  "favoriteSport": { "type": "string" },
+                  "favoriteTeam": { "type": "string" },
+                  "favoritePlayer": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user, ... }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { user, updatedProfile, leaderboardEntry, pointsHistory, questSync } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "409": { "description": "{ success: false, error, code: 'CONFLICT' } — handle already taken" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/onboarding": {
@@ -446,13 +534,21 @@
         "tags": ["User"],
         "summary": "Get onboarding status",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data: { isComplete } }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { isComplete: boolean } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["User"],
         "summary": "Complete onboarding",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data: { completed } }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { completed: true } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/follow": {
@@ -461,7 +557,12 @@
         "summary": "Check follow status",
         "parameters": [{ "name": "targetUserId", "in": "query", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ isFollowing }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { isFollowing: boolean } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["User"],
@@ -474,92 +575,143 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, follow, counts }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { follow, counts: { targetUserFollowers, currentUserFollowing } } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' } — missing ID, self-follow, or already following" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "delete": {
         "tags": ["User"],
         "summary": "Unfollow user",
         "parameters": [{ "name": "targetUserId", "in": "query", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, counts }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { counts: { targetUserFollowers, currentUserFollowing } } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/followers": {
       "get": {
         "tags": ["User"],
         "summary": "List followers/following",
+        "description": "Returns a paginated list of followers or following for a user. Defaults to the authenticated user's followers.",
         "parameters": [
-          { "name": "userId", "in": "query", "schema": { "type": "string" } },
-          { "name": "type", "in": "query", "schema": { "type": "string" } },
-          { "name": "page", "in": "query", "schema": { "type": "integer" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+          { "name": "userId", "in": "query", "schema": { "type": "string" }, "description": "Target user ID. Defaults to authenticated user." },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["followers", "following"], "default": "followers" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
         ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total, page, totalPages }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { users, total, page, totalPages } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/search": {
       "get": {
         "tags": ["User"],
         "summary": "Search users",
+        "description": "Full-text search across user name, handle, and bio. Returns paginated results with follower stats.",
         "parameters": [
-          { "name": "q", "in": "query", "schema": { "type": "string" } },
-          { "name": "page", "in": "query", "schema": { "type": "integer" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
         ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total, page, totalPages, query }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { users, total, page, totalPages, query } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/top-users": {
       "get": {
         "tags": ["User"],
         "summary": "Top users",
-        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
+        "description": "Returns top users by points.",
+        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <topUsers> }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/recommended": {
       "get": {
         "tags": ["User"],
         "summary": "Recommended users",
-        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
+        "description": "Returns recommended users based on shared interests (favorite team, sport, location). Each user includes a matchScore.",
+        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { users, total } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "429": { "description": "{ success: false, error, code: 'RATE_LIMITED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/toggle-star": {
       "post": {
         "tags": ["User"],
         "summary": "Toggle star",
+        "description": "Star or un-star another user. Returns the new starred state.",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "starReceiverId": { "type": "string" } } }
+              "schema": { "type": "object", "required": ["starReceiverId"], "properties": { "starReceiverId": { "type": "string" } } }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Toggle result" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { starred: boolean } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/star-status": {
       "get": {
         "tags": ["User"],
         "summary": "Get star status",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
+        "description": "Check whether the authenticated user has starred the given user.",
+        "parameters": [{ "name": "userId", "in": "query", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Star status" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { starred: boolean } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/isOnboarded": {
       "get": {
         "tags": ["User"],
         "summary": "Check onboarded",
+        "description": "Returns whether a user has completed onboarding. Pass id for any user; omit for the authenticated user.",
         "parameters": [{ "name": "id", "in": "query", "schema": { "type": "string" } }],
         "security": [],
-        "responses": { "200": { "description": "true or false" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: boolean }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/privacy": {
@@ -567,7 +719,12 @@
         "tags": ["User"],
         "summary": "Get privacy setting",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ isPrivate }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { isPrivate: boolean } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "patch": {
         "tags": ["User"],
@@ -575,12 +732,17 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "isPrivate": { "type": "boolean" } } }
+              "schema": { "type": "object", "required": ["isPrivate"], "properties": { "isPrivate": { "type": "boolean" } } }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, isPrivate }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { isPrivate: boolean } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/dev-card-settings": {
@@ -591,7 +753,12 @@
         "x-hidden": true,
         "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, isDev, user, settings }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { isDev, user, settings } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["User"],
@@ -600,7 +767,13 @@
         "x-hidden": true,
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { settings } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error, code: 'FORBIDDEN' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/collectibles": {
@@ -608,55 +781,87 @@
         "tags": ["User"],
         "summary": "Get user collectibles",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Collectibles data" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <collectibles> }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/completed-quests": {
       "get": {
         "tags": ["User"],
         "summary": "Get completed quests",
+        "description": "Returns completed quests for the given user (or the authenticated user). Each entry includes quest title, points earned, and category.",
         "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { quests: [{ id, questTitle, stepName?, pointsEarned, completedAt, category }], totalPoints } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/delete": {
       "delete": {
         "tags": ["User"],
         "summary": "Delete account",
+        "description": "Permanently deletes the authenticated user's account and all associated data.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/delete/dry-run": {
       "get": {
         "tags": ["User"],
         "summary": "Dry-run account deletion",
+        "description": "Preview what would be deleted without actually deleting anything. Returns record counts per category.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Dry-run summary" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { dryRun: true, message, user, wouldDelete, totalRecordsToDelete, clerkUserWouldBeDeleted } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/verify-password": {
       "post": {
         "tags": ["User"],
         "summary": "Verify password",
+        "description": "Verifies the user's password. For OAuth-only users returns oauthOnly: true.",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "password": { "type": "string" } } }
+              "schema": { "type": "object", "required": ["password"], "properties": { "password": { "type": "string" } } }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, oauthOnly? } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/sync-clerk": {
       "get": {
         "tags": ["User"],
         "summary": "Sync Clerk user",
+        "description": "Synchronises the local user record with Clerk. Returns the updated user with connected accounts.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, user: { id, email, handle, name, image, connectedAccounts } } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/packs": {
@@ -664,7 +869,11 @@
         "tags": ["User"],
         "summary": "Get user packs",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { packs } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/packs/opened": {
@@ -672,7 +881,11 @@
         "tags": ["User"],
         "summary": "Get opened packs",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { packs } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests": {
