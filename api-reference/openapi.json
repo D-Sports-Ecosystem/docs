@@ -114,8 +114,8 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
-        "security": [{ "bearerAuth": [] }],
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor. Authentication is optional; unauthenticated requests still receive team data.",
+        "security": [],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
     },
@@ -515,9 +515,13 @@
       "get": {
         "tags": ["User"],
         "summary": "Top users",
+        "description": "Returns top users by points. Does not require authentication.",
         "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "500": { "description": "Internal error fetching top users" }
+        }
       }
     },
     "/api/user/recommended": {
