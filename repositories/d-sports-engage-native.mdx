@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, v1.10.0) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, quests, rewards, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -28,19 +28,95 @@ icon: "smartphone"
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Leaderboard** — Rankings, filters, seasons, and winners
+- **Locker room** — Social feed, reactions, and comments
+- **Quests and rewards** — Multi-step quests, daily visits, check-progress, and a rewards store
+- **Profile** — User profile, fan profile fields, and settings
 - **Theme** — Dark/light mode (default dark)
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and run `bun install`.
+  </Step>
+  <Step title="Configure environment">
+    Copy `.env` and set the required variables (see [environment variables](#environment-variables) below).
+  </Step>
+  <Step title="Start the dev server">
+    Run `bunx expo start`, then press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Create a development build (optional)">
+    Run `bun run build:dev` to create an EAS development build for all platforms, or use platform-specific scripts like `bun run build:dev:ios`.
+  </Step>
+</Steps>
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. Set these in your `.env` file:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (client-side features only) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
+
+## API client architecture
+
+The native app communicates with the d-sports-api backend through a modular API client in `lib/api/`. Every request is authenticated via Clerk tokens and returns a normalized `ApiResponse<T>` envelope:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string;   // machine-readable error code
+}
+```
+
+You access all API modules through the `useApi()` hook:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+const api = useApi();
+const result = await api.quests.getQuests();
+```
+
+### API modules
+
+| Module | Endpoint prefix | Key operations |
+| ------ | --------------- | -------------- |
+| `user` | `/api/user` | Profile CRUD, onboarding, follow/unfollow, search, top fans |
+| `quests` | `/api/quests` | List quests, start, complete step, daily visit, check progress |
+| `quests` (rewards) | `/api/rewards` | List rewards, claim, admin override |
+| `leaderboard` | `/api/leaderboard` | Rankings, stats, search, seasons, winners |
+| `wallet` | `/api/wallets`, `/api/dsports-cash` | Wallets CRUD, coin prices, D-Sports Cash balance |
+| `lockerRoom` | `/api/locker-room` | Posts, reactions, comments |
+| `teams` | `/api/teams` | Team listings, follow/unfollow |
+| `collectibles` | `/api/collectibles`, `/api/packs` | Collectibles, packs |
+| `shop` | `/api/shop` | Product listings |
+| `checkout` | `/api/checkout/crypto` | Crypto payment creation and verification |
+
+### Quest and rewards system
+
+The quests module supports multi-step quests with progress tracking:
+
+- **Quest lifecycle** — list → start → complete steps → check progress
+- **Daily visits** — `POST /api/quests/daily-visit` records a daily visit and returns points awarded
+- **Check progress** — `POST /api/quests/check-progress` returns the current `QuestStatus` along with an `actionStatus` that indicates whether a specific step's condition is met
+- **Rewards** — `GET /api/rewards` returns all rewards with unlock/claim status; `POST /api/rewards/claim` claims a reward by ID
+
+### API normalization (Phase 2)
+
+The API client supports both normalized and legacy response formats during migration. Normalized routes return a `{ success, data }` or `{ success: false, error, code }` envelope. Legacy routes are transparently wrapped by `client.ts` so all consumers see the same `ApiResponse<T>` shape. See the Phase 2 API normalization plan in the repository for batch-by-batch migration details.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
