@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, current version **v1.10.5**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -33,10 +33,67 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## API client layer
+
+The native app communicates with **d-sports-api** through a typed client in `lib/api/`. All responses follow a normalized envelope:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string;
+}
+```
+
+Domain-specific modules are organized by feature area:
+
+| Module | Key endpoints |
+| ------ | ------------- |
+| `teams-api.ts` | `GET /api/teams`, `POST/DELETE/GET /api/teams/[id]/follow`, `GET /api/teams/followed` |
+| `shop-api.ts` | `GET /api/products`, `GET /api/products/[id]` |
+| `collectibles-api.ts` | `GET /api/packs`, `POST /api/packs/[id]/purchase`, `POST /api/packs/[id]/open` |
+| `checkout-api.ts` | `POST /api/checkout/crypto`, `POST /api/checkout/crypto/verify` |
+| `wallet-api.ts` | Wallet balances, transactions, holdings |
+| `user-api.ts` | Profile, onboarding, username checks |
+| `quests-api.ts` | Quest progress, daily visit, rewards |
+| `leaderboard-api.ts` | Rankings, filters, season data |
+| `locker-room-api.ts` | Social feed, posts, fan interactions |
+
+<Note>
+  The client in `lib/api/client.ts` auto-injects Clerk auth tokens and resolves the API base URL from the `EXPO_PUBLIC_API_URL` environment variable (falls back to `https://api.d-sports.org`).
+</Note>
+
+## API normalization status (Phase 2)
+
+The native app is undergoing a phased API contract normalization to ensure every backend route uses the standard `{ success, data }` / `{ success: false, error, code? }` envelope and shared response helpers (`apiSuccess`, `apiError`, `apiUnauthorized`, `apiNotFound`).
+
+| Batch | Status | Routes |
+| ----- | ------ | ------ |
+| **Starter** | Complete | `POST /api/auth/native-token`, `POST /api/auth/validate`, `GET/PATCH /api/user`, `GET /api/user/check-username`, `GET/POST /api/user/onboarding` |
+| **A** | Complete | Remaining `app/api/user/*` routes |
+| **B** | Complete | `POST /api/quests/check-progress`, `POST /api/quests/daily-visit`, `POST /api/rewards/redeem`, `GET/POST /api/dashboard`, `GET /api/dashboard/quests`, `GET /api/dashboard/balance`, `GET /api/dashboard/stats`, `GET /api/admin/stats` |
+| **C** | Complete (verification pending) | `GET /api/teams`, `GET /api/teams/followed`, `POST/DELETE/GET /api/teams/[id]/follow`, `GET /api/products`, `GET /api/packs`, `GET /api/packs/[id]`, `POST /api/packs/[id]/open`, `POST/PUT /api/packs/[id]/purchase`, `POST /api/checkout/crypto`, `POST /api/checkout/crypto/verify`, `POST /api/checkout/dsports-cash`, `POST /api/webhooks/revenuecat` |
+
+<Tip>
+  During migration, `client.ts` supports both normalized and legacy response shapes. Once all batches are verified, fallback compatibility parsing will be removed and only envelope responses will be accepted.
+</Tip>
+
+## Environment variables
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication key |
+| `EXPO_PUBLIC_REVENUECAT_APPLE_KEY` | RevenueCat Apple API key |
+| `EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY` | RevenueCat Google API key |
+| `EXPO_PUBLIC_THIRDWEB_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `SENTRY_DSN` | Sentry error tracking DSN |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the required keys (Clerk, RevenueCat, Thirdweb, API base URL).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
