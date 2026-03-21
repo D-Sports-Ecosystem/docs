@@ -42,6 +42,78 @@ icon: "smartphone"
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
+## API client layer
+
+The native app communicates with d-sports-api through a typed HTTP client in `lib/api/`. All requests use Clerk bearer-token authentication and expect a **normalized response envelope**.
+
+### Normalized envelope contract
+
+Every API response follows this strict envelope shape:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string; // machine-readable error code
+}
+```
+
+The client in `lib/api/client.ts` validates that every `2xx` response includes a top-level `success` field. Responses missing it are rejected with an `INVALID_RESPONSE_ENVELOPE` code. This is referred to as **strict envelope mode**.
+
+### API modules
+
+You access all endpoints through the `useApi()` hook exported from `lib/api/index.ts`:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+function MyComponent() {
+  const api = useApi();
+  const result = await api.user.getProfile();
+  if (result.success) {
+    console.log(result.data);
+  }
+}
+```
+
+The hook exposes these domain modules, each backed by a dedicated file:
+
+| Module          | File                       | Purpose                              |
+| --------------- | -------------------------- | ------------------------------------ |
+| `user`          | `lib/api/user-api.ts`      | Profile, follow/unfollow, onboarding |
+| `quests`        | `lib/api/quests-api.ts`    | Quest listing and completion         |
+| `leaderboard`   | `lib/api/leaderboard-api.ts` | Rankings and top users             |
+| `wallet`        | `lib/api/wallet-api.ts`    | Token balances and transactions      |
+| `lockerRoom`    | `lib/api/locker-room-api.ts` | Social feed and posts              |
+| `teams`         | `lib/api/teams-api.ts`     | Team data and membership             |
+| `collectibles`  | `lib/api/collectibles-api.ts` | Owned packs and items             |
+| `shop`          | `lib/api/shop-api.ts`      | Product catalog and listings         |
+| `checkout`      | `lib/api/checkout-api.ts`  | Crypto and fiat checkout flows       |
+
+### User API endpoints
+
+The user module (`lib/api/user-api.ts`) covers profile management and social features:
+
+| Method | Endpoint                   | Description                  |
+| ------ | -------------------------- | ---------------------------- |
+| `GET`  | `/api/user`                | Get current user profile     |
+| `PATCH`| `/api/user`                | Update user profile          |
+| `GET`  | `/api/user/onboarding`     | Check onboarding status      |
+| `POST` | `/api/user/onboarding`     | Complete onboarding          |
+| `GET`  | `/api/user/sync-clerk`     | Sync user with Clerk         |
+| `POST` | `/api/user/follow`         | Follow a user                |
+| `DELETE`| `/api/user/follow`        | Unfollow a user              |
+| `GET`  | `/api/user/collectibles`   | Get user collectibles        |
+| `GET`  | `/api/user/search`         | Search users                 |
+| `GET`  | `/api/user/top-users`      | Get top 10 fans              |
+| `GET`  | `/api/user/all`            | List all community users     |
+| `GET`  | `/api/user/check-username` | Check username availability  |
+
+<Note>
+The follow endpoint uses `POST /api/user/follow` with a `{ targetUserId }` body. Unfollow uses `DELETE /api/user/follow?targetUserId=<id>`. The top-users endpoint returns a `{ topUsers: TopUser[] }` shape inside the envelope `data` field.
+</Note>
+
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
 </Card>
