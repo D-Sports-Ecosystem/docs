@@ -1,23 +1,53 @@
 ---
 title: "Errors and status codes"
-description: "Common status code semantics and error-handling expectations for non-admin API flows."
+description: "Standard response envelope, status codes, and error-handling expectations for the D-Sports API."
 ---
 
-## Common status code patterns
+## Response envelope
 
-- `200` / `201`: successful read or mutation.
-- `400`: invalid payload or missing required fields.
-- `401`: authentication missing or invalid.
-- `404`: resource not found.
-- `409`: state conflict (when route-specific logic enforces uniqueness/state).
-- `500`: unexpected server-side failure.
+All API routes return a consistent JSON envelope.
+
+**Success** (HTTP 2xx):
+
+```json
+{
+  "success": true,
+  "data": { /* route-specific payload */ }
+}
+```
+
+**Error** (HTTP 4xx / 5xx):
+
+```json
+{
+  "success": false,
+  "error": "Human-readable message",
+  "code": "MACHINE_READABLE_CODE"
+}
+```
+
+The `code` field is a stable, machine-readable identifier you can use for programmatic error handling. Common codes are listed below.
+
+## Common status codes
+
+| Status | Code | Meaning |
+|--------|------|---------|
+| `200` | — | Successful read or mutation. |
+| `400` | `VALIDATION_ERROR` | Invalid payload or missing required fields. |
+| `401` | `UNAUTHORIZED` | Authentication missing or invalid. |
+| `403` | `FORBIDDEN` | Authenticated but insufficient permissions. |
+| `404` | `NOT_FOUND` | Resource not found. |
+| `409` | `CONFLICT` | State conflict such as a duplicate handle. |
+| `429` | `RATE_LIMITED` | Too many requests — back off and retry. |
+| `500` | `INTERNAL_ERROR` | Unexpected server-side failure. |
 
 ## Error handling guidance
 
-- Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
-- Surface response body messages in client logs for operational debugging.
-- Prefer route-specific error handling over global assumptions.
+- Check the top-level `success` field before accessing `data`.
+- Use the `code` field for programmatic branching (e.g. retry on `RATE_LIMITED`, prompt re-auth on `UNAUTHORIZED`).
+- Treat writes as retriable only when idempotency is guaranteed by the route.
+- Surface the `error` message in client logs for operational debugging.
 
 ## Where to verify
 
-Route-specific responses are defined in OpenAPI endpoint docs under the API Reference Endpoints group.
+Route-specific responses are defined in the OpenAPI endpoint docs under the **API Reference > Endpoints** group.
