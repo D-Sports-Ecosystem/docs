@@ -22,6 +22,7 @@ icon: "smartphone"
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
+| Monitoring | Sentry                    |
 | Package    | Bun                       |
 
 ## Features
@@ -32,6 +33,7 @@ icon: "smartphone"
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+- **Logging** — Custom logger with Sentry integration for error tracking and breadcrumbs
 
 ## Getting started
 
@@ -41,6 +43,15 @@ icon: "smartphone"
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Logging and monitoring
+
+The app includes a custom logger (`lib/logger.ts`) integrated with Sentry:
+
+- **Log levels** — `debug`, `info`, `warn`, `error`, `trace` with automatic filtering (dev: all, prod: warn/error)
+- **Sentry integration** — Errors captured as exceptions, warnings as messages, info/debug added as breadcrumbs
+- **Context tracking** — Session ID, platform, component, and action tags
+- **Performance monitoring** — `logAsyncOperation()` helper tracks operation timing
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
