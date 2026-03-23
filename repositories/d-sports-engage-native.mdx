@@ -42,6 +42,71 @@ icon: "smartphone"
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
+## EAS builds
+
+Expo Application Services (EAS) handles native builds, OTA updates, and store submissions. All EAS CLI commands use `bunx eas-cli` via npm scripts.
+
+### Development builds
+
+Development builds include `expo-dev-client` for dev menu, fast refresh, and JS updates without rebuilding native binaries.
+
+```bash
+# iOS simulator
+bun run build:dev:ios
+
+# Android APK
+bun run build:dev:android
+
+# Both platforms
+bun run build:dev
+```
+
+After building, start the dev server with:
+
+```bash
+bunx expo start --dev-client
+```
+
+### Preview builds
+
+Preview builds are release-mode binaries for internal QA and stakeholder testing.
+
+```bash
+bun run build:preview
+```
+
+### Production builds
+
+Production builds are store-ready with auto-incrementing build numbers.
+
+```bash
+bun run build:prod
+```
+
+### OTA updates
+
+Push JS/asset changes to existing installs without a new store build:
+
+```bash
+# Push to production channel
+bun run update --branch production --message "Fix: wallet balance display"
+```
+
+<Note>
+OTA updates only work if JS is compatible with the installed native binary. If you add or change native modules, do a full build first.
+</Note>
+
+### Store submission
+
+```bash
+# Submit both platforms
+bun run submit
+
+# Single platform
+bun run submit:ios
+bun run submit:android
+```
+
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
 </Card>
