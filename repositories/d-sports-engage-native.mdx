@@ -33,6 +33,33 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Authentication
+
+The app uses Clerk for authentication. All API calls are authenticated via the centralized API client in `lib/api/client.ts`.
+
+### Auth guards
+
+- **Unauthenticated API calls are blocked by default** — The API client requires a valid Clerk token for all requests unless `requiresAuth: false` is explicitly passed.
+- **Logout protection** — Auth guards prevent API calls during the logout process to avoid race conditions and stale token errors.
+- **Token validation** — The `UserContext` wraps Clerk's `getToken()` with logging and null checks to ensure token availability before making requests.
+
+### API client usage
+
+```typescript
+import { createApiClient } from "@/lib/api/client";
+
+// Create client with token provider
+const api = createApiClient({ getToken: () => clerkGetToken() });
+
+// Authenticated request (default)
+const result = await api.get("/api/user/profile");
+
+// Unauthenticated request (explicit opt-in)
+const publicData = await api.get("/api/public/teams", { requiresAuth: false });
+```
+
+If a request requires auth but no token is available, the client returns `{ success: false, error: "Authentication required" }` without making the network call.
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
