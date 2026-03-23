@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native 0.81, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -14,14 +14,15 @@ icon: "smartphone"
 
 | Category   | Technology                |
 | ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
+| Framework  | Expo 54, React Native 0.81.5, React 19.1 |
+| Auth       | Clerk (Expo 2.19)         |
+| Payments   | RevenueCat (react-native-purchases 1.26) |
+| Web3       | Thirdweb 5.118            |
+| State      | Zustand 5.0               |
+| Storage    | MMKV 4.1                  |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6.0           |
+| Animations | Reanimated 4.1            |
 | Package    | Bun                       |
 
 ## Features
@@ -33,12 +34,23 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Architecture
+
+The app follows a modular architecture pattern:
+
+- **Screen files** (`wallet.tsx`, `shop.tsx`) contain only JSX—all state, effects, and handlers live in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **Extracted sub-components** in `components/wallet/` and `components/shop/` with barrel exports
+- **Centralized types and constants** in `types/` and `constants/` directories
+- **API client layer** in `lib/api/` with MMKV cache fallback
+- **PWA-ready** with responsive desktop layout and web hover states
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
 2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. Run `bun tsc --noEmit` to check TypeScript types.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
