@@ -42,6 +42,13 @@ icon: "smartphone"
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
+## CI/CD
+
+**Xcode Cloud** handles iOS builds. The `ios/ci_scripts/ci_post_clone.sh` script runs after cloning to set up the build environment:
+
+- Installs a local Node.js (v20.18.0) if not already present—required for CocoaPods autolinking
+- Runs `pod install` via Bundler (if available) or directly
+
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
 </Card>
