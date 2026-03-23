@@ -8,8 +8,6 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
-
 ## Tech stack
 
 | Category   | Technology                |
@@ -21,7 +19,7 @@ icon: "smartphone"
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
 | Package    | Bun                       |
 
 ## Features
@@ -33,11 +31,55 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, signup, SSO callback
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker-room, profile)
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers + auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TabButton, ActionButton, TokenRow, etc.)
+├── shop/                # Shop sub-components (CollectableCard, CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components
+├── layout/              # AppScreen wrapper (responsive web max-width)
+├── ui/                  # Reusable UI primitives (Button, TextField, WebHoverWrapper)
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+└── useScrollHandler.ts  # Scroll-based navbar visibility
+
+lib/
+├── api/                 # API client modules (wallet, shop, user, quests, checkout)
+├── revenuecat/          # RevenueCat in-app purchases provider
+└── utils.ts             # Shared utilities
+
+context/                 # React Context providers (user, collectibles, navbar visibility)
+services/                # Zustand store + MMKV persistence
+types/                   # TypeScript types (wallet, shop, checkout, API)
+constants/               # Shared constants (tokens, coin bundles)
+theme/                   # Brand colors and design tokens
+```
+
+## Architecture patterns
+
+- **Modular screen architecture** — Screen files contain only JSX; all state/effects/handlers live in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **File-based routing** via Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Zustand + MMKV** for global state with synchronous persistence
+- **API client layer** in `lib/api/` with MMKV cache fallback
+- **Crypto checkout** via Thirdweb SDK calling PWA backend for on-chain payments
+- **PWA-ready** — `display: standalone`, responsive desktop layout, web hover states
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
 2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+3. Run `bunx expo start` — press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
