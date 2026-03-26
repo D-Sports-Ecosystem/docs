@@ -18,11 +18,11 @@ icon: "workflow"
 
 ## Core model touchpoints
 
-- `Product`
-- `ProductPurchase`
-- `PendingPurchase`
-- `DsportsCashTier`
-- `DsportsCashPurchase`
+- `Product` / `Pack` — catalog items
+- `ProductPurchase` / `PackPurchase` — completed purchase records (D-Sports Cash and crypto)
+- `PendingPurchase` — in-flight crypto payments awaiting verification
+- `DsportsCashTier` — purchasable cash bundles (RevenueCat products)
+- `DsportsCashPurchase` — RevenueCat-originated cash top-up records
 
 ## High-level flow
 
@@ -39,4 +39,5 @@ flowchart LR
 
 - Multiple payment rails are supported with verification endpoints.
 - Purchase writes and entitlement mapping are decoupled so reconciliation can run independently.
-- dsports-cash has dedicated tier and purchase entities separate from product purchases.
+- D-Sports Cash checkout uses **Serializable** transaction isolation with automatic retry on `P2034` conflicts, preventing double-spend under concurrent requests.
+- D-Sports Cash top-ups (via RevenueCat) use dedicated `DsportsCashTier` and `DsportsCashPurchase` entities, while D-Sports Cash spending creates standard `ProductPurchase` or `PackPurchase` records.
