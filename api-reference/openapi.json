@@ -35,7 +35,8 @@
     { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
     { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
     { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" },
+    { "name": "Admin", "description": "Admin-only endpoints for platform management, user administration, team management, pack and collectible CRUD, and league sync" }
   ],
   "paths": {
     "/api/auth/native-token": {
@@ -1070,6 +1071,553 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get admin dashboard statistics",
+        "description": "Returns real-time platform-wide statistics including user counts (totalUsers), engagement metrics, monthly growth data, and top leaderboard entries. Requires admin role.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { overview: { totalUsers, activeUsers, totalPosts, totalComments, totalLikes, totalFollows, totalPointsAwarded, totalQuests, completedQuests, questCompletionRate, frontlinePassUsers, postsLast7Days }, userGrowth: { labels, data }, topLeaderboard } }"
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "500": { "description": "Failed to fetch admin stats" }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List all users (admin)",
+        "description": "Paginated, searchable, sortable list of all users with roles, labels, and follower/following counts. Requires admin role.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "default": "createdAt" } },
+          { "name": "sortOrder", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { users, pagination: { page, limit, totalCount, totalPages, hasMore } } }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "500": { "description": "Failed to fetch users" }
+        }
+      }
+    },
+    "/api/admin/users/{userId}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get user details (admin)",
+        "description": "Returns detailed information about a single user including roles and counts. Requires admin role.",
+        "parameters": [{ "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { id, email, name, handle, profileUrl, createdAt, onboardingComplete, roles, _count } }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "404": { "description": "User not found" },
+          "500": { "description": "Failed to fetch user" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete a user account (admin)",
+        "description": "Permanently deletes a user and all related data in a transaction. Also removes the user from Clerk. Admin cannot delete their own account.",
+        "parameters": [{ "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { message } }" },
+          "400": { "description": "Cannot delete your own account via admin endpoint" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "404": { "description": "User not found" },
+          "500": { "description": "Failed to delete user" }
+        }
+      }
+    },
+    "/api/admin/users/toggle-admin": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Toggle admin role on a user",
+        "description": "Grants or revokes the admin role for a target user. Requires superadmin role. Cannot remove your own admin status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["targetUserId", "makeAdmin"],
+                "properties": {
+                  "targetUserId": { "type": "string" },
+                  "makeAdmin": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { message } }" },
+          "400": { "description": "Invalid request body or cannot remove own admin status" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — superadmin role required" },
+          "404": { "description": "User not found" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/admin/teams": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List teams (admin)",
+        "description": "Lists all teams, or only the current user's teams if my=true.",
+        "parameters": [
+          { "name": "my", "in": "query", "schema": { "type": "string", "enum": ["true"] }, "description": "Pass 'true' to list only your teams" }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: Team[] }" },
+          "500": { "description": "Failed to list teams" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a team",
+        "description": "Creates a new team and assigns the authenticated user as owner. Slug must be unique.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "slug"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "description": { "type": "string" },
+                  "logo": { "type": "string" },
+                  "website": { "type": "string" },
+                  "location": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ success, data: { id } }" },
+          "400": { "description": "Failed to create team or slug already exists" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get team by ID",
+        "description": "Returns the full team object for the given team ID.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: Team }" },
+          "400": { "description": "Team ID is required" },
+          "404": { "description": "Team not found" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List team members",
+        "description": "Returns all members of a team. Requires team admin membership or superadmin role.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: TeamAdmin[] }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Not authorized" },
+          "500": { "description": "Failed to fetch team members" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Add a member to a team",
+        "description": "Adds a user to a team with a specified role (defaults to editor). Only team owners/admins or superadmins can add members. Only superadmins can add owners.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": { "type": "string" },
+                  "role": { "type": "string", "default": "editor" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ success, data: TeamAdmin }" },
+          "400": { "description": "userId is required" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Only owners can add team members" },
+          "500": { "description": "Failed to add team member" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members/{userId}": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Update a team member's role",
+        "description": "Changes the role of an existing team member. Only team owners or superadmins can change roles. Valid roles: owner, editor, viewer.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role"],
+                "properties": {
+                  "role": { "type": "string", "enum": ["owner", "editor", "viewer"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: TeamAdmin }" },
+          "400": { "description": "Invalid role" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Only owners can change member roles" },
+          "404": { "description": "Member not found" },
+          "500": { "description": "Failed to update team member" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Remove a member from a team",
+        "description": "Removes a user from a team. Only team owners or superadmins can remove members. Cannot remove the last owner.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Cannot remove the last owner" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Only owners can remove team members" },
+          "404": { "description": "Member not found" },
+          "500": { "description": "Failed to remove team member" }
+        }
+      }
+    },
+    "/api/admin/packs": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List packs for a team",
+        "description": "Returns packs belonging to a team. Pass archived=true for archived packs only. Requires team admin.",
+        "parameters": [
+          { "name": "teamId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "archived", "in": "query", "schema": { "type": "string", "enum": ["true"] } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: Pack[] }" },
+          "400": { "description": "Team ID required" },
+          "500": { "description": "Failed to list packs" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a pack",
+        "description": "Creates a new pack for a team. Requires team admin.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["teamId", "name", "description", "image", "price", "quantity"],
+                "properties": {
+                  "teamId": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "image": { "type": "string" },
+                  "price": { "type": "number" },
+                  "quantity": { "type": "integer" },
+                  "currency": { "type": "string", "default": "CAD" },
+                  "releaseDate": { "type": "string", "format": "date-time" },
+                  "expirationDate": { "type": "string", "format": "date-time" },
+                  "maxReveal": { "type": "integer", "default": 3 },
+                  "animationId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ success, data: { id } }" },
+          "400": { "description": "Failed to create pack" }
+        }
+      }
+    },
+    "/api/admin/packs/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update a pack",
+        "description": "Updates fields of an existing pack. Requires team admin for the pack's team.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "image": { "type": "string" },
+                  "price": { "type": "number" },
+                  "currency": { "type": "string" },
+                  "quantity": { "type": "integer" },
+                  "status": { "type": "string" },
+                  "maxReveal": { "type": "integer" },
+                  "animationId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Failed to update pack" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete a pack",
+        "description": "Deletes a pack. Only allowed if the pack has zero sales. Requires team admin.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Failed to delete pack or pack has sales" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Pack action (publish, archive, restore, add/remove collectible)",
+        "description": "Multi-action endpoint. Supported actions: publish, archive, restore, addCollectible, removeCollectible. Requires team admin.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action"],
+                "properties": {
+                  "action": { "type": "string", "enum": ["publish", "archive", "restore", "addCollectible", "removeCollectible"] },
+                  "collectibleId": { "type": "string" },
+                  "quantity": { "type": "integer" },
+                  "weight": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Invalid action or collectibleId required" }
+        }
+      }
+    },
+    "/api/admin/collectibles": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List collectibles for a team",
+        "description": "Returns all collectibles belonging to a team. Supports optional status filtering. Requires team admin.",
+        "parameters": [
+          { "name": "teamId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: Collectible[] }" },
+          "400": { "description": "Team ID required" },
+          "500": { "description": "Failed to list collectibles" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a collectible",
+        "description": "Creates a new digital collectible for a team. Rarity tiers: Common, Rare, Epic, Legendary, Mythic. Requires team admin.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["teamId", "name", "description", "image", "rarity"],
+                "properties": {
+                  "teamId": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "image": { "type": "string" },
+                  "rarity": { "type": "string", "enum": ["Common", "Rare", "Epic", "Legendary", "Mythic"] },
+                  "category": { "type": "string" },
+                  "supply": { "type": "integer", "default": 0 },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ success, data: { id } }" },
+          "400": { "description": "Failed to create collectible" }
+        }
+      }
+    },
+    "/api/admin/collectibles/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update a collectible",
+        "description": "Updates fields of an existing collectible. Requires team admin.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "image": { "type": "string" },
+                  "rarity": { "type": "string", "enum": ["Common", "Rare", "Epic", "Legendary", "Mythic"] },
+                  "category": { "type": "string" },
+                  "supply": { "type": "integer" },
+                  "status": { "type": "string" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Failed to update collectible" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete a collectible",
+        "description": "Deletes a collectible. Only allowed if it has not been minted. Requires team admin.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Failed to delete collectible" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Publish a collectible",
+        "description": "Publishes a draft collectible. Only the 'publish' action is supported. Requires team admin.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action"],
+                "properties": {
+                  "action": { "type": "string", "enum": ["publish"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { success: true } }" },
+          "400": { "description": "Invalid action" }
+        }
+      }
+    },
+    "/api/admin/leagues/sync": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Trigger league synchronization",
+        "description": "Manually triggers a sync of league data from the GitHub repository into the database. Fetches colors, accessibility reports, and logos. Requires admin role.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { created, updated, errors, total } }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "500": { "description": "Sync failed" }
+        }
+      }
+    },
+    "/api/admin/fix-team-ownership": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Diagnose team ownership",
+        "description": "Returns a diagnostic report of all teams showing admin associations, access status, and identifying orphaned teams. Requires admin role.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { currentUserId, totalTeams, accessibleTeams, orphanedTeams, teams } }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "500": { "description": "Failed to diagnose teams" }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Fix team ownership",
+        "description": "Adds the current admin user as owner to orphaned teams. If teamId is provided, targets that specific team. Otherwise targets all orphaned teams. Requires admin role.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teamId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { message, currentUserId, fixed } }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin role required" },
+          "404": { "description": "Team not found" },
+          "500": { "description": "Failed to fix team ownership" }
+        }
       }
     }
   },
