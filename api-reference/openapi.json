@@ -35,7 +35,8 @@
     { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
     { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
     { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" },
+    { "name": "Admin", "description": "Admin-only endpoints for team, user, and platform management. Requires admin or team-scoped RBAC roles." }
   ],
   "paths": {
     "/api/auth/native-token": {
@@ -1070,6 +1071,189 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/teams": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List teams (admin)",
+        "description": "Returns all teams for platform admins, or only the caller's teams when `my=true`. Requires platform admin role or team-scoped RBAC membership.",
+        "parameters": [
+          { "name": "my", "in": "query", "description": "When `true`, return only teams the caller has a TeamAdmin role for.", "schema": { "type": "string", "enum": ["true"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of team objects." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — caller lacks admin or team RBAC role." }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create team",
+        "description": "Creates a new team. Requires platform admin or the `team_mgr` platform role. The caller automatically receives an `owner` TeamAdmin row.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "logo": { "type": "string" },
+                  "website": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ success, data: { id } }" },
+          "400": { "description": "Validation error or creation failed." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — caller cannot provision teams." }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get team by ID",
+        "description": "Returns a single team. Requires platform admin or any team-scoped RBAC role (owner, editor, viewer).",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Team object." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Team not found." }
+        }
+      }
+    },
+    "/api/admin/teams/sync": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Sync canonical teams",
+        "description": "Upserts teams from `data/canonical-teams.json`, ensures per-team leaderboards, and runs league linking. Requires platform admin (admin or superadmin).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dryRun": { "type": "boolean", "description": "When true, no writes are performed." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ ok, dryRun, canonicalTotal, created, updated, unchanged, leaderboardsEnsured, errors, summary }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — admin access required." }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List team members",
+        "description": "Returns all TeamAdmin rows for a team. Requires platform admin or any team-scoped RBAC role (owner, editor, viewer) via `canAccessTeam`.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of team member objects with userId, role, and createdAt." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — caller has no access to this team." }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Add team member",
+        "description": "Adds a user to the team (upserts if the user already has a row). Requires `owner` or `admin` team role via `canManageTeam`. Only platform admins can assign the `owner` role.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": { "type": "string", "description": "Clerk user ID of the member to add." },
+                  "role": { "type": "string", "enum": ["owner", "editor", "viewer"], "default": "editor", "description": "Team role to assign. Defaults to `editor`." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Created or updated team member object." },
+          "400": { "description": "userId is required." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — only owners/admins can add members; only platform admins can add owners." }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members/{userId}": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Update team member role",
+        "description": "Changes a team member's role. Requires `owner` team role via `canManageTeam`. Only platform admins can promote to or demote from `owner`.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role"],
+                "properties": {
+                  "role": { "type": "string", "enum": ["owner", "editor", "viewer"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated team member object." },
+          "400": { "description": "Invalid role." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — only owners can change roles; only platform admins can change owner status." },
+          "404": { "description": "Member not found." }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Remove team member",
+        "description": "Removes a user from the team. Requires `owner` team role via `canManageTeam`. Only platform admins can remove owners. The last owner cannot be removed.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "Cannot remove the last owner." },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden — only owners can remove members; only platform admins can remove owners." },
+          "404": { "description": "Member not found." }
+        }
       }
     }
   },
