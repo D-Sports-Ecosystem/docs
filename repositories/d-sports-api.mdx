@@ -34,6 +34,7 @@ icon: "server"
 - **Wallet** — Web3 wallet, token balances, Thirdweb integration
 - **Interactive games** — Trivia, wheel spin
 - **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
+- **Team management** — Superadmin team-manager assignment, per-team member roles (owner/editor/viewer), canonical team sync
 - **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
 
 ## Getting started
@@ -69,6 +70,36 @@ This app is the primary API surface for the D-Sports platform. The [API referenc
 - `GET /api/leaderboard?teamId=<teamId>` resolves (or creates) that team board, then scores it.
 - `GET /api/leaderboard` (no params) returns global leaderboard scoring for the active season.
 - This release does not introduce season reset/archiving behavior changes, and does not remove `LeaderboardEntry.points` yet (planned Season 2 cleanup).
+
+## Team management
+
+Superadmins can assign users with the `team_manager` role to specific teams with a scoped role (`owner`, `editor`, or `viewer`). Team managers then access a landing page at `/team-mgmt` scoped to their assigned teams.
+
+### Role hierarchy
+
+| Role | Scope | Can do |
+| --- | --- | --- |
+| **SuperAdmin** | Global | Assign/remove team managers to any team |
+| **Owner** | Per-team | Manage members, change roles, remove members |
+| **Editor** | Per-team | Edit team content (scoped by team permissions) |
+| **Viewer** | Per-team | Read-only access to team dashboard |
+
+### Admin API endpoints
+
+- `GET /api/admin/team-assignments` — list all team-manager assignments
+- `POST /api/admin/team-assignments` — assign a team manager to a team
+- `PATCH /api/admin/team-assignments` — update an assignment role
+- `DELETE /api/admin/team-assignments` — remove an assignment
+- `GET /api/admin/teams` — list teams (all or `?my=true` for assigned teams)
+- `POST /api/admin/teams` — create a team
+- `GET /api/admin/teams/{teamId}` — get a single team
+- `GET /api/admin/teams/{teamId}/members` — list team members
+- `POST /api/admin/teams/{teamId}/members` — add a team member
+- `PATCH /api/admin/teams/{teamId}/members/{userId}` — update member role
+- `DELETE /api/admin/teams/{teamId}/members/{userId}` — remove a member
+- `POST /api/admin/teams/sync` — sync canonical teams and leaderboards
+
+See the full [API reference](/api-reference/introduction) for request/response details.
 
 ## Gamification deep dives!
 
