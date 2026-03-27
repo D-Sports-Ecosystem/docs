@@ -16,10 +16,11 @@ icon: "list-checks"
 
 ## Runtime behavior highlights
 
-- Product endpoints return active catalog entities suitable for client storefront rendering.
+- `GET /api/products` returns a unified feed of products and packs. Pack-type `Product` rows that duplicate a `Pack` record are automatically removed so each pack appears exactly once.
+- Pack items in the response include explicit launch-asset metadata keys (`shopImageUrl`, `glbUrlWeb`, `glbUrlNative`, `assetVersion`, `packTier`) alongside backward-compatible `modelUrl` and `image` fields. See the [OpenAPI spec](/api-reference/openapi.json) for the full schema.
 - Checkout endpoints initialize and verify purchase attempts before final persistence.
 - Webhook path reconciles provider-side purchase state into app-side records.
-- dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
+- D-Sports Cash endpoints expose tier/balance and purchase lifecycle behavior.
 
 ## Side effects and dependencies
 
