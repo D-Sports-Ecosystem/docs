@@ -33,6 +33,35 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## API client
+
+The app uses a modular API client (`lib/api/`) with automatic Clerk token injection. Access all modules through the `useApi()` hook:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+function MyComponent() {
+  const api = useApi();
+  const result = await api.checkout.initCryptoCheckout({ ... });
+}
+```
+
+Available modules: `user`, `quests`, `leaderboard`, `wallet`, `lockerRoom`, `teams`, `collectibles`, `shop`, `checkout`.
+
+### Crypto checkout
+
+The checkout module (`lib/api/checkout-api.ts`) exposes three methods that call the d-sports-api backend:
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `dsportsCash` | `POST /api/checkout/dsports-cash` | Pay with dsports-cash balance |
+| `initCryptoCheckout` | `POST /api/checkout/crypto` | Start a crypto payment session |
+| `verifyCryptoPayment` | `POST /api/checkout/crypto/verify` | Confirm an on-chain transaction |
+
+**Supported chains:** Arbitrum (default), Ethereum, Polygon.
+
+`initCryptoCheckout` returns a `CryptoPaymentResponse` containing the `recipientAddress`, `amount`, `tokenAddress`, and an `expiresAt` timestamp. After the user signs the transaction with Thirdweb, call `verifyCryptoPayment` with the `paymentId` and `transactionHash` to complete the purchase.
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
