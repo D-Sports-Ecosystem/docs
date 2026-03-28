@@ -12,33 +12,106 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category    | Technology                                  |
+| ----------- | ------------------------------------------- |
+| Framework   | Expo 54, React Native 0.81, React 19       |
+| Auth        | Clerk (Expo)                                |
+| Payments    | RevenueCat (react-native-purchases)         |
+| Web3        | Thirdweb                                    |
+| State       | Zustand                                     |
+| Storage     | MMKV                                        |
+| UI          | Lucide React Native                         |
+| Navigation  | Expo Router (file-based, typed routes)      |
+| Monitoring  | Sentry                                      |
+| OTA updates | EAS Update                                  |
+| Package     | Bun                                         |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
+- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend). Supports Arbitrum, Ethereum, and Polygon chains.
+- **Shop** — Collectibles, cart, coin bundles, 3D model previews (Filament on native, Three.js on web), and crypto checkout.
+- **Leaderboard** — Rankings and filters with modal detail views.
+- **Locker room** — Social feed, team exploration, fan discovery, quests, and D-Sports Cash balance.
+- **Games** — Daily Pick'Em, Daily Spin Wheel, and Guess the Player mini-games inside the locker room.
+- **Teams** — Follow and fan teams, explore league standings, and view team detail modals.
+- **Profile** — User profile, settings, and fan profile fields (favorite player, sport, team, rival).
+- **Theme** — Dark/light mode (default dark) with brand colors (Gold `#F5C842`, Blue `#4169E1`).
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and run `bun install`.
+  </Step>
+  <Step title="Configure environment">
+    The app requires these `EXPO_PUBLIC_*` environment variables:
+
+    | Variable | Purpose |
+    | -------- | ------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+    | `EXPO_PUBLIC_API_URL` | Backend API base URL (`https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
+
+  </Step>
+  <Step title="Start the dev server">
+    Run `bunx expo start`, then press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Create a development build (optional)">
+    Use EAS to create native builds:
+
+    ```bash
+    bun run build:dev          # iOS + Android dev client
+    bun run build:preview      # Internal distribution (APK on Android)
+    bun run build:prod         # Production build
+    ```
+
+  </Step>
+</Steps>
+
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, sign-up, password reset, SSO
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, PackOpeningModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, 3D viewers, etc.)
+├── locker-room/         # Feed, teams, quests, games, D-Sports Cash
+├── leaderboard/         # Leaderboard tables and modals
+├── ui/                  # Reusable primitives (Button, TextField, TutorialOverlay)
+└── settings/            # Settings items, sections, and modals
+
+hooks/
+├── use-wallet-screen.ts # All wallet state and handlers
+└── use-shop-screen.ts   # All shop state and handlers
+
+lib/api/                 # API client modules (wallet, shop, user, quests, teams, checkout, etc.)
+```
+
+## API client
+
+The app communicates with **d-sports-api** through a typed API client layer in `lib/api/`. All requests use the standard `{ success, data }` / `{ success: false, error, code? }` envelope.
+
+You access API modules via the `useApi()` hook:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+const api = useApi();
+const result = await api.teams.getTeams();
+```
+
+Available modules: `user`, `quests`, `leaderboard`, `wallet`, `lockerRoom`, `teams`, `collectibles`, `shop`, `checkout`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
