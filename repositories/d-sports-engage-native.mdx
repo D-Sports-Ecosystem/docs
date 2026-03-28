@@ -17,28 +17,122 @@ icon: "smartphone"
 | Framework  | Expo 54, React Native 0.81, React 19 |
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
+| Web3       | Thirdweb, viem            |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
 | Package    | Bun                       |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Wallet** — Tokens, holdings, pack opening, crypto checkout, wallet creation, import, and recovery
+- **Shop** — Collectibles, cart, coin bundles, checkout (fiat via RevenueCat, crypto via Thirdweb)
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Wallet system
+
+The wallet supports full self-custody with recovery. You can create, import, and recover wallets directly in the app.
+
+### Wallet creation
+
+When you create a new wallet, the app generates a 12-word BIP-39 mnemonic seed phrase using `viem/accounts`. You are prompted to back up this phrase before the wallet is saved. The derived private key and mnemonic are stored server-side (encrypted) via `POST /api/wallets`.
+
+### Wallet import
+
+You can import an existing wallet by entering either:
+
+- A **private key** (hex, with or without `0x` prefix)
+- A **mnemonic seed phrase** (12+ words)
+
+The app normalizes the input, derives the Ethereum address, and registers it with the backend.
+
+### Wallet recovery
+
+True wallet recovery is supported — if you have your seed phrase or private key, you can re-import your wallet on any device. The app derives the same address and re-links it to your account.
+
+### PIN security
+
+Every wallet requires a 6-digit PIN. After creating or importing a wallet, you set a PIN that is required before sensitive operations like sending transactions or revealing your seed phrase.
+
+### Seed phrase reveal
+
+You can view your recovery phrase or private key through a multi-step security flow: select phrase type, acknowledge a security warning, confirm your environment is private, enter your PIN, then reveal.
+
+### Supported tokens
+
+The wallet tracks balances across multiple chains: **ETH**, **DOGE**, **WBTC**, **USDC**, **POL**, **BNB**, **SOL**, **XRP**, **USDT**, **DOT**, and **MATIC**. On-chain balances are read via `viem` public clients for Ethereum, Polygon, and BSC. Crypto checkout supports **Arbitrum** (default), **Ethereum**, and **Polygon**.
+
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, signup, password reset
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, PackOpeningModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components
+├── layout/              # AppScreen wrapper (responsive web max-width)
+└── ui/                  # Reusable UI primitives
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+└── useScrollHandler.ts  # Scroll-based navbar visibility
+
+lib/api/                 # API client modules (wallet, shop, user, quests, checkout, etc.)
+```
+
+Screen files contain only JSX — all state and business logic lives in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`).
+
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. Create a `.env` file at the repo root with:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and install with Bun:
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Copy `.env.example` (or create `.env`) and fill in the variables listed above.
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Development builds (optional)">
+    For native builds via EAS:
+    ```bash
+    bun run build:dev
+    ```
+  </Step>
+</Steps>
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
