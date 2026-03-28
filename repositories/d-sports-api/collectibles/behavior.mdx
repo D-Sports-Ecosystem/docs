@@ -18,6 +18,7 @@ icon: "list-checks"
 
 - Pack browse routes expose currently available packs and pack metadata.
 - Purchase route records pack purchase state for the user.
+- **Free pack daily limit:** free packs can be purchased at most 3 times per user per UTC day. The counter resets at 00:00 UTC. Exceeding the limit returns a `400` error with the message `"Free Pack daily limit reached (3 purchases per day)."`.
 - Open route resolves collectible outcomes and updates user ownership/inventory state.
 - User collectible and pack routes expose owned content for client rendering.
 
