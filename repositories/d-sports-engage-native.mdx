@@ -26,21 +26,104 @@ icon: "smartphone"
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Wallet** — Create, import, send, and receive crypto wallets with PIN protection and seed phrase backup
+- **Shop** — Collectibles, cart, coin bundles, crypto and fiat checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, quests, daily games (Pick'Em, Spin Wheel, Guess the Player)
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Wallet flows
+
+The wallet tab supports four core actions — **Send**, **Receive**, **Create**, and **Import** — all protected by a 4-digit PIN.
+
+### Create wallet
+
+Generates a new wallet using a BIP-39 mnemonic seed phrase. The flow walks you through a multi-step process: generate seed, confirm backup, set a PIN, and register the wallet with the backend via `POST /api/wallets`.
+
+### Import wallet
+
+Import an existing wallet by entering a private key. After PIN verification the wallet is linked to your account through the same `POST /api/wallets` endpoint.
+
+### Send
+
+Send native tokens (ETH, MATIC) to any address. The app signs and broadcasts transactions on-chain using the Thirdweb SDK. Supported chains: **Arbitrum** (default), **Ethereum**, and **Polygon**.
+
+### Receive
+
+Displays your wallet address and a QR code so others can send tokens to you.
+
+### Seed phrase reveal
+
+You can view your seed phrase after creation through a protected multi-step flow: safety warning, environment check, PIN verification, then reveal.
+
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. Create a `.env` file in the repo root with:
+
+| Variable | Description |
+| -------- | ----------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 transactions |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase public (anon) key |
+
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and install packages:
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Copy the `.env` file and set values for Clerk, Thirdweb, RevenueCat, Supabase, and the API URL. See the table above for required variables.
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    bunx expo start
+    ```
+    Press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Build with EAS (optional)">
+    ```bash
+    bun run build:dev        # development build (all platforms)
+    bun run build:preview    # preview build
+    bun run build:prod       # production build
+    ```
+    Platform-specific variants are also available (e.g. `bun run build:dev:ios`).
+  </Step>
+</Steps>
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Project structure
+
+```text
+app/
+├── (auth)/           # Login, signup, password reset
+├── (onboarding)/     # New user onboarding
+├── (tabs)/           # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+└── settings/         # Settings pages with nested modals
+
+components/
+├── wallet/           # Wallet sub-components (TokenRow, ActionModal, PackOpeningModal, etc.)
+├── shop/             # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/      # Locker room components (quests, games, feed)
+└── ui/               # Reusable primitives (Button, TextField, etc.)
+
+hooks/
+├── use-wallet-screen.ts   # All wallet state and handlers
+└── use-shop-screen.ts     # All shop state and handlers
+
+lib/api/              # API client modules (wallet, shop, user, quests, checkout, etc.)
+lib/crypto/           # On-chain transaction helpers (Thirdweb)
+```
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
