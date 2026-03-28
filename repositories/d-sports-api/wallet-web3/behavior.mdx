@@ -6,33 +6,48 @@ icon: "list-checks"
 
 ## Main non-admin routes
 
-- `GET /api/wallets`
-- `POST /api/pregen-wallet`
-- `POST /api/wallets/set-pin`
-- `POST /api/wallets/verify-pin`
-- `POST /api/wallets/private-key`
-- `GET /api/wallets/coin-prices`
-- `GET /api/crypto-prices`
-- `POST /api/thirdweb-link`
-- `POST /api/thirdweb-proxy`
+- `GET /api/wallets` — list wallets for the authenticated user
+- `POST /api/wallets` — create or import a wallet
+- `DELETE /api/wallets` — remove a wallet by address
+- `POST /api/wallets/set-pin` — set or update a wallet PIN
+- `POST /api/wallets/verify-pin` — verify a wallet PIN
+- `POST /api/wallets/private-key` — retrieve a decrypted private key and mnemonic
+- `GET /api/wallets/coin-prices` — fetch real-time cryptocurrency prices
+- `GET /api/crypto-prices` — public crypto price endpoint
+- `POST /api/pregen-wallet` — admin-only wallet pregeneration
+- `POST /api/thirdweb-link` — Thirdweb identity link
+- `POST /api/thirdweb-proxy` — proxy to allowed Thirdweb endpoints
+
+## Wallet creation and import
+
+`POST /api/wallets` supports two modes:
+
+1. **New wallet creation** — provide `address` and either `privateKey` (raw hex) or `encryptedPrivateKey` (pre-encrypted). You can optionally include a `mnemonic` (recovery phrase) and a 6-digit `pin`.
+2. **Wallet recovery / import** — if the address already belongs to the authenticated user, the endpoint updates the existing record with the new encrypted key material, mnemonic, and PIN.
+
+When no `pin` is supplied during creation, the system sets a default bootstrap PIN (`123456`) and flags the wallet with `pinMigrationRequired: true`. Clients must prompt the user to rotate this PIN on next wallet visit.
+
+Private keys and mnemonics are encrypted server-side using AES-256-GCM with PBKDF2 key derivation before storage.
 
 ## Runtime behavior highlights
 
 - Wallet routes return or provision user wallet context depending on prior state.
-- PIN routes establish and verify credential gates before private-key access.
-- Private-key access route is guarded and requires prior validation path.
-- Coin/crypto price routes provide market data used by wallet and checkout experiences.
+- PIN routes establish and verify credential gates before private-key access. PINs must be exactly 6 digits.
+- `POST /api/wallets/private-key` decrypts and returns the private key and mnemonic for a given wallet address. Only the wallet owner can access this endpoint.
+- Coin/crypto price routes provide market data used by wallet and checkout experiences. `GET /api/wallets/coin-prices` fetches from CoinMarketCap with server-side caching (default 5 minutes).
 - Provider proxy/link routes bridge client flow to external web3 integrations.
 
 ## Side effects and dependencies
 
 - Wallet identity and session state link directly to user auth context.
 - Wallet flows are consumed by collectibles and crypto checkout paths.
+- Wallet deletion enforces rate limiting and requires recent authentication.
 
 ## Known caveats
 
 - External web3 provider behavior can introduce transient errors and retry requirements.
 - Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
+- Legacy wallets that were not stored in the new encrypted format fall back to returning the raw stored value from `private-key` retrieval.
 
 ## Exclusions
 
