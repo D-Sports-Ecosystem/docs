@@ -20,25 +20,90 @@ icon: "smartphone"
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
+| Assets     | Supabase Storage          |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
 | Package    | Bun                       |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Wallet** — Tokens, holdings, pack opening, crypto checkout, and multi-provider wallet integration (MetaMask, Coinbase Wallet, Trust Wallet, Rainbow, Phantom)
+- **Shop** — Collectibles, cart, coin bundles, checkout (crypto and in-app purchases)
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, quests, daily games (Pick'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, settings, follow system, and points history
 - **Theme** — Dark/light mode (default dark)
+
+## Wallet provider integration
+
+The wallet screen supports connections from multiple external wallet providers. Provider logos are stored in a Supabase Storage bucket (`crypto-provider-assets`) rather than bundled in the app, keeping binary size down and allowing logo updates without a new release.
+
+Supported providers:
+
+| Provider        | Logo file               |
+| --------------- | ----------------------- |
+| MetaMask        | `metamask-logo.png`     |
+| Coinbase Wallet | `coinbase-logo.png`     |
+| Trust Wallet    | `trust-wallet-logo.png` |
+| Rainbow         | `rainbow-logo.png`      |
+| Phantom         | `phantom-logo.png`      |
+
+The utility at `lib/wallet-provider-assets.ts` resolves logo URLs from `EXPO_PUBLIC_SUPABASE_URL` at runtime. If the URL is unset, a fallback D-Sports logo is used.
 
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env` and set the required environment variables (see below).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix so Expo can embed them in the client bundle.
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | D-Sports API base URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (used for asset storage) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, signup, SSO callback
+├── (onboarding)/        # New-user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, CardDetailModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components (feed, quests, daily games)
+├── leaderboard/         # Leaderboard components
+├── profile/             # Profile modals (followers, points history)
+├── settings/            # Settings items, sections, and modals
+├── ui/                  # Reusable UI primitives (Button, TextField, TutorialOverlay)
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+└── use-feed-section.ts  # Feed state and handlers
+
+lib/
+├── api/                 # API client modules (wallet, shop, user, quests, checkout, etc.)
+├── revenuecat/          # RevenueCat in-app purchases provider
+├── wallet-provider-assets.ts  # Supabase-hosted wallet provider logos
+├── crypto-token-assets.ts     # Crypto token logo resolution
+└── supabase.ts          # Supabase client initialization
+```
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
