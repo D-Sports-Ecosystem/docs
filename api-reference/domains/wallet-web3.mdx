@@ -17,6 +17,7 @@ Wallet APIs manage user wallet registration, PIN validation, key retrieval flow,
 
 - Treat all private-key and PIN operations as sensitive user actions.
 - Pair price lookup APIs with freshness indicators on the client side.
+- After a PIN force-reset, `verify-pin` returns `requiresPinReset: true`. Prompt the user to call `set-pin` with a new 6-digit PIN before allowing private-key access.
 
 ## Deep-dive documentation
 
