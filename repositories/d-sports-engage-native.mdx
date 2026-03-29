@@ -12,17 +12,19 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category        | Technology                |
+| --------------- | ------------------------- |
+| Framework       | Expo 54, React Native 0.81, React 19 |
+| Auth            | Clerk (Expo)              |
+| Payments        | RevenueCat (react-native-purchases) |
+| Web3            | Thirdweb                  |
+| Push notifications | OneSignal (APNs on iOS, FCM on Android) |
+| State           | Zustand                   |
+| Storage         | MMKV                      |
+| UI              | Lucide React Native       |
+| Navigation      | Expo Router               |
+| Monitoring      | Sentry                    |
+| Package         | Bun                       |
 
 ## Features
 
@@ -31,7 +33,43 @@ icon: "smartphone"
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
+- **Push notifications** — OneSignal with APNs (iOS) and FCM (Android); auto-registers subscription on login
 - **Theme** — Dark/light mode (default dark)
+
+## Environment variables
+
+The app reads `EXPO_PUBLIC_*` keys at runtime. Create a `.env` file at the repo root with the following:
+
+| Variable | Description |
+| -------- | ----------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for authentication |
+| `EXPO_PUBLIC_API_URL` | Base URL for the d-sports-api backend |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+<Note>
+  The OneSignal App ID is configured directly in `app/_layout.tsx`, not via an environment variable. See the push notifications section below for details.
+</Note>
+
+## Push notifications
+
+Push notifications use **OneSignal** with the `onesignal-expo-plugin`. The plugin is configured in `app.json` under `plugins` with `mode: "production"`.
+
+On app launch, the `OneSignalBootstrap` component in `app/_layout.tsx`:
+
+1. Initializes the OneSignal SDK with the app ID.
+2. Logs the user in via `OneSignal.login(userId)`.
+3. Requests notification permission and opts in to push.
+4. Waits for the APNs/FCM token to become available (polling up to 20 seconds).
+5. Upserts the push subscription to the d-sports-api backend.
+
+On **web**, the app defers to the OneSignal web SDK loaded via `OneSignalDeferred`.
+
+If a user disables push in their settings, the app calls `optOut()` on the OneSignal SDK and deletes the subscription from the backend.
 
 ## Getting started
 
