@@ -12,12 +12,15 @@ Gamification APIs include quest progression, leaderboard reads/streams, rewards,
 - Quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
 - Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
 - Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
+- Games: `/api/games/pick-em/players`, `/api/games/daily-spin/reward`
 - User quest history: `/api/user/completed-quests`
 
 ## Integration notes
 
 - Leaderboard stream clients should reconnect with backoff and refresh snapshots.
 - Quest step completion can trigger side effects such as points history writes.
+- **Pick-Em players** are sourced from the `Player` database table with a JSON-file fallback for unseeded entries. Each player has a tier (`elite`, `allstar`, or `underdog`).
+- **Daily spin rewards** award points to both the global and per-team leaderboards. Coin rewards (150 pts) are capped at 5 per day; weekly set bonuses (500 pts) are once per week.
 
 ## Deep-dive documentation
 

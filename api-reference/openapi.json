@@ -35,7 +35,8 @@
     { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
     { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
     { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" },
+    { "name": "Games", "description": "Interactive games: Pick-Em, Daily Spin, and other mini-games" }
   ],
   "paths": {
     "/api/auth/native-token": {
@@ -114,7 +115,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -1070,6 +1071,49 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": ["Games", "Gamification"],
+        "summary": "List Pick-Em players",
+        "description": "Returns the Pick-Em player roster. Player data is sourced from the database (Player model) with a JSON-file fallback for unseeded entries. Each player includes id, name, team, pos, tier (elite | allstar | underdog), goals, and img.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { players } }" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Failed to load pick-em players" }
+        }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a daily spin result. Supports two reward types: 'coin' (150 pts, max 5 per day) and 'weekly_set' (500 pts bonus, once per week). Points are written to the global and per-team leaderboards.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"] },
+                  "weekStartDate": { "type": "string", "description": "YYYY-MM-DD, required when rewardType is weekly_set" },
+                  "landedSegmentId": { "type": "string", "description": "Optional segment identifier from the spin wheel" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { pointsAwarded, rewardType, alreadyAwarded, leaderboardUpdates } }" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Failed to apply daily spin reward" }
+        }
       }
     }
   },
