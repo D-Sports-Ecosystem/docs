@@ -6,41 +6,139 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, v1.13.1) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+The app targets native (iOS + Android) and web (responsive, PWA-ready) and shares the same backend (`d-sports-api`) as the PWA for all API and checkout flows.
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category      | Technology                                  |
+| ------------- | ------------------------------------------- |
+| Framework     | Expo 54, React Native 0.81, React 19       |
+| Auth          | Clerk (`@clerk/clerk-expo`)                 |
+| Payments      | RevenueCat (`react-native-purchases`)       |
+| Web3          | Thirdweb SDK                                |
+| State         | Zustand + MMKV persistence                  |
+| Navigation    | Expo Router 6 (file-based, typed routes)    |
+| UI            | Lucide React Native                         |
+| Notifications | OneSignal                                   |
+| Monitoring    | Sentry (`@sentry/react-native`)             |
+| Package       | Bun 1.3.9                                   |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Wallet** — Tokens, holdings, pack opening, crypto checkout (Arbitrum, Ethereum, Polygon)
+- **Shop** — Collectibles, cart, coin bundles, fiat and crypto checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, quests, daily games (Pick'em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, followers/following, points history
+- **Settings** — Account, appearance, notifications, accessibility, privacy, support
+- **Onboarding** — New-user onboarding flow with team selection
 - **Theme** — Dark/light mode (default dark)
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Create a `.env` file with the following keys:
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+    | Variable | Description |
+    | -------- | ----------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+    | `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+    Only `EXPO_PUBLIC_*` keys are accessible at runtime in the Expo app.
+  </Step>
+  <Step title="Start the development server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+</Steps>
+
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, signup, SSO callback, password reset
+├── (onboarding)/        # New-user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+├── profile/[handle].tsx # Public user profile (dynamic route)
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, PackOpeningModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room feed, quests, games, teams
+├── leaderboard/         # Leaderboard table and modal
+├── profile/             # Follow lists, points history
+├── settings/            # Setting items, sections, modals, tabs
+├── ui/                  # Reusable primitives (Button, TextField, TutorialOverlay, etc.)
+├── layout/              # AppScreen wrapper (responsive max-width on web)
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+├── use-feed-section.ts  # Locker room feed logic
+└── use-user-settings.ts # User settings state
+
+lib/api/                 # API client layer with MMKV cache fallback
+context/                 # React Context providers (user, collectibles, navbar, accessibility)
+services/                # Zustand store, MMKV storage adapter, types
+theme/                   # Brand colors, spacing, typography tokens
+types/                   # Shared TypeScript types (wallet, shop, checkout, API)
+constants/               # App constants (tokens, bundles, changelog)
+```
+
+## Architecture
+
+- **File-based routing** — Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)` and typed routes
+- **Modular screens** — Screen files contain only JSX; all state and logic live in dedicated hooks (e.g. `use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **API client layer** — Domain modules in `lib/api/` (wallet, shop, user, quests, leaderboard, locker room, teams, collectibles, checkout) with MMKV cache-first fetching
+- **Zustand + MMKV** — Global state with synchronous persistence for theme, cart, and points
+- **React Context** — Auth (`UserContext`), collectibles, navbar visibility, accessibility settings
+- **Crypto checkout** — Thirdweb SDK signs on-chain transactions; the PWA backend handles `POST /api/checkout/crypto` and verification. Supported chains: Arbitrum (default), Ethereum, Polygon
+- **Fiat payments** — RevenueCat handles Apple IAP (native), Google Play (native), and Stripe (web)
+- **PWA-ready** — `display: standalone`, responsive desktop layout (`maxWidth: 480px`), web hover states, keyboard navigation
+- **Path alias** — `@/*` maps to the project root
+
+## EAS build profiles
+
+| Profile | Channel | Notes |
+| ------- | ------- | ----- |
+| `development` | `development` | Dev client, internal distribution, iOS simulator |
+| `development-device` | `development` | Dev client, internal distribution, physical device |
+| `preview` | `preview` | Internal distribution, Android APK |
+| `staging` | `staging` | Auto-increment version |
+| `production` | `production` | Auto-increment version, App Store / Play Store |
+
+Build commands:
+
+```bash
+bun run build:dev          # All platforms (development)
+bun run build:preview      # All platforms (preview)
+bun run build:prod         # All platforms (production)
+bun run build:prod:ios     # iOS only (production)
+bun run build:prod:android # Android only (production)
+```
+
+## CI/CD
+
+A GitHub Actions workflow (`eas-update.yml`) publishes OTA updates via EAS Update on every push to `master`. It runs `eas update --platform ios` targeting the appropriate branch channel.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
