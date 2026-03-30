@@ -114,7 +114,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -1035,13 +1035,68 @@
         "responses": { "200": { "description": "Crypto prices" } }
       }
     },
+    "/api/upload/profile": {
+      "post": {
+        "tags": ["Misc", "Platform and infrastructure"],
+        "summary": "Upload profile picture",
+        "description": "Upload a profile image (JPG, PNG, WebP, or GIF, max 5 MB). Stores the file in Vercel Blob, updates the user's `profileUrl`, and deletes the previous Blob-stored image if present.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file (JPEG, PNG, WebP, or GIF, max 5 MB)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true, data: { url } }" },
+          "400": { "description": "No file provided or invalid file type/size" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Server configuration error or upload failure" }
+        }
+      }
+    },
     "/api/upload/banner": {
       "post": {
         "tags": ["Misc", "Platform and infrastructure"],
         "summary": "Upload banner",
-        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object" } } } },
+        "description": "Upload a banner image (JPG, PNG, WebP, or GIF, max 5 MB). Stores the file in Vercel Blob, updates the user's `bannerUrl`, and deletes the previous Blob-stored banner if present.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file (JPEG, PNG, WebP, or GIF, max 5 MB)"
+                  }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Banner URL" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { url } }" },
+          "400": { "description": "No file provided or invalid file type/size" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Server configuration error or upload failure" }
+        }
       }
     },
     "/api/feedback/bug-report": {
