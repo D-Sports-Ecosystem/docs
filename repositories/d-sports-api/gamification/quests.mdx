@@ -35,7 +35,35 @@ Current checks include:
 - Earn points threshold
 - Reach leaderboard rank threshold
 
+### Check-progress response
+
+`POST /api/quests/check-progress` accepts `questType` (or the legacy `questId` alias) and returns a progress snapshot so clients can verify whether a quest step is truly done:
+
+```json
+{
+  "success": true,
+  "message": "Quest progress checked",
+  "status": { /* full UserQuestStatus or null */ },
+  "actionStatus": {
+    "questType": "FOLLOW_USER",
+    "targetStepId": "clx...",
+    "targetStepTitle": "Follow another user",
+    "isStepCompleted": true,
+    "conditionMet": true
+  }
+}
+```
+
+- **`status`** — the full `UserQuestStatus` for the matched quest, or `null` when no quest maps to the requested action.
+- **`actionStatus`** — a compact object the client can evaluate directly. `isStepCompleted` and `conditionMet` both reflect whether the target step has been marked complete.
+
+Lowercase aliases (e.g. `follow_user`) are accepted for backward compatibility with native clients transitioning from `questId` to `questType`.
+
+### Backfill on quest fetch
+
+When you call `GET /api/quests`, the server runs `backfillQuestProgressFromCurrentStats()` before returning results. This ensures that any progress the user earned outside the normal step-completion flow (for example, points earned via pack purchases) is reflected before the client displays quest state.
+
 ## Known caveats
 
-- Some step resolution currently relies on matching step titles. This is fragile if copy changes.
+- Step resolution uses `stepCode` when available but falls back to matching step titles. This fallback is fragile if copy changes.
 - A future stable step code pattern is preferred for long-term reliability.
