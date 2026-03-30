@@ -35,7 +35,19 @@ Current checks include:
 - Earn points threshold
 - Reach leaderboard rank threshold
 
-## Known caveats
+## Step matching
 
-- Some step resolution currently relies on matching step titles. This is fragile if copy changes.
-- A future stable step code pattern is preferred for long-term reliability.
+Step progression now uses a stable `stepCode` identifier when present, with a
+fallback to the legacy title-based match. This makes progression more reliable
+when quest copy changes. New quests should always set `stepCode` on every step.
+
+## Quest scopes
+
+Quests are scoped as `GLOBAL`, `TEAM`, or `EVENT`:
+
+- **GLOBAL** quests are available to all authenticated users.
+- **TEAM** quests are tied to a team and require the user to favorite that team first. Points accrue to the team leaderboard.
+- **EVENT** quests are time-limited and tied to a specific event.
+
+Paid-track quests set `requiresPaidPass: true` and are gated by team entitlement
+checks.
