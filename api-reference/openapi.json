@@ -114,7 +114,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -733,15 +733,50 @@
       "post": {
         "tags": ["Quests"],
         "summary": "Check quest progress",
+        "description": "Triggers an action-based progression check for the authenticated user. Returns the matched quest status and a compact actionStatus snapshot the client can evaluate directly.",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questType": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questType": { "type": "string", "description": "Action key such as FOLLOW_USER, UPLOAD_PROFILE_PICTURE, CHOOSE_TEAM, etc. Also accepts lowercase aliases (e.g. follow_user)." },
+                  "questId": { "type": "string", "description": "Legacy alias for questType (deprecated, prefer questType)." }
+                }
+              }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": {
+            "description": "Quest progress snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "status": { "description": "Full UserQuestStatus for the matched quest, or null if no quest matches the action.", "nullable": true },
+                    "actionStatus": {
+                      "type": "object",
+                      "properties": {
+                        "questType": { "type": "string" },
+                        "targetStepId": { "type": "string", "nullable": true },
+                        "targetStepTitle": { "type": "string" },
+                        "isStepCompleted": { "type": "boolean" },
+                        "conditionMet": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Missing or invalid questType" },
+          "401": { "description": "Authentication required" }
+        }
       }
     },
     "/api/rewards": {
