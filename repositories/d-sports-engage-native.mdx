@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage (v1.14.0). Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -28,10 +28,57 @@ icon: "smartphone"
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Leaderboard** — Rankings and filters with team-isolated scoring
+- **Locker room** — Social feed, quests, rewards, and daily games
+- **Quests** — Multi-step quest system with scoped questlines (see below)
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+
+## Quests and rewards
+
+The locker room includes a full quest system powered by the
+[gamification quests API](/repositories/d-sports-api/gamification/quests).
+
+### Quest scopes
+
+Every quest carries a **scope** that determines visibility and eligibility:
+
+| Scope | Description |
+| -------- | ------------------------------------------------------------ |
+| `GLOBAL` | Available to all authenticated users. |
+| `TEAM` | Tied to a specific team — you must favorite the team first. |
+| `EVENT` | Linked to a time-limited event. |
+
+Quests that require a paid pass show `requiresPaidPass: true` and are gated by
+team entitlement checks in RevenueCat.
+
+### Filtering
+
+The quest section supports two filter axes:
+
+- **Category** — `All`, `Profile`, `Social`, `Purchase`, `Events`
+- **Scope** — `All`, `GLOBAL`, `TEAM`, `EVENT`, `LOCKED`
+
+Locked quests appear when you haven't met the eligibility requirement (for example,
+you haven't favorited the required team). The `lockReason` field explains why.
+
+### Rewards
+
+Rewards are fetched from `GET /api/rewards`. Each reward tracks whether it has been
+unlocked, claimed, or redeemed. Superadmins can force-claim or remove rewards
+through the admin override endpoints.
+
+### Step progression
+
+Quest steps use a stable `stepCode` identifier for progression matching, falling
+back to the legacy title-based match when `stepCode` is not set. This improves
+reliability when quest copy changes.
+
+## Favorites
+
+You can favorite up to **5 teams**. Favoriting a team unlocks that team's
+questline and contributes points to the team leaderboard. The favorites list
+is stored as `favoriteTeamIds` on the user profile.
 
 ## Getting started
 
