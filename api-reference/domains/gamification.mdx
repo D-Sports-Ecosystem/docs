@@ -12,12 +12,25 @@ Gamification APIs include quest progression, leaderboard reads/streams, rewards,
 - Quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
 - Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
 - Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
+- Games: `/api/games/daily-spin/reward`
 - User quest history: `/api/user/completed-quests`
+
+## Daily spin wheel
+
+The daily spin wheel is an interactive mini-game that awards points directly to a team leaderboard. Two reward types exist:
+
+- **`coin`** — awards 150 points per spin, capped at 5 spins per calendar day.
+- **`weekly_set`** — awards a 500-point bonus once per week (keyed by `weekStartDate`).
+
+Points are written to `PointsHistory` and the user's team leaderboard entry is updated, followed by a global aggregate sync. If the daily or weekly cap is already reached, the endpoint returns `alreadyAwarded: true` with zero points.
+
+You can optionally pass `teamId` or `leaderboardId` to target a specific team board; otherwise the API resolves the user's enrolled team board automatically.
 
 ## Integration notes
 
 - Leaderboard stream clients should reconnect with backoff and refresh snapshots.
 - Quest step completion can trigger side effects such as points history writes.
+- Daily spin reward writes follow the same `PointsHistory` ledger pattern as quest completions.
 
 ## Deep-dive documentation
 
