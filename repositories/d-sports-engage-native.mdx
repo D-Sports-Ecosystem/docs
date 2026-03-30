@@ -29,9 +29,18 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, engagement, and daily games
+- **Games** — Daily spin wheel, daily pick'em, and guess the player (see below)
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+
+### Games and points
+
+The locker room includes three mini-games accessible from the **Featured Games** carousel:
+
+- **Daily spin wheel** — Spin once per day to collect hockey-themed items (puck, stick, mask, skates) or a coin. Completing a weekly set or landing on the coin segment awards points via the `POST /api/games/daily-spin/reward` endpoint. Points sync to your profile and the leaderboard automatically.
+- **Daily pick'em** — Pick players and earn points based on real-game outcomes.
+- **Guess the player** — Identify a mystery player from progressively revealed clues.
 
 ## Getting started
 
