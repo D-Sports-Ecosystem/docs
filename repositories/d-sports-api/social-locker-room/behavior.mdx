@@ -21,6 +21,10 @@ icon: "list-checks"
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - Recommendation and follower endpoints read from current social graph state.
 
+## Favorite team cap
+
+Users can favorite up to 5 teams. The official D-Sports team (slug `d-sports`) is exempt from this cap and does not count toward the limit. The exemption is resolved at validation time by matching team slugs listed in `FAVORITE_CAP_EXEMPT_TEAM_SLUGS` (defined in `lib/favorites.ts`).
+
 ## Side effects and integration points
 
 - Social actions can trigger quest progression checks in onboarding/gamification flows.
