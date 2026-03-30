@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb, OneSignal."
 icon: "smartphone"
 ---
 
@@ -12,35 +12,97 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                                  |
+| -------------- | ------------------------------------------- |
+| Framework      | Expo 54, React Native 0.81, React 19        |
+| Auth           | Clerk (Expo)                                |
+| Payments       | RevenueCat (react-native-purchases)         |
+| Web3           | Thirdweb                                    |
+| Push notifications | OneSignal (react-native-onesignal)      |
+| Error tracking | Sentry (@sentry/react-native)               |
+| State          | Zustand                                     |
+| Storage        | MMKV                                        |
+| Database       | Supabase (client-side JS, not direct DB)    |
+| UI             | Lucide React Native                         |
+| Navigation     | Expo Router                                 |
+| Package        | Bun                                         |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, quests, daily games (Pick'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, followers/following, points history
+- **Notifications** — Push notifications via OneSignal with in-app notification center (filter by all/unread/read/archived)
+- **Settings** — Account, appearance, accessibility, privacy, data, support, and notification preferences
 - **Theme** — Dark/light mode (default dark)
+
+## Environment variables
+
+All runtime variables must be prefixed with `EXPO_PUBLIC_`. Create a `.env` file at the repo root with these keys:
+
+| Variable | Description |
+| -------- | ----------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement ID (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+OneSignal is configured via the `onesignal-expo-plugin` in `app.json` rather than an env var.
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and run `bun install`.
+  </Step>
+  <Step title="Configure environment">
+    Copy `.env.example` to `.env` and fill in the values listed above. See the repo README for details.
+  </Step>
+  <Step title="Start the dev server">
+    Run `bunx expo start`, then press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Development builds (optional)">
+    For native development builds with EAS:
+
+    ```bash
+    bun run build:dev          # all platforms
+    bun run build:dev:ios      # iOS only
+    bun run build:dev:android  # Android only
+    ```
+  </Step>
+</Steps>
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Push notifications
+
+Push notifications use **OneSignal** via `react-native-onesignal` and the `onesignal-expo-plugin`.
+
+- On native (iOS/Android), the app registers for push via APNs or FCM and polls for a subscription ID on startup.
+- On web, OneSignal is not loaded (gracefully returns `null`).
+- The in-app **Notification Center** (`app/notifications.tsx`) fetches notifications from the API and supports filtering, mark-as-read, and archiving.
+
+## EAS build profiles
+
+The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with the following profiles defined in `eas.json`:
+
+| Profile | Channel | Notes |
+| ------- | ------- | ----- |
+| `development` | `development` | Dev client, internal distribution, iOS simulator |
+| `development-device` | `development` | Dev client on physical device |
+| `preview` | `preview` | Internal distribution, Android APK |
+| `staging` | `staging` | Auto-increment version |
+| `production` | `production` | Auto-increment version, App Store / Play Store |
+
+## OTA updates
+
+A GitHub Actions workflow (`.github/workflows/eas-update.yml`) publishes over-the-air updates via `eas update` on push to the `develop` and `main` branches. This allows you to ship JS-only changes without a full native rebuild.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
