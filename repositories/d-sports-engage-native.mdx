@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, current version **v1.14.0**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -18,6 +18,8 @@ icon: "smartphone"
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
+| Push       | OneSignal                 |
+| Monitoring | Sentry                    |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
@@ -28,19 +30,71 @@ icon: "smartphone"
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Leaderboard** — Per-team scoring with aggregated global leaderboard, category "See All" modals
+- **Locker room** — Social feed, daily pick-em, spin wheel, guess-the-player games, and quest sections
+- **Quests** — Team-scoped (`GLOBAL`, `TEAM`, `EVENT`) questlines with `stepCode`-based progression, favorites gating, and paid-pass (REP/MVP) track support
+- **Favorites** — Up to 5 favorited teams; quest eligibility and team leaderboard access are tied to favorites
+- **Profile** — User profile editing with avatar/banner uploads, follow lists, and points history
+- **Settings** — Accessibility, appearance, notifications, privacy, data, audio, and support pages
 - **Theme** — Dark/light mode (default dark)
+
+## Environment variables
+
+The app uses `EXPO_PUBLIC_*` keys at runtime. You need to set the following in your `.env` file:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID (Web3) |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
 
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the values above (Clerk, RevenueCat, Thirdweb, Supabase, API base URL).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Project structure
+
+```text
+app/
+├── (auth)/           # Login, sign-up, SSO callback, password reset
+├── (onboarding)/     # New user onboarding flow
+├── (tabs)/           # Main tab navigation (wallet, shop, leaderboard, locker-room, profile)
+├── settings/         # Settings pages with nested modals and tabs
+└── _layout.tsx       # Root layout with providers and auth protection
+
+components/
+├── wallet/           # Wallet sub-components (token rows, modals, pack opening)
+├── shop/             # Shop sub-components (cart, collectibles, crypto checkout)
+├── locker-room/      # Locker room components (quests, games, feed, teams)
+├── leaderboard/      # Base leaderboard and leaderboard modal
+├── profile/          # Follow lists and points history modals
+├── settings/         # Setting items, sections, and modal tabs
+└── ui/               # Reusable primitives (button, text field, team detail modal)
+
+hooks/                # Screen-level hooks (use-wallet-screen, use-shop-screen, etc.)
+lib/api/              # API client modules (wallet, shop, user, quests, teams, leaderboard)
+context/              # React contexts (user, collectibles, accessibility, navbar)
+services/             # Zustand store, MMKV storage, mock data
+```
+
+## v1.14.0 highlights
+
+- **Team-scoped quests** — quests are now scoped to `GLOBAL`, `TEAM`, or `EVENT` with per-team progression and `stepCode`-based matching for reliable completion tracking.
+- **Favorites gating** — team quests unlock only when the team is in your favorites (max 5). Quest payloads include eligibility and lock-reason signals so the UI can explain why a quest is unavailable.
+- **Paid-pass support** — paid-track team quests are gated by team entitlement checks (initial rollout: Oshawa pass quest gating).
+- **Leaderboard aggregation** — team quest points accrue per-team; the global D-Sports leaderboard aggregates from team board totals.
+- **Team detail modal refresh** — redesigned to reflect "favorite to unlock team questline + points" with explicit add/remove controls and disabled-state messaging at max favorites.
+- **Category "See All"** — leaderboard section "See All" actions now open modal lists and route into team detail flows.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
