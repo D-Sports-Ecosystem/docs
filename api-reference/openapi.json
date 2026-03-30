@@ -27,6 +27,8 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Leagues", "description": "Leagues list and metadata" },
+    { "name": "Games", "description": "Daily spin rewards and pick-em" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -114,7 +116,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -1060,6 +1062,293 @@
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [],
         "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with colors, metadata, and team counts. Optionally filter by country query parameter.",
+        "parameters": [
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Filter leagues by country (case-insensitive)." }
+        ],
+        "security": [],
+        "responses": { "200": { "description": "{ success, data: { leagues } }" } }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a daily spin. rewardType 'coin' gives 150 pts (max 5 per day). rewardType 'weekly_set' gives 500 pts once per week.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"] },
+                  "weekStartDate": { "type": "string", "description": "YYYY-MM-DD, required for weekly_set." },
+                  "landedSegmentId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ pointsAwarded, rewardType, alreadyAwarded, leaderboardUpdates }" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Get pick-em players",
+        "description": "Returns the list of players available for the pick-em game with tier, team, position, and goals.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { players } }" },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/user/blocks": {
+      "get": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "List blocked users",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of blocked user entries" } }
+      },
+      "post": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Block user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["blockedUserId"], "properties": { "blockedUserId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Block record" }, "400": { "description": "Validation error" } }
+      },
+      "delete": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Unblock user",
+        "parameters": [{ "name": "blockedUserId", "in": "query", "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success: true }" } }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Case-insensitive check whether a handle is already taken.",
+        "parameters": [{ "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "{ available: boolean }" } }
+      }
+    },
+    "/api/user/data-export": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List data export requests",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of data export request records" } }
+      },
+      "post": {
+        "tags": ["User"],
+        "summary": "Request data export",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "reason": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Created data export request" } }
+      }
+    },
+    "/api/user/push-subscriptions": {
+      "get": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "List push subscriptions",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of push subscription records" } }
+      },
+      "post": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Register push subscription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["platform"],
+                "properties": {
+                  "platform": { "type": "string" },
+                  "provider": { "type": "string" },
+                  "externalSubscriptionId": { "type": "string" },
+                  "pushToken": { "type": "string" },
+                  "isEnabled": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Push subscription record" } }
+      },
+      "delete": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Remove push subscription",
+        "parameters": [{ "name": "platform", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success: true }" } }
+      }
+    },
+    "/api/user/settings": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user settings",
+        "description": "Returns the user's notification, privacy, accessibility, and appearance settings.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "UserSettings object" } }
+      },
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "privateProfile": { "type": "boolean" },
+                  "showOnlineStatus": { "type": "boolean" },
+                  "allowDirectMessages": { "type": "boolean" },
+                  "appearanceTheme": { "type": "string" },
+                  "reduceMotion": { "type": "boolean" },
+                  "pushEnabled": { "type": "boolean" },
+                  "notifyMentions": { "type": "boolean" },
+                  "notifyLikes": { "type": "boolean" },
+                  "notifyComments": { "type": "boolean" },
+                  "notifyFollows": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Updated UserSettings object" } }
+      }
+    },
+    "/api/user/support/tickets": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List support tickets",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of support ticket records" } }
+      },
+      "post": {
+        "tags": ["User"],
+        "summary": "Create support ticket",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["subject", "message"],
+                "properties": {
+                  "subject": { "type": "string" },
+                  "message": { "type": "string" },
+                  "category": { "type": "string", "enum": ["support", "bug", "report", "account", "billing", "other"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Created support ticket" } }
+      }
+    },
+    "/api/user/support/tickets/{id}/messages": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get ticket messages",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of ticket messages" } }
+      },
+      "post": {
+        "tags": ["User"],
+        "summary": "Reply to support ticket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["message"], "properties": { "message": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Created message" } }
+      }
+    },
+    "/api/wallets/link-challenge": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Get wallet link challenge",
+        "description": "Creates a one-time SIWE-style challenge message for linking an external wallet.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ challengeId, message, expiresAt }" } }
+      }
+    },
+    "/api/wallets/link-external": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Link external wallet",
+        "description": "Verifies a signed challenge and links an external (non-custodial) wallet.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["challengeId", "message", "signature", "address", "provider"],
+                "properties": {
+                  "challengeId": { "type": "string" },
+                  "message": { "type": "string" },
+                  "signature": { "type": "string" },
+                  "address": { "type": "string" },
+                  "provider": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "{ wallet }" }, "400": { "description": "Validation or verification error" } }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks", "Platform and infrastructure"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by GitHub Actions to synchronize league data. Requires x-webhook-secret header.",
+        "security": [],
+        "responses": { "200": { "description": "Sync result" }, "401": { "description": "Invalid webhook secret" } }
       }
     },
     "/api/sync-quest-points": {
