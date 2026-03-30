@@ -21,24 +21,106 @@ icon: "smartphone"
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
 | Package    | Bun                       |
+| Monitoring | Sentry                    |
+| Push       | OneSignal                 |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, discover teams, explore fans, daily games (Pick'Em, Spin Wheel, Guess the Player), and quests
+- **Profile** — User profile, achievements, followers, and settings
 - **Theme** — Dark/light mode (default dark)
+
+### Discover teams
+
+The locker room includes a **Discover Teams** section that fetches teams from `GET /api/teams` and displays them in a horizontally scrollable list. You can follow or unfollow teams directly from the cards. A **Top Teams** carousel highlights the top 10 ranked teams with fan counts and rank badges.
+
+Teams are categorized as **Official** or **Community**, and the follow state syncs with your user profile via `POST /api/teams/[id]/follow` and `DELETE /api/teams/[id]/follow`.
+
+## Project structure
+
+```text
+app/
+├── (auth)/              # Login, signup, SSO, password reset
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, PackOpeningModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components (ExploreTeams, ExploreFans, FeedSection, QuestSection, games)
+├── leaderboard/         # Leaderboard components
+├── profile/             # Profile modals (achievements, followers, points history)
+├── settings/            # Settings items, sections, and modals
+├── ui/                  # Reusable UI primitives (Button, TextField, TeamDetailModal, etc.)
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/                   # Screen-level hooks (use-wallet-screen, use-shop-screen, use-feed-section, etc.)
+lib/api/                 # API client modules (teams, wallet, shop, user, quests, leaderboard, locker-room, etc.)
+context/                 # React Context providers (user, collectibles, navbar visibility, accessibility)
+services/                # Zustand store, MMKV storage, core types
+theme/                   # Colors, spacing, typography tokens
+types/                   # TypeScript type definitions
+constants/               # App constants and data mappers
+```
+
+## Architecture
+
+- **File-based routing** via Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Modular screen architecture** — screen files contain only JSX; all state, effects, and handlers live in dedicated hooks (e.g., `use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **API client layer** in `lib/api/` with domain modules (teams, wallet, shop, user, quests, etc.) and MMKV cache fallback
+- **Zustand + MMKV** for global state with synchronous persistence
+- **React Context** for auth, collectibles, navbar visibility, and accessibility settings
+- **Crypto checkout** via Thirdweb SDK calling the PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
+- **PWA-ready** — responsive desktop layout (`maxWidth: 480px`), web hover states, keyboard navigation
+- **Path alias** `@/*` maps to project root
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment variables">
+    Create a `.env` file at the project root with the following keys:
+
+    | Variable | Description |
+    | -------- | ----------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+    | `EXPO_PUBLIC_API_URL` | API backend URL (e.g., `https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+    <Note>Only `EXPO_PUBLIC_*` keys are accessible at runtime in the Expo app.</Note>
+  </Step>
+  <Step title="Start the development server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Build for device (optional)">
+    For development builds using EAS:
+
+    ```bash
+    bun run build:dev          # All platforms
+    bun run build:dev:ios      # iOS only
+    bun run build:dev:android  # Android only
+    ```
+  </Step>
+</Steps>
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
