@@ -33,14 +33,58 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Environment variables
+
+The app uses `EXPO_PUBLIC_*` keys, which are accessible at runtime in the Expo app. Create a `.env` file in the repo root with these values:
+
+| Variable | Description |
+| --- | --- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+<Note>On Android emulators, `localhost` in `EXPO_PUBLIC_API_URL` is automatically replaced with `10.0.2.2` so API requests reach your host machine.</Note>
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Copy `.env.example` to `.env` and fill in the values above.
+3. Run `bunx expo start` — press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## API client
+
+All backend requests go through a typed API client in `lib/api/client.ts`. The client injects Clerk auth tokens automatically and normalizes every response into a `{ success, data?, error?, code? }` envelope.
+
+You access API modules via the `useApi()` hook:
+
+```typescript
+const api = useApi();
+const result = await api.user.getProfile();
+if (result.success) {
+  console.log(result.data);
+}
+```
+
+### Transient retry
+
+Backend requests can opt into automatic retries for transient failures by passing `retryTransient: true`. When enabled, the client retries up to **3 times** with exponential backoff (250 ms, 500 ms) on:
+
+- Any **5xx** response with error code `INTERNAL_ERROR`
+- Errors containing Prisma connection-pool messages (`P2024` / `timed out fetching a new connection`)
+
+If all attempts fail, the response returns `code: "RETRY_EXHAUSTED"`.
+
+### MMKV cache layer
+
+The cache utility in `lib/api/cache.ts` provides stale-while-revalidate behavior backed by MMKV. It serves cached data immediately, fetches fresh data in the background, and falls back to stale cache on network errors.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
