@@ -114,7 +114,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -139,7 +139,7 @@
       "post": {
         "tags": ["Teams"],
         "summary": "Follow team",
-        "description": "Body optional: { type?: 'followed' | 'fan' }.",
+        "description": "Body optional: { type?: 'followed' | 'fan' }. Users may favorite up to 5 teams. The official D-Sports team (slug `d-sports`) is exempt from this cap and does not count toward the limit.",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "requestBody": {
           "content": {
@@ -408,7 +408,7 @@
       "patch": {
         "tags": ["User"],
         "summary": "Update user",
-        "description": "Body: user fields to update.",
+        "description": "Body: user fields to update. When `favoriteTeamIds` is provided, users may select up to 5 teams. The official D-Sports team (slug `d-sports`) is exempt from this cap and does not count toward the limit.",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "Updated user" } }
@@ -435,7 +435,7 @@
       "post": {
         "tags": ["User"],
         "summary": "Create/onboard profile",
-        "description": "Onboarding payload.",
+        "description": "Onboarding payload. When `favoriteTeamIds` is included, users may select up to 5 teams. The official D-Sports team (slug `d-sports`) is exempt from this cap and does not count toward the limit.",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, user, ... }" } }
