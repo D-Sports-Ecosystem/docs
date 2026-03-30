@@ -1,23 +1,31 @@
 ---
 title: "Gamification API"
-description: "Non-admin endpoint guide for quests, points-facing reads, leaderboards, and rewards."
+description: "Non-admin endpoint guide for team-scoped quests, leaderboards, rewards, and pass-gated eligibility."
 ---
 
 ## Scope
 
-Gamification APIs include quest progression, leaderboard reads/streams, rewards, and related user quest history.
+Gamification APIs include team-scoped quest progression, pass-gated eligibility, leaderboard reads/streams, rewards, and related user quest history.
 
 ## Endpoint map
 
-- Quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
-- Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
-- Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
-- User quest history: `/api/user/completed-quests`
+- **Quests**: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
+- **Leaderboard**: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
+- **Rewards**: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
+- **User quest history**: `/api/user/completed-quests`
+
+## Key concepts
+
+- **Quest scope** — each quest has a `scope` field (GLOBAL, TEAM, or EVENT) that determines eligibility rules and how points are attributed.
+- **TEAM quest eligibility** — TEAM quests require the team to be in the user's favorites. Paid-pass quests additionally require a purchased team pass. The `isEligible` and `lockReason` fields on each quest tell the client whether the user can participate.
+- **Scoped leaderboard attribution** — TEAM quest points write to the team's leaderboard and sync to the global aggregate. GLOBAL/EVENT quest points go to `PointsHistory` only.
 
 ## Integration notes
 
+- Check `isEligible` and `lockReason` before allowing users to start TEAM quests. The server enforces these gates, but showing lock reasons in the UI prevents unnecessary 403 responses.
 - Leaderboard stream clients should reconnect with backoff and refresh snapshots.
-- Quest step completion can trigger side effects such as points history writes.
+- Quest step completion triggers side effects including points history writes, team board updates, and global aggregate sync.
+- The `check-progress` endpoint returns a `status` and `actionStatus` snapshot so clients can reflect progress without a separate fetch.
 
 ## Deep-dive documentation
 

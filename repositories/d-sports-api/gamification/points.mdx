@@ -1,16 +1,16 @@
 ---
 title: "Points"
-description: "How points are written, stored, and surfaced to users."
+description: "How points are written, stored, and attributed to team and global leaderboards."
 icon: "coins"
 ---
 
 ## Points source of truth
 
-`PointsHistory` is the append-only ledger for awarded points.
+`PointsHistory` is the append-only ledger for all awarded points.
 
 Common point write paths:
 
-- Quest step completion
+- Quest step completion (team-scoped or global)
 - Daily quest completion
 - Onboarding completion
 - Backfill/fix scripts
@@ -24,17 +24,25 @@ Key fields in `PointsHistory`:
 - `reason`
 - `timestamp`
 - `questId` (optional)
-- `leaderboardId` (optional; Season 0.5 scoping)
-- `seasonId` (optional; Season 0.5 scoping)
+- `leaderboardId` (set to the team board ID for TEAM quests; `null` for GLOBAL/EVENT quests)
+- `seasonId` (set to the active season ID when available)
+
+## Write paths by quest scope
+
+| Quest scope | `leaderboardId` | LeaderboardEntry mutation | Global sync |
+|-------------|-----------------|--------------------------|-------------|
+| **TEAM** | Team board ID | Yes — increments team board entry | `syncUserGlobalAggregateFromTeamBoards()` re-derives global total |
+| **GLOBAL** | `null` | No | None — global ranking comes from team aggregates |
+| **EVENT** | `null` | No | None |
 
 ## Read behavior
 
 - User totals are typically aggregated from `PointsHistory`.
 - Completed quest history endpoint derives quest-oriented history from points records.
-- Leaderboard APIs aggregate from points history with season/board scoping logic.
+- Leaderboard APIs read from `LeaderboardEntry` (not from `PointsHistory` aggregation at query time).
 
 ## Migration-era behavior
 
 - Legacy Season 0 rows may have null `leaderboardId` and `seasonId`.
-- Season 0.5+ writes should include scoping data where available.
+- Current writes always include scoping data where an active season and board context exist.
 - Some migration/backfill paths intentionally retain nullable board scope with TODO notes.

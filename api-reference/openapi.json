@@ -3,7 +3,7 @@
   "info": {
     "title": "D-Sports API",
     "description": "Public API for the D-Sports fan engagement platform (PWA backend). Most endpoints require Clerk Bearer authentication.",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "servers": [
     { "url": "https://app.d-sports.org", "description": "Production" },
@@ -114,7 +114,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -163,14 +163,14 @@
       "get": {
         "tags": ["Leaderboard", "Gamification"],
         "summary": "Get leaderboard",
-        "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global.",
+        "description": "Returns leaderboard entries with user profiles and trend indicators. Pass `leaderboardId` for a specific board, `teamId` to resolve/create a team board, or omit both for the global board. Global board points are derived from the aggregate of team board scores. Each entry includes User metadata (handle, favoriteTeam, roles, labels, hasBadge) and a trend indicator (up/down/same).",
         "parameters": [
-          { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } },
-          { "name": "teamId", "in": "query", "schema": { "type": "string" } }
+          { "name": "leaderboardId", "in": "query", "description": "Numeric leaderboard ID for direct lookup.", "schema": { "type": "integer" } },
+          { "name": "teamId", "in": "query", "description": "Team ID; resolves to the team's board (creates if needed).", "schema": { "type": "string" } }
         ],
         "security": [{ "bearerAuth": [] }],
         "responses": {
-          "200": { "description": "{ leaderboard, leaderboardEntries, currentUserId, season }" },
+          "200": { "description": "{ leaderboard: { id, name }, leaderboardEntries: [{ id, userId, points, trend, User: { ... } }], currentUserId, season: { id, seasonNumber, name, startDate, endDate, status, daysRemaining } }" },
           "401": { "description": "Authentication required" },
           "404": { "description": "Leaderboard or user not found" }
         }
@@ -679,36 +679,90 @@
       "get": {
         "tags": ["Quests", "Gamification"],
         "summary": "Get quests",
-        "description": "Query: category (optional) for QuestCategory; else active quests.",
-        "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
+        "description": "Returns active quests or quests filtered by category. Each quest includes team-scoped fields: `scope` (GLOBAL | TEAM | EVENT), `teamId`, `isEligible`, `lockReason`, `countsToward`, and `requiresPaidPass`. TEAM-scoped quests are eligibility-gated: the user must have the team in their favorites and, for paid-pass quests, hold a purchased team pass. Steps include a `stepCode` identifier used for progression matching.",
+        "parameters": [{ "name": "category", "in": "query", "description": "QuestCategory enum: ONBOARDING, SOCIAL, ENGAGEMENT, PURCHASE, DAILY, WEEKLY, SPECIAL_EVENT.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests, currentUserId }" }, "401": { "description": "Authentication required" } }
+        "responses": {
+          "200": {
+            "description": "Quest list with team-scope and eligibility metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "title": { "type": "string" },
+                          "scope": { "type": "string", "enum": ["GLOBAL", "TEAM", "EVENT"] },
+                          "teamId": { "type": "string", "nullable": true },
+                          "isEligible": { "type": "boolean", "description": "Whether the user meets all eligibility requirements for TEAM quests." },
+                          "lockReason": { "type": "string", "nullable": true, "description": "Reason the quest is locked, e.g. 'Quest team is not in favorite teams' or 'Team paid pass required'." },
+                          "requiresPaidPass": { "type": "boolean" },
+                          "countsToward": {
+                            "type": "object",
+                            "properties": {
+                              "global": { "type": "boolean" },
+                              "team": { "type": "boolean" }
+                            }
+                          },
+                          "RequiredSteps": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string" },
+                                "title": { "type": "string" },
+                                "stepCode": { "type": "string", "nullable": true, "description": "Stable identifier for step matching; falls back to title when null." }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "currentUserId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Authentication required" }
+        }
       }
     },
     "/api/quests/start": {
       "post": {
         "tags": ["Quests"],
         "summary": "Start quest",
+        "description": "Starts a quest for the authenticated user. For TEAM-scoped quests, validates that the quest's team is in the user's favorite teams and, for paid-pass cadence quests, that the user holds a valid team pass. Returns an error if eligibility checks fail.",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questId": { "type": "string" } } }
+              "schema": { "type": "object", "required": ["questId"], "properties": { "questId": { "type": "string" } } }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "responses": {
+          "200": { "description": "{ quest, message }" },
+          "403": { "description": "TEAM quest eligibility failed: team not in favorites or paid pass not held." }
+        }
       }
     },
     "/api/quests/complete-step": {
       "post": {
         "tags": ["Quests"],
         "summary": "Complete quest step",
+        "description": "Marks a quest step as completed and awards step points. For TEAM-scoped quests, points are written to the team leaderboard and the user's global aggregate is re-synced from all team boards. For GLOBAL/EVENT quests, points are recorded in PointsHistory only (no direct leaderboard mutation). Step matching uses `stepCode` first, falling back to title.",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["questId", "stepId"],
                 "properties": {
                   "questId": { "type": "string" },
                   "stepId": { "type": "string" }
@@ -718,7 +772,7 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, pointsAwarded, questCompleted }" } }
+        "responses": { "200": { "description": "{ success, message, pointsAwarded, questCompleted }" } }
       }
     },
     "/api/quests/daily-visit": {
@@ -733,15 +787,22 @@
       "post": {
         "tags": ["Quests"],
         "summary": "Check quest progress",
+        "description": "Triggers an action-based quest progression check and returns a snapshot. Supported questType values: FOLLOW_USER, UPLOAD_PROFILE_PICTURE, CHOOSE_TEAM, COMPLETE_PROFILE, GET_FOLLOWER, JOIN_LEADERBOARD, EARN_POINTS, UPDATE_LEADERBOARD_POSITION. Also accepts legacy lowercase aliases and a `questId` alias for backwards compatibility.",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questType": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questType": { "type": "string", "description": "Action key, e.g. FOLLOW_USER." },
+                  "questId": { "type": "string", "description": "Legacy alias for questType." }
+                }
+              }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": { "200": { "description": "{ success, message, status, actionStatus }" } }
       }
     },
     "/api/rewards": {

@@ -1,6 +1,6 @@
 ---
 title: "Gamification architecture overview"
-description: "Backend architecture for quests, points, leaderboards, rewards, and achievements."
+description: "Backend architecture for team-scoped quests, pass-gated eligibility, points attribution, and leaderboard aggregation."
 icon: "workflow"
 ---
 
@@ -8,18 +8,20 @@ icon: "workflow"
 
 Gamification in `d-sports-api` is primarily implemented in:
 
-- `server/quest-actions.ts`
-- `server/daily-quest-actions.ts`
-- `lib/leaderboard.ts`
-- `app/api/leaderboard/route.ts`
-- `app/api/rewards/*`
-- `prisma/schema.prisma` (gamification models)
+- `server/quest-actions.ts` — quest lifecycle, team eligibility gates, step completion, scoped point writes
+- `server/leaderboard-actions.ts` — `syncUserGlobalAggregateFromTeamBoards()` and leaderboard mutations
+- `server/daily-quest-actions.ts` — daily visit quest logic
+- `lib/leaderboard.ts` — `getOrCreateTeamLeaderboard()`, `getGlobalLeaderboard()`, `getActiveSeason()`
+- `lib/favorites.ts` — `resolveUserFavoriteTeamIds()` for favorite team authority
+- `app/api/leaderboard/route.ts` — leaderboard read endpoint with trend calculation
+- `app/api/rewards/*` — reward claim and redeem routes
+- `prisma/schema.prisma` — gamification models including `QuestScope` enum
 
 ## Core models
 
-- `Quest` and `QuestStep`: quest definitions and ordered steps.
+- `Quest` and `QuestStep`: quest definitions with `scope` (GLOBAL | TEAM | EVENT), `teamId`, and ordered steps with `stepCode`.
 - `UserQuestStatus` and `UserStepStatus`: per-user quest and step progression.
-- `PointsHistory`: append-only points ledger.
+- `PointsHistory`: append-only points ledger scoped by `leaderboardId` and `seasonId`.
 - `Leaderboard` and `LeaderboardEntry`: board membership and denormalized board points.
 - `LeaderboardSeason`: season lifecycle metadata.
 - `Reward` and `UserReward`: reward catalog and user claim state.
@@ -28,23 +30,46 @@ Gamification in `d-sports-api` is primarily implemented in:
 
 ```mermaid
 flowchart LR
-  userAction[UserAction] --> progressCheck[QuestProgressCheck]
+  userAction[UserAction] --> eligibilityCheck[EligibilityCheck]
+  eligibilityCheck --> progressCheck[QuestProgressCheck]
   progressCheck --> stepCompletion[StepCompletion]
-  stepCompletion --> pointsWrite[PointsHistoryWrite]
-  pointsWrite --> scopedFields[ApplySeasonAndBoardScope]
-  scopedFields --> leaderboardRead[LeaderboardAggregationRead]
-  leaderboardRead --> apiResponse[APIResponseToClient]
+  stepCompletion --> scopedWrite{Quest Scope?}
+  scopedWrite -->|TEAM| teamBoard[TeamBoardWrite]
+  teamBoard --> globalSync[SyncGlobalAggregate]
+  scopedWrite -->|GLOBAL/EVENT| historyOnly[PointsHistoryOnly]
+  globalSync --> apiResponse[APIResponseToClient]
+  historyOnly --> apiResponse
 ```
 
-## Season 0.5 scoping rules
+## Team-scoped quest architecture
 
-- New points writes include `seasonId` and `leaderboardId` where determinable.
+Quests use a `QuestScope` enum to determine behavior:
+
+- **GLOBAL** — available to all users, points recorded in history only.
+- **TEAM** — tied to a team via `teamId`. Eligibility requires the team to be in the user's favorites. Paid-pass cadence quests additionally require a purchased team pass. Points write to the team leaderboard.
+- **EVENT** — time-limited quests, points recorded in history only.
+
+## Pass-gated eligibility
+
+TEAM quests with `cadence: PAID_PASS` require the user to hold a completed purchase of a fan/season pass product linked to that team. The `getTeamPaidPassEntitlements()` function checks `ProductPurchase` records against the team. Eligibility is enforced at listing, start, and step completion.
+
+## Global ranking derivation
+
+Global leaderboard scores are **not written directly**. Instead:
+
+1. TEAM quest step completions write to the team's `LeaderboardEntry`.
+2. `syncUserGlobalAggregateFromTeamBoards()` sums the user's points across all team boards and writes the total to the global board entry.
+3. GLOBAL/EVENT quest points are tracked in `PointsHistory` but do not affect leaderboard scores.
+
+## Season scoping rules
+
+- Points writes include `seasonId` and `leaderboardId` where determinable.
 - Team board scoring reads are scoped by both active season and board.
-- Global board scoring reads are scoped by active season only.
-- Legacy rows with null scope are intentionally preserved and treated as legacy data.
+- Global board scoring is derived from team board aggregation.
+- Legacy rows with null scope are intentionally preserved and treated as historical data.
 
 ## Important implementation notes
 
-- Some flows still use fallback writes with `leaderboardId: null` when board context is unavailable.
-- `LeaderboardEntry.points` remains present for compatibility and is planned for later cleanup.
+- GLOBAL/EVENT quest points use `leaderboardId: null` in `PointsHistory` since they don't target a specific board.
+- `LeaderboardEntry.points` is the denormalized score used for ranking and is actively maintained by team board writes and global sync.
 - Non-admin reset/archive lifecycle paths are intentionally not covered in this gamification section.
