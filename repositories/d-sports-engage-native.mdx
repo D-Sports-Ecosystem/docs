@@ -29,7 +29,8 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, engagement, and notification bell with unread badge
+- **Notification center** — In-app inbox accessible from the locker room header; supports filtering by status (all, unread, read, archived), mark-as-read, mark-all-read, archive, and deep-link navigation
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
@@ -41,6 +42,21 @@ icon: "smartphone"
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Notification center
+
+The notification center is an in-app inbox reachable from the bell icon in the **Locker Room** header. An unread badge appears when you have unread notifications.
+
+The screen at `app/notifications.tsx` uses these API methods from `lib/api/user-api.ts`:
+
+| Action | Method | Endpoint |
+| --- | --- | --- |
+| List notifications | `GET` | `/api/notifications?page=&limit=&status=` |
+| Mark one read | `PATCH` | `/api/notifications/:id/read` |
+| Mark all read | `PATCH` | `/api/notifications/read-all` |
+| Archive | `PATCH` | `/api/notifications/:id/archive` |
+
+Notification types include `DAILY_QUEST_REACTIVATED`, `SYSTEM_ANNOUNCEMENT`, `SOCIAL_MENTION`, and `SOCIAL_FOLLOW`. Each notification can carry a `payload.deepLink` that the app navigates to when you tap the card.
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
