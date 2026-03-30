@@ -1,41 +1,79 @@
 ---
 title: "Quests"
-description: "Quest lifecycle, step progression, and completion behavior."
+description: "Quest lifecycle, team-scoped architecture, step progression, and pass-gated eligibility."
 icon: "list-checks"
 ---
 
 ## Quest API surface (non-admin)
 
-- `GET /api/quests`: fetch active quests.
-- `POST /api/quests/start`: start a quest for a user.
-- `POST /api/quests/complete-step`: mark a step complete and award step points.
-- `POST /api/quests/check-progress`: trigger action-based progression checks.
-- `POST /api/quests/daily-visit`: complete the daily dashboard visit quest.
-- `GET /api/user/completed-quests`: read quest-related completion history from points records.
+- `GET /api/quests` — fetch active quests with team-scope and eligibility metadata.
+- `POST /api/quests/start` — start a quest (enforces TEAM eligibility gates).
+- `POST /api/quests/complete-step` — mark a step complete, award points, and attribute to the correct leaderboard.
+- `POST /api/quests/check-progress` — trigger action-based progression checks; returns a status snapshot.
+- `POST /api/quests/daily-visit` — complete the daily dashboard visit quest.
+- `GET /api/user/completed-quests` — read quest-related completion history from points records.
+
+## Quest scope
+
+Every quest has a `scope` field (`QuestScope` enum):
+
+| Scope | Behavior |
+|-------|----------|
+| **GLOBAL** | Available to all users. Points go to `PointsHistory` only (no direct leaderboard write). |
+| **TEAM** | Tied to a specific team via `teamId`. Points write to the team leaderboard and sync to the global aggregate. Requires eligibility checks. |
+| **EVENT** | Time-limited event quests. Points go to `PointsHistory` only. |
+
+## Team quest eligibility
+
+When a quest has `scope: TEAM`, the API enforces two gates:
+
+1. **Favorite team check** — the quest's `teamId` must be in the user's `favoriteTeamIds` (resolved via `resolveUserFavoriteTeamIds()`, which reads the `favoriteTeamIds` array with a legacy `favoriteTeam` fallback).
+2. **Paid pass check** — if the quest cadence is `PAID_PASS`, the user must hold a completed purchase of a fan/season pass product linked to that team.
+
+These gates are enforced at three points:
+- **Listing** (`GET /api/quests`) — returns `isEligible`, `lockReason`, and `requiresPaidPass` per quest.
+- **Start** (`POST /api/quests/start`) — rejects with an error if the user is not eligible.
+- **Step completion** (`POST /api/quests/complete-step`) — re-validates before awarding points.
+
+The `lockReason` field tells the client why a quest is locked:
+- `"Quest team is not in favorite teams"` — user has not favorited the team.
+- `"Team paid pass required"` — user has not purchased the team pass.
 
 ## Lifecycle
 
-1. Quest definitions come from `Quest` + ordered `QuestStep`.
+1. Quest definitions come from `Quest` + ordered `QuestStep`. Each step has a `stepCode` for stable identification.
 2. User progress is stored in `UserQuestStatus` + `UserStepStatus`.
-3. Completing a step writes points immediately (if step has points).
+3. Completing a step writes points immediately (if the step has points).
 4. Quest is marked complete only after all required steps are completed.
+
+## Scoped leaderboard attribution
+
+When a step awards points, the write path depends on the quest scope:
+
+- **TEAM quests** — points are written to the team's `LeaderboardEntry`, a `PointsHistory` row is created with the team's `leaderboardId` and current `seasonId`, then `syncUserGlobalAggregateFromTeamBoards()` re-derives the user's global board total from all team boards.
+- **GLOBAL / EVENT quests** — a `PointsHistory` row is created with `leaderboardId: null`. No direct leaderboard mutation occurs; global ranking is derived from team totals.
+
+The `countsToward` field on each quest indicates this behavior:
+- TEAM quests: `{ global: true, team: true }`
+- GLOBAL/EVENT quests: `{ global: true, team: false }`
+
+## Step code matching
+
+Step progression checks now use `stepCode` as the primary identifier, falling back to `title` matching when `stepCode` is null. This replaces the earlier title-only matching and is more resilient to copy changes.
 
 ## Action-based progression checks
 
 `checkAndCompleteQuestProgress()` evaluates user actions and conditionally completes steps.
 
-Current checks include:
+Supported action keys (`questType` parameter):
 
-- Follow user
-- Upload profile picture
-- Choose favorite team
-- Complete profile
-- Get followers
-- Join leaderboard
-- Earn points threshold
-- Reach leaderboard rank threshold
+- `FOLLOW_USER`
+- `UPLOAD_PROFILE_PICTURE`
+- `CHOOSE_TEAM`
+- `COMPLETE_PROFILE`
+- `GET_FOLLOWER`
+- `JOIN_LEADERBOARD`
+- `EARN_POINTS`
+- `UPDATE_LEADERBOARD_POSITION`
 
-## Known caveats
-
-- Some step resolution currently relies on matching step titles. This is fragile if copy changes.
-- A future stable step code pattern is preferred for long-term reliability.
+The `check-progress` endpoint also returns a `status` and `actionStatus` snapshot so the client can reflect current progress without a separate fetch.

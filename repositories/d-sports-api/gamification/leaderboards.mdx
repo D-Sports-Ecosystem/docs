@@ -1,37 +1,49 @@
 ---
 title: "Leaderboards"
-description: "Team and global leaderboard behavior with season-scoped scoring."
+description: "Team-scoped scoring, global aggregate derivation, and season-scoped leaderboard behavior."
 icon: "medal"
 ---
 
 ## Board types
 
-- **Team boards**: non-global boards tied to a team.
-- **Global board**: single global board aggregating active-season scoring.
+- **Team boards** — each team has a dedicated leaderboard (provisioned via `getOrCreateTeamLeaderboard()`). Team boards score independently based on TEAM-scoped quest completions.
+- **Global board** — a single board whose user scores are **derived from the sum of all team board scores** for that user, not from direct writes.
 
 ## Resolution behavior
 
 `GET /api/leaderboard` supports:
 
-- `?leaderboardId=<id>` for direct board lookup.
-- `?teamId=<teamId>` to resolve/create the team board.
-- no params for global board behavior.
+- `?leaderboardId=<id>` — direct board lookup by numeric ID.
+- `?teamId=<teamId>` — resolves to the team's board (creates one if needed).
+- No params — returns the global board (`isGlobal: true`).
 
-## Scoring behavior in Season 0.5
+The endpoint auto-enrolls the authenticated user on the requested board if they don't have an entry yet.
 
-- Team boards aggregate `PointsHistory` by:
-  - matching active `seasonId`
-  - matching requested board `leaderboardId`
-- Global board aggregates by:
-  - matching active `seasonId` only
+## Scoring model
 
-## Enrollment and write behavior
+Team boards are the **authoritative write target** for quest points:
 
-- Some flows enroll users on global board paths.
-- `getUserLeaderboards()` currently returns global board IDs only in current implementation.
-- Points writes should include board + season scope when context is available.
+1. When a TEAM-scoped quest step is completed, points are written directly to the team's `LeaderboardEntry`.
+2. After each team board write, `syncUserGlobalAggregateFromTeamBoards()` recalculates the user's global board total by summing across all team boards.
+3. GLOBAL and EVENT quest points are recorded in `PointsHistory` only — they do **not** mutate any leaderboard entry directly.
+
+This means global ranking is a derived view of team performance, not an independently scored board.
+
+## Season scoping
+
+- Points writes include `seasonId` when an active season exists.
+- Team board writes also include `leaderboardId` for the target team board.
+- Legacy rows with null scope fields are preserved as historical data.
+
+## Response shape
+
+Each leaderboard entry includes:
+- User metadata: `handle`, `favoriteTeam`, `roles`, `labels`, `hasBadge`, `followersCount`
+- Trend indicator: `up`, `down`, or `same` (computed from historical rank snapshots)
+- Season info: `id`, `seasonNumber`, `name`, `startDate`, `endDate`, `status`, `daysRemaining`
 
 ## Notes
 
-- Stream/search/stats leaderboard routes are available for consumption use cases.
+- The `GET /api/teams` response includes `leaderboardId` per team when a board has been provisioned.
+- Stream, search, and stats leaderboard routes are available for consumption use cases.
 - Reset and archive lifecycle routes exist but are not covered in this non-admin gamification deep dive.
