@@ -10,7 +10,10 @@ This guide covers authentication and onboarding-related API routes for user-faci
 ## Endpoint map
 
 - Auth: `/api/auth/native-token`, `/api/auth/validate`, `/api/logout`, `/api/mobile/*`
-- User profile/onboarding: `/api/user/profile`, `/api/user/onboarding`, `/api/user/sync-clerk`
+- User profile/onboarding: `/api/user/profile`, `/api/user/onboarding`, `/api/user/sync-clerk`, `/api/user/check-username`
+- User settings: `/api/user/settings` (GET/PATCH)
+- Data export: `/api/user/data-export` (GET/POST)
+- Support tickets: `/api/user/support/tickets`, `/api/user/support/tickets/{id}/messages`
 
 See generated endpoint pages in the Endpoints section for full request/response schemas.
 
