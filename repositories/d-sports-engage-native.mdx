@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, v1.14.4) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -32,13 +32,75 @@ icon: "smartphone"
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+- **In-app changelog** — Structured release timeline at `/settings/changelog` with typed version entries, tags, and section-based content
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment variables">
+    Create a `.env` file in the project root with the following `EXPO_PUBLIC_*` keys:
+
+    | Variable | Description |
+    | -------- | ----------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+    | `EXPO_PUBLIC_API_URL` | D-Sports API base URL (e.g. `https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement ID (e.g. `premium`) |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+    <Note>Only `EXPO_PUBLIC_*` prefixed variables are accessible at runtime in the Expo app.</Note>
+  </Step>
+  <Step title="Start the development server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Run a development build (optional)">
+    Use EAS to create native development builds:
+    ```bash
+    bun run build:dev        # Both platforms
+    bun run build:dev:ios    # iOS only
+    bun run build:dev:android # Android only
+    ```
+  </Step>
+</Steps>
+
+## EAS build profiles
+
+The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with the following profiles defined in `eas.json`:
+
+| Profile | Distribution | Channel | Notes |
+| ------- | ------------ | ------- | ----- |
+| `development` | Internal | `development` | Dev client with iOS simulator support |
+| `development-device` | Internal | `development` | Dev client for physical devices |
+| `preview` | Internal | `preview` | APK build on Android |
+| `staging` | Default | `staging` | Auto-incrementing version |
+| `production` | Default | `production` | Auto-incrementing version |
+
+## In-app changelog
+
+The app includes a built-in changelog at `settings/changelog.tsx`. Release history is defined as structured typed entries in `constants/changelog-data.ts` using the `ChangelogEntry` interface:
+
+```typescript
+interface ChangelogEntry {
+  version: string;
+  dateLabel: string;
+  title: string;
+  tags: string[];
+  sections: ChangelogSection[];
+}
+```
+
+The changelog renders through reusable `ChangelogTimeline` and `ChangelogEntryCard` components in `components/settings/changelog/`. When you add a new release, append an entry to the `CHANGELOG_ENTRIES` array in `constants/changelog-data.ts`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
