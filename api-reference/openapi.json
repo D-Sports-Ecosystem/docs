@@ -26,7 +26,11 @@
     { "name": "D-Sports Cash", "description": "D-Sports Cash balance" },
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
-    { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Notifications", "description": "In-app notifications" },
+    { "name": "Leagues", "description": "Leagues metadata" },
+    { "name": "Games", "description": "Daily spin, pick-em, and other mini-games" },
+    { "name": "Support", "description": "Support tickets and messages" },
+    { "name": "Webhooks", "description": "RevenueCat and leagues-sync webhooks" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -114,7 +118,7 @@
       "get": {
         "tags": ["Teams"],
         "summary": "List teams",
-        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor.",
+        "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, and _count { packs, collectibles }.",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
       }
@@ -1070,6 +1074,463 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": ["Notifications", "Social and locker room"],
+        "summary": "List notifications",
+        "description": "Returns paginated notifications for the authenticated user, with unread count.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["UNREAD", "READ", "ARCHIVED", "all"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ notifications, unreadCount, page, totalPages }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "patch": {
+        "tags": ["Notifications", "Social and locker room"],
+        "summary": "Mark all notifications as read",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ updatedCount, readAt }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/read": {
+      "patch": {
+        "tags": ["Notifications", "Social and locker room"],
+        "summary": "Mark notification as read",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated notification" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/archive": {
+      "patch": {
+        "tags": ["Notifications", "Social and locker room"],
+        "summary": "Archive notification",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Archived notification" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/user/blocks": {
+      "get": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "List blocked users",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Blocked users list" } }
+      },
+      "post": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Block user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["blockedUserId"], "properties": { "blockedUserId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Block created" }, "400": { "description": "Validation error" } }
+      },
+      "delete": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Unblock user",
+        "parameters": [{ "name": "blockedUserId", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Case-insensitive check whether a handle is already taken.",
+        "parameters": [{ "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "{ available: boolean }" }, "400": { "description": "Missing username" } }
+      }
+    },
+    "/api/user/settings": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user settings",
+        "description": "Returns user settings (privacy, notifications, accessibility, theme). Creates defaults on first access.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Settings object" } }
+      },
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "privateProfile": { "type": "boolean" },
+                  "pushEnabled": { "type": "boolean" },
+                  "notifyMentions": { "type": "boolean" },
+                  "notifyLikes": { "type": "boolean" },
+                  "notifyComments": { "type": "boolean" },
+                  "notifyFollows": { "type": "boolean" },
+                  "reduceMotion": { "type": "boolean" },
+                  "largerText": { "type": "boolean" },
+                  "highContrast": { "type": "boolean" },
+                  "appearanceTheme": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Updated settings" } }
+      }
+    },
+    "/api/user/push-subscriptions": {
+      "get": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "List push subscriptions",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Subscriptions array" } }
+      },
+      "post": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Upsert push subscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["platform"],
+                "properties": {
+                  "platform": { "type": "string" },
+                  "provider": { "type": "string" },
+                  "pushToken": { "type": "string" },
+                  "isEnabled": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Subscription created/updated" } }
+      },
+      "delete": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Remove push subscription",
+        "parameters": [{ "name": "platform", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/user/data-export": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List data export requests",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Export requests list" } }
+      },
+      "post": {
+        "tags": ["User"],
+        "summary": "Request data export",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "reason": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Export request created" } }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List community users",
+        "description": "Paginated list of onboarded users with stats. Rate limited to 30 req/min.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ users, total }" }, "429": { "description": "Rate limit exceeded" } }
+      }
+    },
+    "/api/user/support/tickets": {
+      "get": {
+        "tags": ["Support", "User"],
+        "summary": "List support tickets",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Tickets list" } }
+      },
+      "post": {
+        "tags": ["Support", "User"],
+        "summary": "Create support ticket",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["subject", "message"],
+                "properties": {
+                  "subject": { "type": "string" },
+                  "message": { "type": "string" },
+                  "category": { "type": "string", "enum": ["support", "bug", "report", "account", "billing", "other"] },
+                  "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Ticket created" }, "400": { "description": "Validation error" } }
+      }
+    },
+    "/api/user/support/tickets/{id}/messages": {
+      "get": {
+        "tags": ["Support", "User"],
+        "summary": "List ticket messages",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Messages list" }, "404": { "description": "Ticket not found" } }
+      },
+      "post": {
+        "tags": ["Support", "User"],
+        "summary": "Add ticket message",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["message"], "properties": { "message": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Message added" }, "404": { "description": "Ticket not found" } }
+      }
+    },
+    "/api/upload/profile": {
+      "post": {
+        "tags": ["Misc", "Platform and infrastructure"],
+        "summary": "Upload profile image",
+        "description": "Upload a profile photo (JPG/PNG/WebP/GIF, max 5 MB). Stores in Vercel Blob and updates user profileUrl.",
+        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ url }" }, "400": { "description": "Invalid file" } }
+      }
+    },
+    "/api/wallets/link-challenge": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Get wallet link challenge",
+        "description": "Creates a one-time SIWE-style challenge message for linking an external wallet.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Challenge data" } }
+      }
+    },
+    "/api/wallets/link-external": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Link external wallet",
+        "description": "Verifies a wallet signature and links an external (non-custodial) wallet to the user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["challengeId", "message", "signature", "address", "provider"],
+                "properties": {
+                  "challengeId": { "type": "string" },
+                  "message": { "type": "string" },
+                  "signature": { "type": "string" },
+                  "address": { "type": "string" },
+                  "provider": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Wallet linked" }, "400": { "description": "Validation or signature error" } }
+      }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues", "Teams"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with colors, metadata, and team counts. Optionally filter by country.",
+        "parameters": [{ "name": "country", "in": "query", "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "Leagues array" } }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a daily wheel spin (coin: 150 pts, max 5/day) or weekly set bonus (500 pts, once/week).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"] },
+                  "weekStartDate": { "type": "string", "description": "YYYY-MM-DD, required for weekly_set" },
+                  "landedSegmentId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ pointsAwarded, alreadyAwarded }" }, "400": { "description": "Validation error" } }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Get pick-em players",
+        "description": "Returns the list of players available for pick-em predictions.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Players array" } }
+      }
+    },
+    "/api/leaderboard/reset": {
+      "post": {
+        "tags": ["Leaderboard", "Gamification"],
+        "summary": "Reset leaderboard season",
+        "description": "Admin-only. Archives current season winners, zeros points, creates next season.",
+        "x-hidden": true,
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Reset result" }, "403": { "description": "Admin access required" } }
+      }
+    },
+    "/api/pregen-wallet": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Pre-generate wallet",
+        "description": "Admin-only. Triggers pregeneration of a thirdweb in-app wallet.",
+        "x-hidden": true,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "userId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" }, "403": { "description": "Admin required" } }
+      }
+    },
+    "/api/rewards/admin-override": {
+      "post": {
+        "tags": ["Rewards", "Gamification"],
+        "summary": "Force-claim reward (superadmin)",
+        "description": "Superadmin-only. Force-claims a reward for the calling user.",
+        "x-hidden": true,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["rewardId"], "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" }, "403": { "description": "Superadmin only" } }
+      },
+      "delete": {
+        "tags": ["Rewards", "Gamification"],
+        "summary": "Remove reward claim (superadmin)",
+        "description": "Superadmin-only. Removes a reward claim.",
+        "x-hidden": true,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["rewardId"], "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" }, "403": { "description": "Superadmin only" } }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create thirdweb auth link",
+        "description": "Internal. Creates a thirdweb auth link for the current user.",
+        "x-hidden": true,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "payload": {} } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "{ userId, email }" } }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": ["Misc", "Platform and infrastructure"],
+        "summary": "Thirdweb proxy (GET)",
+        "description": "Proxies requests to allowed thirdweb upstream URLs.",
+        "x-hidden": true,
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "Proxied response" } }
+      },
+      "post": {
+        "tags": ["Misc", "Platform and infrastructure"],
+        "summary": "Thirdweb proxy (POST)",
+        "description": "Proxies POST requests to allowed thirdweb upstream URLs.",
+        "x-hidden": true,
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "Proxied response" } }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns product-to-entitlement mapping from D-Sports Cash tiers and Frontline Pass.",
+        "x-hidden": true,
+        "security": [],
+        "responses": { "200": { "description": "Mappings array" } }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks", "Platform and infrastructure"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by GitHub Actions to sync leagues data. Requires x-webhook-secret header.",
+        "x-hidden": true,
+        "security": [{ "webhookSecret": [] }],
+        "responses": { "200": { "description": "Sync result" }, "401": { "description": "Invalid secret" } }
       }
     }
   },
