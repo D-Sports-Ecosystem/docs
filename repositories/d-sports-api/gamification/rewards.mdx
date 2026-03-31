@@ -15,6 +15,11 @@ icon: "gift"
 - `Reward`: reward catalog entries (`pointsRequired`, `itemType`, active state).
 - `UserReward`: claim/redeem state per user and reward.
 
+## Reward type taxonomy
+
+- **Free rewards**: no additional monetary obligation once eligible.
+- **Unpaid rewards**: tracked reward states that may require additional user-side completion before final fulfillment.
+
 ## Runtime behavior
 
 - Availability uses current user points and reward status.
@@ -25,6 +30,24 @@ icon: "gift"
 - Redeem checks:
   - reward is already claimed
   - reward is not already redeemed
+
+## Free and unpaid reward handling
+
+- Reward payloads should expose sufficient state for client-side rendering of free vs unpaid paths.
+- Claim/redeem flows remain server-validated to prevent invalid transitions.
+- Client surfaces should communicate pending/unpaid states explicitly.
+
+## Claim and redeem semantics
+
+- Claim establishes user reward entitlement state.
+- Redeem represents follow-up transition where applicable.
+- Duplicate or invalid transitions are rejected with explicit error responses.
+
+## Failure and retry guidance
+
+- Retry only on transient transport/server failures.
+- Do not retry on authorization/validation failures without user action.
+- Refresh reward state after mutation attempts to avoid stale UI assumptions.
 
 ## Implementation note
 

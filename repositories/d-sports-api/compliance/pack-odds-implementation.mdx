@@ -1,0 +1,43 @@
+---
+title: "Pack odds implementation guide"
+description: "Backend implementation contracts for pack odds disclosure and deterministic/openable pack behavior."
+---
+
+## Objective
+
+Ensure pack opening is deterministic, openable, and transparently disclosed across all clients.
+
+## Canonical data model
+
+- `Pack.maxReveal`: number of cards revealed per open.
+- `PackCollectible.quantity` and `PackCollectible.weight`: weighted draw pool.
+- `Collectible.rarity`: rarity bucket (`COMMON`, `RARE`, `EPIC`, `LEGENDARY`, `MYTHIC`).
+- `Product.metadata.dropRates`: disclosure projection fields, not draw engine source-of-truth.
+
+## Source of truth
+
+- Draw execution: `server/minting-actions.ts` and weighted random logic.
+- Odds math: centralized helper logic in backend pack-odds utilities.
+- Purchase/openability gating: purchase, pack, and minting server routes/actions.
+
+## Openability invariants
+
+A pack is openable only if:
+
+1. At least one `PackCollectible` exists.
+2. At least one entry has `weight > 0`.
+3. `sum(quantity) >= maxReveal`.
+
+Packs failing invariants must not be listable/purchasable as openable inventory.
+
+## API disclosure contract
+
+- `GET /api/products`: pack metadata includes odds/disclosure fields.
+- `GET /api/packs/{id}/odds`: canonical odds payload for targeted disclosure rendering.
+- `POST /api/packs/{purchaseId}/open`: validates ownership/state and performs open behavior.
+
+## Testing requirements
+
+- Unit tests for odds math and invariants.
+- Integration checks for openability enforcement and disclosure payload correctness.
+- User-facing failure messages must remain actionable and explicit.

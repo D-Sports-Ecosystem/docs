@@ -1,0 +1,33 @@
+---
+title: "App review evidence log"
+description: "Release evidence checklist and sign-off model for pack-odds disclosure reviews."
+---
+
+## Purpose
+
+Track objective release evidence used for store-review and compliance verification of randomized pack disclosures.
+
+## Required evidence per release
+
+1. Openability audit output.
+2. Sample API responses for:
+   - `GET /api/products` (pack disclosure fields)
+   - `GET /api/packs/{id}/odds`
+3. Seed/backfill execution trace for pack data.
+4. Automated test evidence for odds/openability behavior.
+
+## Submission entry template
+
+| Date | Build/Commit | Surface | Evidence | Reviewer Notes | Owner |
+| --- | --- | --- | --- | --- | --- |
+| TBD | TBD | Products API pack metadata | TBD | TBD | API Eng |
+| TBD | TBD | `/api/packs/{id}/odds` payload | TBD | TBD | API Eng |
+| TBD | TBD | Openability audit report | TBD | TBD | API Eng |
+
+## Sign-off template
+
+| Role | Name | Date | Status |
+| --- | --- | --- | --- |
+| API Engineering | TBD | TBD | Pending |
+| Product | TBD | TBD | Pending |
+| Compliance/Legal | TBD | TBD | Pending |

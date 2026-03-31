@@ -1,0 +1,35 @@
+---
+title: "Pack odds client integration"
+description: "Native integration rules for rendering backend drop rates and expected outcomes."
+---
+
+## Objective
+
+Render server-calculated drop rates and expected outcomes consistently across shop and pack-opening experiences.
+
+## Data sources
+
+- `GET /api/products` pack metadata fields
+- `GET /api/user/packs` owned pack metadata fields
+- `GET /api/packs/{id}/odds` optional detailed odds payload
+
+## Key client areas
+
+- API contracts and pack metadata typing
+- Shop and pack-detail modal disclosure rendering
+- Pack-opening modal pre-open/reveal disclosure visibility
+- Open-action error surfacing and fallback messaging
+
+## UX requirements
+
+1. Odds are visible before open, or one-tap toggleable.
+2. Back/close controls are always available in modal flows.
+3. Open failures display explicit actionable messages.
+4. Guarantee copy renders only when supplied by backend.
+
+## QA checklist
+
+- Odds panel appears reliably in relevant surfaces.
+- Show/hide disclosure controls function in all modal states.
+- Modal close/back controls remain available in reveal flow.
+- API errors appear as user-facing messages, not silent failures.

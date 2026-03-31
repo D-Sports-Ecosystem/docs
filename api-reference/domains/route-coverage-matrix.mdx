@@ -1,0 +1,47 @@
+---
+title: "Route coverage matrix"
+description: "Publish, redact, and exclude decisions for current backend route surfaces."
+---
+
+## Coverage policy
+
+Route documentation status uses:
+
+- `Publish`: documented in OpenAPI/domain pages for public contributors.
+- `Publish with redaction`: documented behavior/RBAC without sensitive internal details.
+- `Exclude`: intentionally omitted from public docs.
+
+## Publish/Redact/Exclude matrix
+
+| Route or pattern | Status | Rationale |
+| --- | --- | --- |
+| `/api/auth/*` | Publish | Core auth/session contracts for all clients. |
+| `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
+| `/api/locker-room*` | Publish | Public social feature integration contracts. |
+| `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
+| `/api/quests*` | Publish | Core quest progression contracts and side effects. |
+| `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
+| `/api/teams*`, `/api/leagues` | Publish | Team/league integrations for all clients. |
+| `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
+| `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts. |
+| `/api/feedback/*` | Publish | User-facing reporting channels. |
+| `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
+| `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
+| `/api/admin/stats` | Publish with redaction | High-level contract only, no privileged internals. |
+| `/api/admin/notifications/announce` | Publish with redaction | Behavior-level contract and RBAC only. |
+| `/api/admin/leagues/sync`, `/api/admin/teams/sync` | Publish with redaction | Trigger semantics useful for contributors; keep internals abstracted. |
+| `/api/webhooks/leagues-sync` | Publish with redaction | Integration architecture needs webhook reference; redact secret values. |
+| `/api/debug*`, `/api/*debug*`, `/api/groq-test`, `/api/test-sentry`, `/api/sentry-example-api` | Exclude | Debug/dev/testing routes are not public doc surface. |
+| `/api/cron/*` | Exclude | Internal ops/automation endpoints. |
+| `/api/admin/fix-team-ownership` | Exclude | Internal remediation path not for public docs. |
+| `/api/rewards/admin-override` | Exclude | Privileged override operation. |
+| `/api/leaderboard/reset` | Exclude | Internal/privileged maintenance behavior. |
+
+## Missing-route tracking
+
+Current intentional gaps in generated OpenAPI are primarily admin/debug/internal operations. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+
+## Review cadence
+
+- Reconcile this matrix with `d-sports-api/app/api/**/route.ts` after every backend route expansion.
+- Update domain guides and navigation in the same PR as route additions when possible.

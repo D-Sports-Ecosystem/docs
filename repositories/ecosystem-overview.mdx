@@ -3,60 +3,36 @@ title: "D-Sports Ecosystem Overview"
 description: "Overview of the D-Sports repositories and how they fit together"
 ---
 
-## Overview
+## Repository topology
 
-The D-Sports Ecosystem consists of four main repositories that power fan engagement for sports teams (primarily hockey).
+| Repository | Purpose | Runtime |
+| --- | --- | --- |
+| **d-sports-api** | Primary backend + PWA + API surface | `bun dev` (3004) |
+| **d-sports-engage-native** | Native iOS/Android app using backend APIs | `bunx expo start` |
+| **d-sports-site** | Marketing/public web site | `bun dev` (3005) |
+| **d-sports-mic-d-up** | Live audio product with separate backend | separate backend/mobile |
+| **leagues** | Canonical league/team branding and metadata source | data + sync workflow |
 
-| Repository                 | Purpose                         | Port |
-| -------------------------- | ------------------------------- | ---- |
-| **d-sports-api**           | PWA, API, and backend           | 3004 |
-| **d-sports-site**          | Marketing and public website    | 3005 |
-| **d-sports-engage-native** | Native mobile app (iOS/Android) | —    |
-| **d-sports-mic-d-up**      | Live audio rooms app            | —    |
+## Cross-repo data flow
 
-## d-sports-api
+`d-sports-api` is the runtime API center for native and web clients. `leagues` acts as canonical metadata input for teams/leagues that is synchronized into backend storage and then surfaced via API reads.
 
-**Package name:** `d-sports-api`
+## Teams and leagues pipeline
 
-The main application: a backend that provides the full fan engagement experience. This is the backend ONLY.
+1. `leagues` repository updates canonical assets/data.
+2. Workflow trigger sends webhook to backend sync route.
+3. Backend sync services upsert leagues, team logos, and links.
+4. Clients consume updates through `/api/teams` and `/api/leagues`.
 
-- **Stack:** Next.js 16, React 19, Prisma, PostgreSQL, Clerk, RevenueCat, Thirdweb
-- **Features:** Social feed (locker room), gamification (quests, leaderboards), digital collectibles, shop, wallet, trivia, wheel spin, pack opening
-- **Run:** `bun dev`
+## Quest and pass architecture across backend + native
 
-## d-sports-site
+- Backend gamification supports **per-team quests** and pass-aware eligibility.
+- Pass gating includes **global pass** and **event pass** semantics.
+- Reward flows include explicit handling for **free rewards** and **unpaid rewards** states.
+- Native clients render eligibility/progression from backend response truth.
 
-**Package name:** `d-sports-site`
+## Public vs internal documentation boundaries
 
-The public-facing marketing website. Lightweight compared to the API/PWA.
-
-- **Stack:** Next.js 16, React 19, Tailwind CSS 4, shadcn/ui
-- **Features:** Home, about, profile, shop, wallet, leaderboard, support, privacy/terms
-- **Run:** `bun dev` → http://localhost:3005
-
-## d-sports-engage-native
-
-**Package name:** `engage-native`
-
-Native mobile app for iOS and Android. Mirrors core PWA features on mobile.
-
-- **Stack:** Expo 54, React Native 0.81, Clerk, RevenueCat, Thirdweb, Zustand, MMKV
-- **Features:** Wallet, shop, leaderboard, locker room, profile, crypto checkout
-- **Run:** `bunx expo start` (or `bun run start`)
-
-## d-sports-mic-d-up
-
-**Package name:** `micd-up`
-
-Live audio rooms ("Mic'd Up") for real-time voice discussions between fans.
-
-- **Stack:** React Native (Expo 54), Agora, WebRTC, Express.js backend, Prisma, PostgreSQL
-- **Features:** Live voice rooms, speaker/listener roles, home feed, profiles, search
-- **Run:** Backend: `cd backend && bun dev` (port 3001). Mobile: `bun run android` or `bun run ios`
-
-## How they connect
-
-- **d-sports-api** is the primary backend and PWA; native and site likely consume its APIs.
-- **d-sports-site** is the marketing site (e.g., d-sports.org).
-- **d-sports-engage-native** targets mobile with a similar feature set to the PWA.
-- **d-sports-mic-d-up** is a separate live-audio product with its own backend.
+- Public docs include contributor-focused implementation contracts.
+- Sensitive admin internals, debug/dev routes, and cron/ops internals are excluded.
+- Approved admin/team routes are documented with redaction where needed for contributor onboarding.

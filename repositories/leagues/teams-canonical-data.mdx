@@ -1,0 +1,38 @@
+---
+title: "Teams canonical data"
+description: "Contract and contributor guidance for teams.canonical.json and team branding metadata."
+---
+
+## File contract: teams.canonical.json
+
+`teams/teams.canonical.json` is the machine-readable team registry used for normalization and sync into backend records.
+
+## Required fields and semantics
+
+Each team row should provide at minimum:
+
+- `slug`: stable URL-safe identifier
+- `canonicalName` (or equivalent canonical display field)
+- `leagueCode`: source league association
+- alias coverage for known alternate names
+
+Optional metadata may include country hints, external refs, and rollout-specific flags.
+
+## Branding and asset path conventions
+
+- Team assets live in `teams/assets/<leagueCode>/<slug>/logo.<ext>`.
+- `branding.logoPath` values must use forward slashes and repo-root-relative paths.
+- `branding.logoUrl` should indicate source provenance, not app delivery URLs.
+
+## Alias and normalization expectations
+
+- Aliases should map noisy provider names to one canonical record.
+- Avoid introducing overlapping aliases that resolve to multiple canonical teams.
+- Keep aliases additive and backward compatible where possible.
+
+## Validation checklist before merge
+
+- Confirm every new/updated slug has a valid asset path.
+- Confirm extension/mime compatibility (`png`, `svg`, `jpg`, `jpeg`, `webp`).
+- Confirm no duplicate slug or canonical-name collisions.
+- Confirm official-team rows and branding provenance notes are accurate.

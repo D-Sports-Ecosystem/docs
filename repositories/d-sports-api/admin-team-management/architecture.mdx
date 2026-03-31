@@ -1,0 +1,37 @@
+---
+title: "Admin/team architecture"
+description: "RBAC and architecture model behind admin and team-management APIs."
+---
+
+## RBAC layers (platform role vs team assignment)
+
+Access decisions are layered:
+
+- Platform/global role gates (for superadmin/admin privileges)
+- Team assignment role gates (`owner`, `editor`, `viewer`) for per-team actions
+
+Both layers are enforced by backend permission helpers rather than client assumptions.
+
+## Assignment lifecycle
+
+Team management access typically follows this sequence:
+
+1. User receives global eligibility role where required (`team_manager`).
+2. User is assigned to one or more teams with team-level role.
+3. Team-management routes authorize actions against both user identity and team scope.
+
+## Team provisioning and sync dependencies
+
+Admin team-management operations depend on canonical team/league data consistency:
+
+- Team provisioning/sync endpoints align DB state to canonical inputs.
+- League/team linking and leaderboard parity are maintained by sync services.
+- Team asset upload/update paths must preserve canonical identity semantics.
+
+## Security boundaries and redactions
+
+Public docs intentionally omit:
+
+- Secrets and token/header values
+- Internal remediation scripts and privileged fix routes
+- Debug/admin bootstrap shortcuts not intended for general contributor use

@@ -1,0 +1,42 @@
+---
+title: "Pack odds operations runbook"
+description: "Release, incident-response, and change-management controls for pack odds and openability."
+---
+
+## Purpose
+
+Operate pack odds safely while preventing unopenable pack states in production.
+
+## Standard release flow
+
+1. Run seed/backfill procedures for official packs.
+2. Run openability audit checks.
+3. Verify products and odds endpoints return expected disclosure fields.
+4. Validate staging checkout/open flows.
+5. Record release evidence in the compliance evidence log.
+
+## Incident: users cannot open packs
+
+### Symptoms
+
+- Open actions fail validation.
+- Packs appear purchasable but do not reveal inventory.
+
+### Triage
+
+1. Run openability audit.
+2. Inspect `PackCollectible` rows for affected packs.
+3. Verify purchase state and ownership.
+4. Validate route payload IDs (`purchaseId`, optional `packId` cross-check).
+
+### Mitigation
+
+- Reseed or repair pack-collectible data.
+- Temporarily disable affected packs until corrected.
+- Re-run audit and confirm endpoint correctness.
+
+## Change management
+
+- Odds changes require product and compliance sign-off.
+- Evidence logs must be updated for each release.
+- Silent production odds changes are disallowed.

@@ -1,0 +1,27 @@
+---
+title: "Policy and ratings alignment"
+description: "Policy alignment notes for pack-opening odds disclosure and ratings-language consistency."
+---
+
+## Policy baseline
+
+- Apple App Store Review Guidelines `3.1.1`: disclose randomized virtual-item probabilities.
+- Google Play policy: provide clear randomized-item disclosure near transaction/opening surfaces.
+- Regional disclosure enforcement context (including Korea/China) informs stricter disclosure discipline.
+
+## Ratings and descriptor consistency
+
+- ESRB/PEGI random-item descriptor language should remain consistent with in-app disclosure copy.
+- In-app wording must avoid deterministic claims unless a backend guarantee explicitly exists.
+
+## Required implementation outcomes
+
+- Odds are presented from backend payloads, not hardcoded.
+- Disclosure is visible or one-tap accessible close to purchase/open actions.
+- Failure states provide user-actionable, non-misleading feedback.
+
+## Disallowed patterns
+
+- Implied guaranteed rarity without explicit backend guarantee.
+- Marketing language that overstates random-outcome certainty.
+- Hidden or hard-to-reach disclosure UI paths.

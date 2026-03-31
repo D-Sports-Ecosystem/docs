@@ -12,11 +12,14 @@ Platform APIs include utility routes that support app infrastructure or cross-do
 - Utility and media: `/api/image-proxy`, `/api/upload/banner`
 - Platform status/data surfaces: `/api/dashboard`, `/api/dashboard/stats`, `/api/dashboard/balance`, `/api/dashboard/quests`
 - Maintenance utility: `/api/sync-quest-points`
+- Integration sync references: `/api/webhooks/leagues-sync` (behavior reference), admin sync triggers documented in domain guides
 
 ## Integration notes
 
 - Some utility routes are intended for specific client contexts; avoid treating all as generic public services.
 - Keep route usage aligned with deep-dive operational guidance.
+- Internal cron/debug operations are intentionally excluded from public API docs.
+- Teams/leagues sync internals are documented in public-safe terms only.
 
 ## Deep-dive documentation
 

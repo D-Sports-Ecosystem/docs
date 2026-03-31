@@ -1,0 +1,43 @@
+---
+title: "Admin and team management"
+description: "Public-safe contributor documentation for admin dashboard and team-management capabilities."
+---
+
+## Scope and access model
+
+This section documents contributor-facing admin/team-management behavior that is safe to publish publicly.
+
+## Public-safe boundary
+
+- Included: route contracts, RBAC shape, team assignment behavior, and common flows.
+- Excluded: internal setup bypasses, secrets, privileged operational internals, and debug-only paths.
+
+## Admin dashboard capabilities
+
+- Team lifecycle operations and metadata updates
+- Team assignment workflows and role maintenance
+- Safe high-level diagnostics and announcement contract behavior
+
+## Team management capabilities
+
+- Team-scoped manager access and per-team role controls
+- Member add/update/remove behavior with ownership safeguards
+- Team profile update and asset upload flows
+
+## Route map
+
+Key documented routes include:
+
+- `/api/admin/teams`
+- `/api/admin/teams/{teamId}`
+- `/api/admin/teams/{teamId}/members`
+- `/api/admin/teams/{teamId}/members/{userId}`
+- `/api/admin/teams/{teamId}/upload-logo`
+- `/api/admin/team-assignments`
+- `/api/admin/stats` (high-level contract only)
+- `/api/admin/notifications/announce` (behavior-level contract)
+
+## Deep dives
+
+- [Architecture](/repositories/d-sports-api/admin-team-management/architecture)
+- [Behavior](/repositories/d-sports-api/admin-team-management/behavior)

@@ -33,6 +33,35 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## What changed since last docs sync
+
+- Team-aware experiences were expanded to align with backend team/favorites behavior.
+- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
+- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
+- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+
+## Backend integration surfaces
+
+- Primary API source: `d-sports-api` under `/api/*`.
+- Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
+- Retry/caching logic and auth token injection are centralized in app API client modules.
+
+## Quest and pass UX integration
+
+- Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
+- Reward presentation differentiates free/unpaid states and claimability.
+- Native progression state is expected to mirror backend eligibility and completion semantics.
+
+## Team-aware experiences
+
+- Team discovery, favorite-team interactions, and leaderboard context are integrated across locker room and profile surfaces.
+- Team and league metadata is sourced from backend sync pipelines fed by the `leagues` repository.
+
+## Compliance and legal: pack opening odds
+
+- Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
+- Disclosure values must come from backend payloads and remain visible/accessible near open actions.
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
@@ -41,6 +70,13 @@ icon: "smartphone"
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## Deep dives
+
+- [Architecture](/repositories/d-sports-engage-native/architecture)
+- [Feature mapping](/repositories/d-sports-engage-native/feature-mapping)
+- [Integration contracts](/repositories/d-sports-engage-native/integration-contracts)
+- [Compliance and legal docs](/repositories/d-sports-engage-native/compliance/index)
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.

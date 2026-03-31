@@ -1,0 +1,35 @@
+---
+title: "Teams and leagues API"
+description: "Endpoint guide for team/league reads and sync-related integration surfaces."
+---
+
+## Scope
+
+Teams/leagues APIs provide team metadata, league metadata, and sync-connected behavior used by web and native clients.
+
+## Teams endpoints
+
+- `GET /api/teams`
+- `GET /api/teams/followed`
+- `POST /api/teams/{id}/follow`
+
+## Leagues endpoints
+
+- `GET /api/leagues`
+
+## Sync-trigger endpoints
+
+- `POST /api/admin/teams/sync` (admin only, documented with redaction)
+- `POST /api/admin/leagues/sync` (admin only, documented with redaction)
+- `POST /api/webhooks/leagues-sync` (integration reference only; secret details redacted)
+
+## Client integration notes
+
+- `/api/teams` payload includes enriched team context (ranking/count and league-link metadata where available).
+- `/api/leagues` payloads include branding/color metadata used in client visual theming.
+- After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.
+
+## Related docs
+
+- [Teams and leagues deep dive](/repositories/d-sports-api/teams-leagues/index)
+- [Route coverage matrix](/api-reference/domains/route-coverage-matrix)

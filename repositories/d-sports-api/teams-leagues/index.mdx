@@ -1,0 +1,33 @@
+---
+title: "Teams and leagues pipeline"
+description: "Canonical teams/leagues data flow, sync entry points, and API-facing behavior."
+---
+
+## Scope
+
+This section documents public-safe implementation details for team and league data propagation across repositories and backend consumers.
+
+## Team and league data model overview
+
+Core runtime objects:
+
+- Team metadata, branding, and team-level role relationships
+- League metadata, colors, and logos
+- Team-to-league linking and leaderboard association fields
+
+## Canonical source of truth
+
+- Leagues/team branding source lives in the `leagues` repository.
+- Backend canonical team provisioning runs through sync services and admin sync routes.
+- API consumers should treat `d-sports-api` endpoints as runtime truth.
+
+## Route surface
+
+- Public reads: `/api/teams`, `/api/leagues`
+- Admin sync triggers: `/api/admin/teams/sync`, `/api/admin/leagues/sync`
+- Webhook sync trigger: `/api/webhooks/leagues-sync`
+
+## Deep dives
+
+- [Architecture](/repositories/d-sports-api/teams-leagues/architecture)
+- [Behavior](/repositories/d-sports-api/teams-leagues/behavior)

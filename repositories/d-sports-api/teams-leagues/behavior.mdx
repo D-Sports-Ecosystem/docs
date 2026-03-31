@@ -1,0 +1,32 @@
+---
+title: "Teams/leagues behavior"
+description: "Runtime behavior of manual and webhook sync flows, plus downstream API expectations."
+---
+
+## Manual admin sync behavior
+
+Admin sync endpoints expose controlled trigger behavior:
+
+- `/api/admin/teams/sync` supports canonical team provisioning semantics
+- `/api/admin/leagues/sync` triggers leagues data refresh logic
+
+Both routes require privileged authorization and return structured sync summaries.
+
+## Webhook-triggered sync behavior
+
+- `/api/webhooks/leagues-sync` is triggered by the `leagues` repository workflow.
+- Requests require valid webhook secret headers.
+- Successful runs update backend league/team data consumed by clients.
+
+## API response shapes consumed by clients
+
+- `/api/teams` returns enriched team payloads (counts, ranking context, league linkage metadata).
+- `/api/leagues` returns league metadata and color/logo payloads.
+- Client apps should tolerate propagation delay immediately after sync events.
+
+## Troubleshooting checklist
+
+1. Verify source repo workflow completed successfully.
+2. Confirm webhook auth configuration.
+3. Re-run admin sync routes for remediation if needed.
+4. Validate refreshed payloads from `/api/teams` and `/api/leagues`.

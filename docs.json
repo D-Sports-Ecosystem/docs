@@ -108,11 +108,57 @@
                       "repositories/d-sports-api/platform-infra/architecture",
                       "repositories/d-sports-api/platform-infra/behavior"
                     ]
+                  },
+                  {
+                    "group": "Admin and team management",
+                    "pages": [
+                      "repositories/d-sports-api/admin-team-management/index",
+                      "repositories/d-sports-api/admin-team-management/architecture",
+                      "repositories/d-sports-api/admin-team-management/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Teams and leagues pipeline",
+                    "pages": [
+                      "repositories/d-sports-api/teams-leagues/index",
+                      "repositories/d-sports-api/teams-leagues/architecture",
+                      "repositories/d-sports-api/teams-leagues/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Compliance and legal",
+                    "pages": [
+                      "repositories/d-sports-api/compliance/index",
+                      "repositories/d-sports-api/compliance/pack-odds-implementation",
+                      "repositories/d-sports-api/compliance/pack-odds-operations-runbook",
+                      "repositories/d-sports-api/compliance/app-store-review-evidence-log",
+                      "repositories/d-sports-api/compliance/policy-alignment"
+                    ]
                   }
                 ]
               },
               "repositories/d-sports-site",
               "repositories/d-sports-engage-native",
+              {
+                "group": "D-Sports Engage Native Deep Dives",
+                "pages": [
+                  "repositories/d-sports-engage-native/architecture",
+                  "repositories/d-sports-engage-native/feature-mapping",
+                  "repositories/d-sports-engage-native/integration-contracts",
+                  "repositories/d-sports-engage-native/compliance/index",
+                  "repositories/d-sports-engage-native/compliance/pack-odds-client-integration",
+                  "repositories/d-sports-engage-native/compliance/odds-disclosure-copy-guidelines",
+                  "repositories/d-sports-engage-native/compliance/app-store-review-evidence-log"
+                ]
+              },
+              "repositories/leagues",
+              {
+                "group": "Leagues Deep Dives",
+                "pages": [
+                  "repositories/leagues/teams-canonical-data",
+                  "repositories/leagues/sync-workflow"
+                ]
+              },
               "repositories/d-sports-mic-d-up"
             ]
           },
@@ -164,7 +210,10 @@
               "api-reference/domains/collectibles",
               "api-reference/domains/wallet-web3",
               "api-reference/domains/moderation",
-              "api-reference/domains/platform-infra"
+              "api-reference/domains/platform-infra",
+              "api-reference/domains/admin-team-management",
+              "api-reference/domains/teams-leagues",
+              "api-reference/domains/route-coverage-matrix"
             ]
           },
           {

@@ -1,0 +1,50 @@
+---
+title: "leagues"
+description: "Canonical league and team branding data repository used by D-Sports sync pipelines."
+icon: "database"
+---
+
+## Overview
+
+`leagues` is the source repository for league metadata, team canonical records, branding assets, and sync-triggered updates consumed by `d-sports-api` and `d-sports-engage-native`.
+
+## Repository structure
+
+- Country/league folders store league logos, color tokens, and accessibility reports.
+- `teams/teams.canonical.json` stores normalized team records and aliases.
+- `teams/assets/*` stores canonical team logo files by league and slug.
+- `.github/workflows/sync.yml` triggers the backend webhook-based sync path.
+
+## Canonical teams dataset
+
+Team normalization is driven by `teams/teams.canonical.json` and includes:
+
+- Stable slug and canonical name
+- League code and alias support
+- Branding metadata and source confidence
+- Official team records (including D-Sports-owned teams)
+
+## Logo and branding assets
+
+Branding files are committed in-repo under `teams/assets/<leagueCode>/<slug>/logo.<ext>` and are consumed by backend sync jobs that publish assets to storage and update API-facing team/logo data.
+
+## Sync triggers and downstream consumers
+
+Pushes that touch team, image, or json assets trigger workflow sync:
+
+1. `leagues` GitHub Action sends webhook to `d-sports-api`
+2. `d-sports-api` runs league/team sync services
+3. `GET /api/teams` and `GET /api/leagues` reflect synced values
+4. Native and web clients consume refreshed data
+
+## Contributor workflow
+
+1. Update canonical records and assets in `leagues`
+2. Validate schema assumptions and path conventions
+3. Merge to `main` and confirm webhook trigger success
+4. Verify downstream values via backend/admin pages and APIs
+
+## Related pages
+
+- [Teams canonical data](/repositories/leagues/teams-canonical-data)
+- [Sync workflow](/repositories/leagues/sync-workflow)

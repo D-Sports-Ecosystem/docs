@@ -1,0 +1,37 @@
+---
+title: "Admin and team management API"
+description: "Public-safe API guide for admin/team-management routes needed by contributors."
+---
+
+## Scope
+
+This guide documents approved admin/team-management routes with behavior-level detail and explicit redaction boundaries.
+
+## Published admin/team endpoints
+
+- `/api/admin/teams`
+- `/api/admin/teams/{teamId}`
+- `/api/admin/teams/{teamId}/members`
+- `/api/admin/teams/{teamId}/members/{userId}`
+- `/api/admin/teams/{teamId}/upload-logo`
+- `/api/admin/team-assignments`
+- `/api/admin/stats` (high-level contract)
+- `/api/admin/notifications/announce` (behavior-level contract)
+- `/api/admin/leagues/sync`
+- `/api/admin/teams/sync`
+
+## RBAC requirements
+
+- Requests require authenticated user context.
+- Routes enforce role-gated access (platform role and/or team assignment role).
+- Ownership/last-owner safeguards are enforced server-side for assignment/member mutations.
+
+## Redacted/excluded capabilities
+
+- Internal remediation/fix endpoints and privileged internals are omitted.
+- Secret values, bootstrap pathways, and debug-only controls are intentionally excluded from this guide.
+
+## Related docs
+
+- [Admin and team management deep dive](/repositories/d-sports-api/admin-team-management/index)
+- [Route coverage matrix](/api-reference/domains/route-coverage-matrix)

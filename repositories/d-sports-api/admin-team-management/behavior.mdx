@@ -1,0 +1,34 @@
+---
+title: "Admin/team behavior"
+description: "Operational behavior and common workflows for admin and team-management routes."
+---
+
+## Common user journeys
+
+- Superadmin/team-admin lists managed teams and members
+- Team manager accesses assigned team pages and updates team-scoped content
+- Admin reviews team-level status and assignment coverage
+
+## Team assignment operations
+
+`/api/admin/team-assignments` supports list/create/update/delete patterns for team bindings, with role validation and safety checks.
+
+Behavior expectations:
+
+- Assignment writes require privileged authorization.
+- Invalid team/user combinations return explicit error responses.
+- Last-owner removal is blocked by guardrails.
+
+## Team member role operations
+
+`/api/admin/teams/{teamId}/members` and `.../{userId}` expose team member lifecycle behavior:
+
+- List members in role-aware order
+- Upsert member roles under allowed role envelopes
+- Remove members with ownership safety constraints
+
+## Error behavior and safeguards
+
+- Unauthorized and forbidden states are explicit and role-driven.
+- Invalid payloads and missing resources return typed error responses.
+- Ownership and role invariants are protected server-side.

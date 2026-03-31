@@ -1,0 +1,27 @@
+---
+title: "Integration contracts"
+description: "Backend-facing contracts and behavior expectations for native client integrations."
+---
+
+## Auth/session contracts
+
+- Native auth uses backend-compatible token/session validation flows.
+- Protected feature calls require authenticated user context and must handle session expiry gracefully.
+
+## Quest and reward API contracts
+
+- Quest progression is backend-authoritative for eligibility and completion.
+- Reward claim/redeem behavior must use server responses as truth for user-facing state.
+- Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
+
+## Team and league API contracts
+
+- Team lists and team metadata come from `/api/teams`.
+- League metadata and branding come from `/api/leagues`.
+- Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
+
+## Error handling and fallback UX
+
+- Show user-actionable errors for purchase/open/claim failures.
+- Avoid silent failures for mutation endpoints.
+- Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.

@@ -1,0 +1,31 @@
+---
+title: "Teams/leagues architecture"
+description: "Architecture and sequencing for canonical team/league synchronization and linking."
+---
+
+## Sync services and execution order
+
+Canonical sync processing is split into coordinated backend services:
+
+1. Fetch/parse canonical source data
+2. Upsert league records and metadata
+3. Sync team records and logos
+4. Link teams to leagues
+5. Ensure team leaderboard parity where required
+
+## League linking and leaderboard parity
+
+- Team rows are linked to league rows through normalized identifiers and mapping logic.
+- Team sync paths also ensure team leaderboard rows exist for consistent ranking surfaces.
+
+## Team logo propagation
+
+- Canonical logo paths are fetched from source data and uploaded to storage.
+- Backend updates team logo fields after successful upload.
+- Clients consume resulting logo URLs from API payloads.
+
+## Idempotency and safety
+
+- Sync routes are designed to be repeatable.
+- Non-destructive update behavior is preferred over hard deletes.
+- Partial failures should log recoverable errors and preserve existing valid data.

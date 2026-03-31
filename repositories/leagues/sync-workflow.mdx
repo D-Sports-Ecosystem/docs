@@ -1,0 +1,50 @@
+---
+title: "Sync workflow"
+description: "How leagues and team canonical updates flow from GitHub to backend data and clients."
+---
+
+## End-to-end sync architecture
+
+The sync chain connects committed source assets to live API consumers:
+
+```mermaid
+flowchart TD
+  leaguesRepo[leagues repo update] --> ghAction[sync.yml workflow]
+  ghAction --> webhook[POST /api/webhooks/leagues-sync]
+  webhook --> syncLeagues[syncLeagues()]
+  syncLeagues --> syncTeams[syncTeamLogos + linkTeamsToLeagues]
+  syncTeams --> dbState[League and Team records]
+  dbState --> apiTeams[GET /api/teams]
+  dbState --> apiLeagues[GET /api/leagues]
+```
+
+## GitHub workflow trigger rules
+
+The leagues workflow runs on `main` pushes that touch:
+
+- `teams/**`
+- team/league JSON data
+- image assets (`png`, `svg`, `jpg`)
+
+## Webhook contract and auth
+
+- Endpoint: `POST /api/webhooks/leagues-sync`
+- Required header: `x-webhook-secret`
+- Secret must match backend `LEAGUES_WEBHOOK_SECRET`
+- Unauthorized or invalid secrets are rejected
+
+## Backend sync behavior (leagues + team logos + linking)
+
+Backend sync responsibilities include:
+
+- Upsert league metadata/colors/logo info
+- Upload and propagate canonical team logo assets
+- Link teams to league records where mappings resolve
+- Preserve idempotency and avoid destructive data deletion
+
+## Failure modes and recovery steps
+
+- Workflow failure: inspect GitHub Action logs and backend webhook status.
+- Auth mismatch: verify shared secret configuration in both repositories.
+- Partial sync: re-run admin sync endpoints from protected admin tools.
+- Asset mismatch: verify canonical `logoPath` and committed asset location.

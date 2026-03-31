@@ -13,6 +13,12 @@ This section documents gamification behavior in `d-sports-api` with two lenses:
 
 This excludes admin and superadmin-only controls.
 
+## Quest revamp highlights
+
+- Quest progression now supports **per-team quests** in addition to global progression surfaces.
+- Eligibility and progression are pass-aware for both **global pass** and **event pass** models.
+- Reward surfaces include clarified handling for **free rewards** and **unpaid rewards** paths.
+
 ## Sections
 
 <CardGroup cols={2}>
@@ -20,7 +26,7 @@ This excludes admin and superadmin-only controls.
     System boundaries, data model, and cross-feature flow.
   </Card>
   <Card title="Quests" icon="list-checks" href="/repositories/d-sports-api/gamification/quests">
-    Quest lifecycle, step completion rules, and progress checks.
+    Per-team quests, pass-aware eligibility, lifecycle, and completion behavior.
   </Card>
   <Card title="Points" icon="coins" href="/repositories/d-sports-api/gamification/points">
     Point write paths, history, and user-visible totals.
@@ -29,7 +35,7 @@ This excludes admin and superadmin-only controls.
     Team/global scoring and season-scoped aggregation.
   </Card>
   <Card title="Rewards" icon="gift" href="/repositories/d-sports-api/gamification/rewards">
-    Reward availability, claim, and redeem behavior.
+    Reward taxonomy with free/unpaid handling plus claim/redeem behavior.
   </Card>
   <Card title="Achievements" icon="badge-check" href="/repositories/d-sports-api/gamification/achievements">
     Current achievement surface and constraints.

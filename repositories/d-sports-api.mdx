@@ -36,6 +36,13 @@ icon: "server"
 - **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
 - **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
 
+## What changed since last docs sync
+
+- Team-management and admin route surfaces were expanded and hardened with RBAC layers.
+- Team and league canonical sync behaviors were expanded, including webhook-triggered updates and admin sync controls.
+- Quest/reward behavior evolved toward team-aware and pass-aware progression.
+- Pack odds and compliance-oriented disclosure behavior received implementation and runbook updates.
+
 ## Getting started
 
 1. Clone the repository and install dependencies (`bun install`).
@@ -113,6 +120,27 @@ Each non-admin backend domain now has dedicated folderized docs with architectur
     Track what is documented, partial, or not yet documented across all non-admin backend domains.
   </Card>
 </CardGroup>
+
+## Admin and team management surfaces (public-safe)
+
+Admin and team-management docs include contributor-facing behavior and route contracts while excluding sensitive internal operations.
+
+<CardGroup cols={2}>
+  <Card title="Admin and team management" icon="shield-check" href="/repositories/d-sports-api/admin-team-management/index">
+    RBAC model, route map, and public-safe implementation guidance.
+  </Card>
+  <Card title="Teams and leagues pipeline" icon="network" href="/repositories/d-sports-api/teams-leagues/index">
+    Canonical data sync, webhook flow, and downstream API behavior.
+  </Card>
+</CardGroup>
+
+## Compliance and legal: pack opening odds
+
+Pack-opening disclosure, operations, and app-review evidence references:
+
+<Card title="Compliance and legal docs" icon="scale" href="/repositories/d-sports-api/compliance/index">
+  Backend implementation and policy-alignment guidance for randomized pack disclosures.
+</Card>
 
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how d-sports-api fits with the site, native app, and Mic'd Up.

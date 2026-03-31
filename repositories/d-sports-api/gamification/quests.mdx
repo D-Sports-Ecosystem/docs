@@ -20,6 +20,36 @@ icon: "list-checks"
 3. Completing a step writes points immediately (if step has points).
 4. Quest is marked complete only after all required steps are completed.
 
+## Per-team quest model
+
+- Quest progression can be scoped by team context in addition to global quest tracks.
+- Team-aware quest visibility and completion are evaluated server-side.
+- Team/favorites and assignment context can affect eligibility routing.
+
+## Eligibility resolution (favorites, team scope, pass state)
+
+- Eligibility combines quest requirements, user/team context, and pass state.
+- Pass-aware routing includes **global pass** and **event pass** checks where configured.
+- Clients should refresh quest payloads after key mutations instead of assuming local eligibility.
+
+## Global pass and event pass behavior
+
+- Global pass can unlock broader quest/reward eligibility surfaces.
+- Event pass can gate event-specific quest paths and progression outcomes.
+- Both pass types are evaluated by backend logic and reflected in response payloads.
+
+## Completion and anti-abuse behavior
+
+- Completion checks remain backend-authoritative.
+- Progress routes can include anti-abuse validation paths for action-based completion.
+- Invalid completion attempts should return explicit, user-actionable responses.
+
+## Native integration expectations
+
+- Native quest UI should present team/pass eligibility as returned by API payloads.
+- Quest completion actions should trigger refresh of quest/reward state.
+- Client copy should distinguish availability, locked-by-pass, and completed states.
+
 ## Action-based progression checks
 
 `checkAndCompleteQuestProgress()` evaluates user actions and conditionally completes steps.

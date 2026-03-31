@@ -14,10 +14,30 @@ Gamification APIs include quest progression, leaderboard reads/streams, rewards,
 - Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
 - User quest history: `/api/user/completed-quests`
 
+## Revamped quest endpoint map
+
+Quest behavior now includes team-aware eligibility and pass-aware progression semantics in addition to base step completion flows.
+
+- Team-scoped eligibility is resolved server-side and reflected in quest availability/completion outcomes.
+- Pass-aware behavior supports global pass and event pass gates where configured.
+- Completion routes can trigger side effects across points history and leaderboard aggregation.
+
+## Pass eligibility and progression notes
+
+- Global pass and event pass effects are backend-authoritative.
+- Clients should render eligibility state from API responses rather than local assumptions.
+- Progress transitions should be treated as eventual-consistency aware across cross-feature surfaces.
+
+## Reward claim/redeem contracts
+
+- Reward flows now include differentiated free and unpaid reward handling semantics in contributor docs.
+- Claim/redeem operations remain server-validated and should be treated as mutation operations with explicit failure handling.
+
 ## Integration notes
 
 - Leaderboard stream clients should reconnect with backoff and refresh snapshots.
 - Quest step completion can trigger side effects such as points history writes.
+- Quest/pass state should be re-fetched after completion/claim mutations to avoid stale client assumptions.
 
 ## Deep-dive documentation
 

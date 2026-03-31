@@ -24,6 +24,24 @@ Gamification in `d-sports-api` is primarily implemented in:
 - `LeaderboardSeason`: season lifecycle metadata.
 - `Reward` and `UserReward`: reward catalog and user claim state.
 
+## Quest assignment domains
+
+- Global quest tracks and team-scoped quest tracks can coexist.
+- Team-scoped progression resolves eligibility based on team context and user relationships.
+- Quest assignment/read paths should be treated as backend-authoritative.
+
+## Pass-gated eligibility architecture
+
+- Eligibility can be conditioned by **global pass** and **event pass** state.
+- Pass checks happen server-side and influence quest visibility/completion pathways.
+- Client apps should not hardcode pass logic assumptions.
+
+## Reward pipeline architecture
+
+- Reward outcomes include **free rewards** and **unpaid rewards** semantics.
+- Claim/redeem writes are validated against eligibility, status, and prior claims.
+- Reward effects propagate into user-visible quest/reward surfaces through API contracts.
+
 ## Cross-feature flow
 
 ```mermaid

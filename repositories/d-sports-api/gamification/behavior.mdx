@@ -22,3 +22,22 @@ Detailed behavior docs:
 - Points write/read consistency
 - Leaderboard season-scoped ranking outcomes
 - Reward claim/redeem decision paths
+
+## End-to-end quest lifecycle
+
+1. Fetch active quests and eligibility context.
+2. Start/advance quest progression through quest routes.
+3. Resolve completion and points side effects.
+4. Refresh rewards and leaderboard views after mutation events.
+
+## Pass transition scenarios
+
+- User gains or loses **global pass** eligibility.
+- User enters/exits **event pass** eligibility windows.
+- Quest availability and completion pathways shift based on pass state.
+
+## Cross-team user progression behavior
+
+- Team-scoped quest progression can vary across user team contexts.
+- Team/favorites updates can change available quest surfaces.
+- Server responses remain source-of-truth for progression state.

@@ -15,8 +15,29 @@ This API Reference uses a hybrid model:
 
 - **OpenAPI endpoints** for broad, generated route coverage.
 - **Domain API guides** for workflow notes, caveats, and implementation context by backend domain.
+- **Coverage matrix** for explicit publish/redact/exclude boundaries.
 
 Use the **API Fundamentals** section for authentication and error handling guidance, the **Domain API Guides** section for integration context, and the **Endpoints** section for generated request/response reference from `api-reference/openapi.json`.
+
+## Coverage model
+
+- Public contributor docs prioritize integration-critical routes.
+- Sensitive admin internals, debug/dev-only, and cron/ops endpoints are intentionally excluded.
+- Selected admin/team-management routes are documented with redaction where contributor context is needed.
+
+## Exclusion policy
+
+By default, the following categories are excluded from public endpoint docs:
+
+- debug/dev-only routes
+- internal cron/ops routes
+- sensitive admin remediation/override internals
+
+## Curated domain pages vs generated OpenAPI
+
+- OpenAPI remains the primary generated endpoint index for public-safe routes.
+- Domain guides provide curated behavior notes and RBAC context.
+- Approved admin/team routes may be documented in curated domain pages even when absent in generated OpenAPI.
 
 ## Domain guides
 
@@ -28,6 +49,9 @@ Use the **API Fundamentals** section for authentication and error handling guida
 - [Wallet and web3](/api-reference/domains/wallet-web3)
 - [Moderation and reporting](/api-reference/domains/moderation)
 - [Platform and infrastructure](/api-reference/domains/platform-infra)
+- [Admin and team management](/api-reference/domains/admin-team-management)
+- [Teams and leagues](/api-reference/domains/teams-leagues)
+- [Route coverage matrix](/api-reference/domains/route-coverage-matrix)
 
 ## Authentication
 
