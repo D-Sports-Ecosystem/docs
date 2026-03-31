@@ -24,3 +24,14 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Account management
+
+- **Account deletion** — two-step confirmation calling `DELETE /api/user/delete`, followed by Clerk user deletion and automatic sign-out. Satisfies App Store Guideline 5.1.1(v).
+- **Data export** — users can request a data export via `POST /api/user/data-export` from the Account settings screen.
+
+## Push notifications
+
+- Push subscription lifecycle is managed by the `OneSignalBootstrap` component in the root layout.
+- The component upserts subscriptions via `POST /api/user/push-subscription` and handles opt-out via `DELETE /api/user/push-subscription/:platform`.
+- A readiness-retry pattern automatically syncs the Clerk profile (`POST /api/user/sync-clerk`) when the backend returns 404 for newly created users, preventing startup errors.
