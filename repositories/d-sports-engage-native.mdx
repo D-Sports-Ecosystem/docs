@@ -12,17 +12,20 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                                     |
+| -------------- | ---------------------------------------------- |
+| Framework      | Expo 54, React Native 0.81, React 19           |
+| Auth           | Clerk (Expo)                                   |
+| Payments       | RevenueCat (react-native-purchases)            |
+| Web3           | Thirdweb, Viem                                 |
+| State          | Zustand                                        |
+| Storage        | MMKV                                           |
+| UI             | Lucide React Native                            |
+| Navigation     | Expo Router 6                                  |
+| Push notifications | OneSignal                                  |
+| Error tracking | Sentry                                         |
+| Database       | Supabase (client-side only, not direct DB)     |
+| Package        | Bun                                            |
 
 ## Features
 
@@ -33,12 +36,58 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## API caching layer
+
+The app uses an MMKV-backed caching layer (`lib/api/cache.ts`) with TTL-based expiry to reduce redundant API calls. When you navigate to a screen, cached data loads immediately while a fresh fetch runs in the background. If the fetch fails, stale cache data is served as a fallback.
+
+| Cache key        | TTL        |
+| ---------------- | ---------- |
+| Teams            | 5 minutes  |
+| Quests           | 2 minutes  |
+| Posts             | 1 minute   |
+| Leaderboard      | 2 minutes  |
+| Coin prices      | 1 minute   |
+| Wallets          | 2 minutes  |
+| Shop products    | 5 minutes  |
+| Shop featured    | 5 minutes  |
+
+The wallet screen uses this layer to batch and deduplicate calls to prices, RPC endpoints, teams, and packs — preventing repeated requests when you return to the `/wallet` tab.
+
+## Environment variables
+
+All runtime-accessible keys use the `EXPO_PUBLIC_` prefix. Set these in a `.env` file at the repo root:
+
+| Variable                                | Description                        |
+| --------------------------------------- | ---------------------------------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`     | Clerk authentication key           |
+| `EXPO_PUBLIC_API_URL`                   | Backend API base URL               |
+| `EXPO_PUBLIC_TW_CLIENT_ID`             | Thirdweb client ID                 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY`       | RevenueCat API key                 |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID`   | RevenueCat App Store ID            |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT`   | RevenueCat entitlement identifier  |
+| `EXPO_PUBLIC_SUPABASE_URL`             | Supabase project URL               |
+| `EXPO_PUBLIC_SUPABASE_KEY`             | Supabase publishable key           |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the required values (Clerk, RevenueCat, Thirdweb, Supabase, API base URL).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+
+## EAS build profiles
+
+Builds are managed via [EAS Build](https://docs.expo.dev/build/introduction/). Profiles are defined in `eas.json`:
+
+| Profile              | Channel       | Notes                              |
+| -------------------- | ------------- | ---------------------------------- |
+| `development`        | development   | Dev client with iOS simulator      |
+| `development-device` | development   | Dev client on physical device      |
+| `preview`            | preview       | Internal distribution (APK on Android) |
+| `staging`            | staging       | Auto-increment version             |
+| `production`         | production    | Auto-increment, App Store / Play Store |
+
+Run a build with `bun run build:dev`, `bun run build:preview`, or `bun run build:prod`. OTA updates push automatically to `develop` and `main` branches via the `eas-update.yml` GitHub Actions workflow.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
