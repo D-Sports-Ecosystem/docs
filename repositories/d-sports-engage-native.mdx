@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage (v1.14.7). Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -33,12 +33,15 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
-## What changed since last docs sync
+## What changed since last docs sync (v1.14.7)
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- **Pack opening odds disclosure** — live drop odds are now surfaced in collectible detail and pack opening flows for clearer reward transparency. Modal lifecycle handling was tightened to prevent premature closes during quick interactions.
+- **Wallet polling stabilized** — reduced repeated `/wallet`-screen API call pressure (prices, RPC reads, teams, packs) and stabilized refresh cadence. Pack reopen state hardened across wallet/collectibles flows.
+- **My Cards filtering corrected** — opened packs no longer appear in `My Cards` while remaining accessible in `Packs` history surfaces.
+- **Guess the Player superadmin** — show-answer superadmin action restored with clearer badge treatment.
+- **Leaderboard team support expanded** — added HoD as a selectable/visible team in leaderboard surfaces.
+- **Account deletion reliability** — replaced nested system-alert callback flow with an in-app two-step confirmation modal that completes reliably on web.
+- **First-run startup fixes** — hardened Clerk sync payload parsing and added OneSignal readiness retry behavior to reduce `/api/user/settings` 404 and push-subscription failures for new users.
 
 ## Backend integration surfaces
 
@@ -65,9 +68,15 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Create a `.env` file with the required `EXPO_PUBLIC_*` keys:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk authentication
+   - `EXPO_PUBLIC_API_URL` — API backend base URL (e.g. `https://api.d-sports.org`)
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` and `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` — RevenueCat in-app purchases
+   - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` — Supabase client
+3. Run `bunx expo start`, then press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. OTA updates are published automatically via the `eas-update.yml` GitHub Actions workflow on push to `main`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
