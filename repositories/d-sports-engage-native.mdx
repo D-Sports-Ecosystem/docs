@@ -42,6 +42,43 @@ icon: "smartphone"
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
+## Pack odds compliance
+
+The native app includes compliance documentation for randomized pack odds disclosure, required by Apple (`3.1.1`) and Google Play policies.
+
+### Client integration
+
+Pack odds are rendered from server-calculated drop rates — you must never hardcode odds values in the UI. The key data sources are:
+
+- `GET /api/products` — shop pack metadata (including `dropRates`)
+- `GET /api/user/packs` — owned pack payload fields
+- `GET /api/packs/[id]/odds` — optional detailed odds endpoint
+
+Odds must be visible before opening a pack or toggleable with a single tap. The relevant client files are:
+
+| File | Purpose |
+| ---- | ------- |
+| `components/shop/CollectibleDetailModal.tsx` | Odds panel in the shop |
+| `components/wallet/PackOpeningModal.tsx` | Pre-open and reveal-time odds display |
+| `context/collectibles-context.tsx` | Open action, error surfacing, owned pack metadata mapping |
+
+### Disclosure copy guidelines
+
+- Display rarity rows with percentages (e.g., `Common: 50.00%`).
+- Show guarantee text only when the backend explicitly provides it.
+- Use plain, non-deterministic language — avoid phrases like "guaranteed legendary" unless the backend payload says so.
+- Keep contrast high in both dark and light themes; do not hide disclosure behind multiple actions.
+
+### Release runbook
+
+Before each release that touches pack odds UX:
+
+1. Validate disclosure rendering in the shop detail modal and the pack-opening modal (both pre-open and reveal states).
+2. Verify the back button dismisses the pack-opening modal cleanly.
+3. Confirm open-failure states show a user-facing error from the API response.
+4. Run the manual test matrix: free, starter, and standard packs; invalid/expired auth; non-openable pack in staging.
+5. Capture screenshots or video for the app store review evidence log.
+
 <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
   See how the native app fits with the PWA, site, and Mic'd Up.
 </Card>
