@@ -10,6 +10,7 @@ icon: "list-checks"
 - `GET /api/packs/[id]`
 - `POST /api/packs/[id]/purchase`
 - `POST /api/packs/[id]/open`
+- `GET /api/packs/[id]/odds`
 - `GET /api/user/packs`
 - `GET /api/user/packs/opened`
 - `GET /api/user/collectibles`
@@ -20,6 +21,34 @@ icon: "list-checks"
 - Purchase route records pack purchase state for the user.
 - Open route resolves collectible outcomes and updates user ownership/inventory state.
 - User collectible and pack routes expose owned content for client rendering.
+
+## Pack odds disclosure
+
+`GET /api/packs/[id]/odds` returns the canonical odds disclosure payload for a specific pack. This endpoint is the source of truth for all in-app odds display and app-store compliance evidence.
+
+The response includes:
+
+- **`dropRates`** — per-rarity probability as a percentage (e.g., `{ "common": 46.67, "rare": 31.0, ... }`)
+- **`expectedOutcomes`** — expected card counts per rarity over 10 pack openings
+- **`guarantee`** — a label and description for tier-based guarantees (e.g., "Guaranteed >= Rare" for starter/standard packs)
+- **`isOpenable`** / **`openabilityReason`** — whether the pack can currently be opened and the reason if not
+
+### Openability invariants
+
+A pack is openable only when all of the following are true:
+
+1. It has at least one `PackCollectible` entry.
+2. At least one entry has `weight > 0`.
+3. `sum(quantity) >= maxReveal`.
+
+If a pack fails these checks, it must not be listed or purchasable.
+
+### Compliance requirements
+
+- **Apple App Store** guideline `3.1.1` requires odds disclosure before any randomized purchase.
+- **Google Play** payments policy requires clear pre-purchase odds disclosure near the transaction surface.
+- All user-facing odds must use exact backend percentages with two decimal places.
+- Prohibited wording includes "Guaranteed legendary" (unless a hard guarantee exists) and claims implying fixed outcomes from random mechanics.
 
 ## Side effects and dependencies
 
