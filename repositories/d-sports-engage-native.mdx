@@ -29,9 +29,34 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, games, and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+
+## Games
+
+The locker room includes interactive games that earn you points. Game logic runs server-side to prevent cheating.
+
+### Guess the player
+
+A clue-based guessing game where you identify a player from progressively revealed hints. You get up to 5 guesses per round, with a points multiplier that decreases with each attempt (5x on the first guess, 3.5x on the second, 1.5x on the third, then 1x).
+
+**Server-side sessions** — Each round starts a server session via `POST /api/games/guess-player/session/start`. Guesses are submitted and validated server-side through `POST /api/games/guess-player/session/guess`. The server tracks session status (`ACTIVE`, `WON`, `LOST`, `INVALIDATED`, `EXPIRED`), manages clue reveals, and awards points.
+
+**Anti-cheat behavior** — Sessions are automatically invalidated when you leave the game screen. This includes:
+- App going to the background (iOS/Android)
+- Switching browser tabs or minimizing the window (web)
+- Closing the game modal
+
+When you return after an invalidation, the round resets and a new session starts. The invalidation is sent to the server via `POST /api/games/guess-player/session/invalidate` so the session cannot be resumed or replayed.
+
+### Daily spin wheel
+
+A daily reward game where you spin to earn coins or contribute to weekly team sets.
+
+### Pick 'em
+
+A player pick game powered by `GET /api/games/pick-em/players` that returns tiered players (elite, all-star, underdog) for selection.
 
 ## Getting started
 
