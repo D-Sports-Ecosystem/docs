@@ -12,25 +12,29 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                |
+| -------------- | ------------------------- |
+| Framework      | Expo 54, React Native 0.81, React 19 |
+| Auth           | Clerk (Expo)              |
+| Payments       | RevenueCat (react-native-purchases) |
+| Web3           | Thirdweb                  |
+| State          | Zustand                   |
+| Storage        | MMKV                      |
+| UI             | Lucide React Native       |
+| Navigation     | Expo Router               |
+| Push notifications | OneSignal             |
+| Error tracking | Sentry                    |
+| Realtime/DB    | Supabase (client-side JS) |
+| Package        | Bun                       |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, fan discovery, team exploration, and interactive games (Daily Pick'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, achievements, followers/following, and points history
+- **Notifications** — Push notifications via OneSignal with OTA update support
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
@@ -65,11 +69,30 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Create a `.env` file with the required `EXPO_PUBLIC_*` variables:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk authentication key
+   - `EXPO_PUBLIC_API_URL` — Backend API base URL (e.g. `https://api.d-sports.org`)
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID for Web3 features
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` — RevenueCat API key for in-app purchases
+   - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` — Supabase client credentials
+3. Run `bunx expo start` — press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## EAS build profiles
+
+The project uses EAS Build with the following profiles defined in `eas.json`:
+
+| Profile       | Purpose                    | Distribution |
+| ------------- | -------------------------- | ------------ |
+| `development` | Dev client (simulator)     | Internal     |
+| `development-device` | Dev client (physical device) | Internal |
+| `preview`     | Internal testing (APK on Android) | Internal |
+| `staging`     | Pre-production (auto-increment version) | Default |
+| `production`  | App Store / Play Store release | Default |
+
+OTA updates are published automatically via GitHub Actions on push to `main` using `eas update`.
 
 ## Deep dives
 
