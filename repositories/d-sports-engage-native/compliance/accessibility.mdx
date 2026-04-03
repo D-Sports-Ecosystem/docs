@@ -1,0 +1,131 @@
+---
+title: "Accessibility Compliance"
+description: "Apple Accessibility Nutrition Labels support matrix and implementation details for D-Sports Engage Native."
+sidebarTitle: "Accessibility"
+icon: "universal-access"
+---
+
+# Accessibility Compliance
+
+D-Sports Engage supports all 9 Apple Accessibility Nutrition Label categories for iPhone and iPad. This document details the implementation status and technical approach for each feature.
+
+## Feature Support Matrix
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **VoiceOver** | ✅ Supported | All interactive elements have `accessibilityRole`, `accessibilityLabel`, `accessibilityHint`, and `accessibilityState` props. |
+| **Voice Control** | ✅ Supported | All buttons and controls are labeled for voice command interaction. |
+| **Larger Text** | ✅ Supported | Respects iOS Dynamic Type via `AccessibilityInfo`. In-app toggle provides 1.25× scaling. Capped at 2× via `maxFontSizeMultiplier`. |
+| **Dark Interface** | ✅ Supported | Full dark/light theme support via `ThemeProvider`. Default is dark mode. |
+| **Differentiate Without Color** | ✅ Supported | Directional arrows (▲/▼) alongside price change colors. Text labels on rarity badges. Icons with status indicators. |
+| **Sufficient Contrast** | ✅ Supported | High-contrast color variants in `theme/colors.ts`. Activated by in-app toggle or iOS Bold Text setting. Meets WCAG AA (4.5:1). |
+| **Reduce Motion** | ✅ Supported | `ReducedMotionConfig` from `react-native-reanimated` with `ReduceMotion.System` mode. Also respects in-app toggle. |
+| **Captions** | 🔵 Planned | Will be added when video content is introduced. |
+| **Audio Descriptions** | 🔵 Planned | Will be added alongside captions. |
+
+## Architecture
+
+### AccessibilityProvider
+
+The central context (`context/accessibility-context.tsx`) manages all accessibility state:
+
+```typescript
+interface AccessibilityContextType {
+  // In-app toggles
+  reduceMotion: boolean;
+  largerText: boolean;
+  highContrast: boolean;
+  screenReaderSupport: boolean;
+  hapticFeedback: boolean;
+
+  // Derived values
+  textScale: number;          // max(inAppScale, systemFontScale)
+  systemFontScale: number;    // iOS Dynamic Type multiplier
+  isScreenReaderActive: boolean;
+  isSystemReduceMotion: boolean;
+  isSystemBoldText: boolean;
+}
+```
+
+**Key behaviors:**
+- `textScale` = `Math.max(inAppToggle ? 1.25 : 1.0, systemFontScale)`
+- `reduceMotion` = `inAppToggle || isSystemReduceMotion`
+- `highContrast` = `inAppToggle || isSystemBoldText`
+
+### AccessibleText Component
+
+`components/ui/AccessibleText.tsx` wraps `<Text>` with:
+- Font size scaling via `textScale` from context
+- Font weight bumping when `highContrast` is active
+- `maxFontSizeMultiplier={2}` to prevent layout breakage
+- `allowFontScaling={true}` for native Dynamic Type
+
+### ReducedMotionConfig
+
+Added to `app/_layout.tsx` at the root level:
+
+```tsx
+<ReducedMotionConfig mode={ReduceMotion.System}>
+  <AccessibilityProvider>
+    {/* ... app tree */}
+  </AccessibilityProvider>
+</ReducedMotionConfig>
+```
+
+This globally tells `react-native-reanimated` to skip animations when the iOS "Reduce Motion" setting is enabled.
+
+### High Contrast Colors
+
+`theme/colors.ts` exports `darkHighContrast` and `lightHighContrast` variants with boosted alpha values:
+
+| Token | Default (Dark) | High Contrast (Dark) |
+|-------|---------------|---------------------|
+| `textSecondary` | `rgba(255,255,255,0.7)` | `rgba(255,255,255,0.9)` |
+| `textMuted` | `rgba(255,255,255,0.5)` | `rgba(255,255,255,0.75)` |
+| `borderLight` | `rgba(255,255,255,0.1)` | `rgba(255,255,255,0.25)` |
+
+Use `getColors(isDark, highContrast)` to get theme-aware colors with optional contrast boost.
+
+## Files Modified
+
+### Phase 1: VoiceOver & Voice Control
+- `app/(tabs)/_layout.tsx` — Tab bar: `accessibilityRole="tab"`, labels, hints, states
+- `app/(tabs)/locker-room.tsx` — Header buttons, tab navigation, notification bell, avatar
+- `app/(tabs)/leaderboard.tsx` — TeamCard, search, filters, modals, league pills
+- `app/(tabs)/shop.tsx` — Cart button, search, rarity filters, collectible cards, featured packs
+- `app/(tabs)/wallet.tsx` — Balance card, address copy, sub-tabs, filter chips, carousel cards, all modals
+- `app/settings/index.tsx` — SettingsRow, back button, logout, version link
+- `components/wallet/TokenRow.tsx` — Row button, favorite toggle
+- `components/wallet/HoldingRow.tsx` — Accessible group with descriptive label
+- `components/shop/CollectibleCard.tsx` — Card button, favorite toggle, add-to-cart
+
+### Phase 2: Larger Text
+- `context/accessibility-context.tsx` — System font scale detection, combined text scale
+- `components/ui/AccessibleText.tsx` — `maxFontSizeMultiplier`, capped scaling
+
+### Phase 3: Sufficient Contrast
+- `theme/colors.ts` — `darkHighContrast`, `lightHighContrast` variants, updated `getColors()`
+
+### Phase 4: Reduced Motion
+- `app/_layout.tsx` — `ReducedMotionConfig` with `ReduceMotion.System`
+- `context/accessibility-context.tsx` — System reduce motion detection
+
+### Phase 5: Differentiate Without Color
+- `components/wallet/TokenRow.tsx` — ▲/▼ arrows on price changes
+- `components/wallet/HoldingRow.tsx` — ▲/▼ arrows on price changes
+
+### Phase 6: Info Screens
+- `app/settings/accessibility-info.tsx` — In-app feature support matrix screen
+- `constants/accessibility-features-data.ts` — Feature data constant
+- `d-sports-site/app/accessibility/page.tsx` — Marketing site page
+- `d-sports-site/components/footer.tsx` — Footer link
+- `docs/repositories/d-sports-engage-native/compliance/accessibility.mdx` — This page
+
+## App Store Connect
+
+After submitting the next app update:
+
+1. Go to **App Store Connect → App → General → App Information**
+2. Under **Accessibility**, check all supported features for iPhone and iPad
+3. Set **Accessibility URL** to `https://d-sports.org/accessibility`
+4. Submit with the update
