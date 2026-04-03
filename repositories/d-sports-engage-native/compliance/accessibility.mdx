@@ -17,8 +17,8 @@ D-Sports Engage supports all 9 Apple Accessibility Nutrition Label categories fo
 | **Voice Control** | ✅ Supported | All buttons and controls are labeled for voice command interaction. |
 | **Larger Text** | ✅ Supported | Respects iOS Dynamic Type via `AccessibilityInfo`. In-app toggle provides 1.25× scaling. Capped at 2× via `maxFontSizeMultiplier`. |
 | **Dark Interface** | ✅ Supported | Full dark/light theme support via `ThemeProvider`. Default is dark mode. |
-| **Differentiate Without Color** | ✅ Supported | Directional arrows (▲/▼) alongside price change colors. Text labels on rarity badges. Icons with status indicators. |
-| **Sufficient Contrast** | ✅ Supported | High-contrast color variants in `theme/colors.ts`. Activated by in-app toggle or iOS Bold Text setting. Meets WCAG AA (4.5:1). |
+| **Differentiate Without Color** | ✅ Supported | Directional arrows (▲/▼) alongside price change colors. Text labels on rarity badges. Icons with status indicators. Color blindness mode remaps semantic colors for protanopia, deuteranopia, and tritanopia via `useColors()`. |
+| **Sufficient Contrast** | ✅ Supported | High-contrast color variants in `theme/colors.ts`. Activated by in-app toggle or iOS Bold Text setting. Meets WCAG AA (4.5:1). High contrast mode also activates the color-blind safe palette. |
 | **Reduce Motion** | ✅ Supported | `ReducedMotionConfig` from `react-native-reanimated` with `ReduceMotion.System` mode. Also respects in-app toggle. |
 | **Captions** | 🔵 Planned | Will be added when video content is introduced. |
 | **Audio Descriptions** | 🔵 Planned | Will be added alongside captions. |
@@ -37,6 +37,8 @@ interface AccessibilityContextType {
   highContrast: boolean;
   screenReaderSupport: boolean;
   hapticFeedback: boolean;
+  colorBlindModeEnabled: boolean;
+  colorBlindModeType: "protanopia" | "deuteranopia" | "tritanopia";
 
   // Derived values
   textScale: number;          // max(inAppScale, systemFontScale)
@@ -84,9 +86,37 @@ This globally tells `react-native-reanimated` to skip animations when the iOS "R
 | `textMuted` | `rgba(255,255,255,0.5)` | `rgba(255,255,255,0.75)` |
 | `borderLight` | `rgba(255,255,255,0.1)` | `rgba(255,255,255,0.25)` |
 
-Use `getColors(isDark, highContrast)` to get theme-aware colors with optional contrast boost.
+Use `getColors(isDark, { highContrast, colorBlindnessEnabled, colorBlindnessType })` to get theme-aware colors with optional contrast boost and color blindness adaptation.
 
-## Files Modified
+### Color blindness mode
+
+The app supports three color vision deficiency (CVD) profiles that remap semantic colors (positive/negative trends, danger states, and reputation indicators) to distinguishable pairs:
+
+| Profile | Positive | Negative | Use case |
+|---------|----------|----------|----------|
+| **Deuteranopia** (default) | Blue `#2563EB` | Orange `#F97316` | Green-blind (most common) |
+| **Protanopia** | Deep blue `#1D4ED8` | Deep orange `#EA580C` | Red-blind |
+| **Tritanopia** | Sky blue `#0EA5E9` | Purple `#D946EF` | Blue-yellow confusion |
+
+Color blindness mode activates when either `colorBlindModeEnabled` is toggled on or `highContrast` is enabled. The user selects their CVD profile under **Settings → Accessibility → Color blindness type**.
+
+### `useColors` hook
+
+`hooks/use-colors.ts` is the recommended way to access theme-aware, accessibility-adapted colors throughout the app:
+
+```typescript
+import { useColors } from "@/hooks/use-colors";
+
+function MyComponent() {
+  const colors = useColors();
+  // colors.positive  -> green normally, adapted per selected CVD profile
+  // colors.negative  -> red normally, adapted per selected CVD profile
+}
+```
+
+The hook reads the current color scheme, high-contrast state, and color blindness preferences from context and returns the resolved palette via `getColors()`. All semantic color tokens (`positive`, `negative`, `danger`, `heel`) automatically adapt when color blindness mode is active.
+
+## Files modified
 
 ### Phase 1: VoiceOver & Voice Control
 - `app/(tabs)/_layout.tsx` — Tab bar: `accessibilityRole="tab"`, labels, hints, states
@@ -120,6 +150,13 @@ Use `getColors(isDark, highContrast)` to get theme-aware colors with optional co
 - `d-sports-site/app/accessibility/page.tsx` — Marketing site page
 - `d-sports-site/components/footer.tsx` — Footer link
 - `docs/repositories/d-sports-engage-native/compliance/accessibility.mdx` — This page
+
+### Phase 7: Color blindness mode and `useColors` hook
+- `context/accessibility-context.tsx` — Added `colorBlindModeEnabled` and `colorBlindModeType` fields with persistence
+- `hooks/use-colors.ts` — New `useColors()` hook that returns theme-aware, CVD-adapted color palette
+- `theme/colors.ts` — Added `semanticColorBlindSafeProtanopia`, `semanticColorBlindSafeDeuteranopia`, `semanticColorBlindSafeTritanopia` palettes and updated `getColors()` signature
+- `components/settings/tabs/AccessibilitySettings.tsx` — Color blindness toggle and CVD profile selector UI
+- `components/AccessibilitySettingsSync.tsx` — Syncs server-backed accessibility settings to local context
 
 ## App Store Connect
 
