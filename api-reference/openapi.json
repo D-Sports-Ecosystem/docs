@@ -1080,6 +1080,59 @@
         "responses": { "200": { "description": "{ success }" } }
       }
     },
+    "/api/moderation/reports": {
+      "post": {
+        "tags": ["Moderation and reporting"],
+        "summary": "Submit moderation report",
+        "description": "Allows any authenticated user to report inappropriate content, users, or comments. At least one target (targetUserId, targetPostId, or targetCommentId) is required.",
+        "operationId": "createModerationReport",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "reason"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["INAPPROPRIATE_NAME", "INAPPROPRIATE_CONTENT", "SPAM", "HARASSMENT", "OTHER"],
+                    "description": "Category of the report."
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Short explanation of why the content is being reported."
+                  },
+                  "details": {
+                    "type": "string",
+                    "description": "Optional additional context."
+                  },
+                  "targetUserId": {
+                    "type": "string",
+                    "description": "Clerk user ID of the reported user."
+                  },
+                  "targetPostId": {
+                    "type": "string",
+                    "description": "ID of the reported locker room post."
+                  },
+                  "targetCommentId": {
+                    "type": "string",
+                    "description": "ID of the reported comment."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ id, status } — report created with PENDING status" },
+          "400": { "description": "Validation error: invalid type, missing reason, or no target specified" },
+          "401": { "description": "Unauthorized — Clerk Bearer token required" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/api/sync-quest-points": {
       "post": {
         "tags": ["Misc", "Platform and infrastructure"],

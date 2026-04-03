@@ -6,28 +6,34 @@ icon: "workflow"
 
 ## Primary backend components
 
-- `server/moderation-actions.ts`
-- `app/api/feedback/bug-report/route.ts`
-- `app/api/feedback/native-crash/route.ts`
+- `app/api/moderation/reports/route.ts` — user-facing report intake endpoint
+- `server/moderation-actions.ts` — `ModerationActions` class (create, list, escalate, resolve reports; delete content)
+- `lib/notifications/service.ts` — `createNotification` for reporter outcome delivery
+- `app/api/feedback/bug-report/route.ts` — bug report intake
+- `app/api/feedback/native-crash/route.ts` — native crash report intake
 
 ## Core model touchpoints
 
-- `ModerationReport`
-- `ReportType`
-- `ReportStatus`
+- **`ModerationReport`** — persisted report entity with reporter, target(s), type, status, escalation, and resolution fields
+- **`ReportType`** — `INAPPROPRIATE_NAME | INAPPROPRIATE_CONTENT | SPAM | HARASSMENT | OTHER`
+- **`ReportStatus`** — `PENDING | ESCALATED | REVIEWED | RESOLVED | DISMISSED`
 
 ## High-level flow
 
 ```mermaid
 flowchart LR
-  userSubmission[UserSubmission] --> intakeRoute[FeedbackOrReportRoute]
-  intakeRoute --> reportWrite[ModerationReportWrite]
-  reportWrite --> statusLifecycle[ReportStatusLifecycle]
-  statusLifecycle --> downstreamReview[PrivilegedReviewSystems]
+  user[Authenticated user] --> reportRoute["POST /api/moderation/reports"]
+  reportRoute --> createReport["ModerationActions.createReport"]
+  createReport --> db[(ModerationReport row)]
+  db --> moderatorReview[Moderator review]
+  moderatorReview -->|escalate| superAdmin[SuperAdmin review]
+  moderatorReview -->|resolve/dismiss| notification[Reporter notification]
+  superAdmin -->|resolve/dismiss| notification
 ```
 
 ## Architectural notes
 
-- Non-admin routes focus on safe intake and structured report persistence.
-- Review, escalation, and resolution actions are downstream and generally privileged.
-- Feedback intake and moderation-report entities are related but may originate from separate route families.
+- The `POST /api/moderation/reports` route validates the payload (type, reason, at least one target) then delegates to `ModerationActions.createReport`.
+- Reports start with `PENDING` status. Moderators can escalate to superadmins; both can resolve or dismiss.
+- On resolution, the system sends an in-app and push notification (`MODERATION_REPORT_UPDATE`) to the original reporter via `createNotification`.
+- Feedback intake (`/api/feedback/*`) and moderation reports (`/api/moderation/reports`) are separate route families with different auth requirements.
