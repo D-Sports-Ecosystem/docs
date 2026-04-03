@@ -6,9 +6,9 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`) is the cross-platform app for D-Sports, targeting iOS, Android, and web. It delivers the full fan engagement experience — wallet, shop, leaderboard, locker room, and profile — across all three platforms from a single codebase.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android, `i` for iOS, or `w` for web.
 
 ## Tech stack
 
@@ -32,9 +32,14 @@ icon: "smartphone"
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+- **Web (PWA)** — Standalone PWA with responsive desktop layout, hover states, keyboard navigation, and OneSignal web push
+- **Accessibility** — VoiceOver/TalkBack support, larger text, high contrast, reduce motion, haptic feedback, and web-specific a11y (skip-to-content, `focus-visible` outlines, `prefers-reduced-motion` / `prefers-contrast` media queries)
 
 ## What changed since last docs sync
 
+- **Web platform support** added — the app now builds and deploys as a PWA on Vercel via `npx expo export --platform web` with Metro bundler. Includes `app.json` web manifest, `+html.tsx` root HTML, and `vercel.json` deployment config.
+- **Accessibility for web** — `AccessibilityProvider` now listens to browser `prefers-reduced-motion` and `prefers-contrast: more` media queries. Root HTML includes a skip-to-content link, `focus-visible` keyboard outlines, and CSS-level reduced-motion / high-contrast overrides.
+- **OneSignal web push** — the web SDK is loaded in `+html.tsx` for browser push notification support.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -65,11 +70,12 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Configure environment variables — the app uses `EXPO_PUBLIC_*` keys for Clerk, RevenueCat, Thirdweb, Supabase, and the API base URL. See `.env` in the repo root.
+3. Run `bunx expo start` — press `a` for Android, `i` for iOS, or `w` for web.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For web deployment: the app exports as a static site via `npx expo export --platform web` and deploys to Vercel. See `vercel.json` for routing and header configuration.
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+The app targets iOS, Android, and web from a single codebase and uses the same backend (`d-sports-api`) for API and checkout flows.
 
 ## Deep dives
 

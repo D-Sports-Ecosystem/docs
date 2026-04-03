@@ -23,11 +23,24 @@ D-Sports Engage supports all 9 Apple Accessibility Nutrition Label categories fo
 | **Captions** | 🔵 Planned | Will be added when video content is introduced. |
 | **Audio Descriptions** | 🔵 Planned | Will be added alongside captions. |
 
+## Web accessibility
+
+In addition to native accessibility features, the web build includes browser-level a11y support:
+
+| Feature | Implementation |
+|---------|---------------|
+| **Skip to content** | Hidden `<a href="#main-content">` link in `app/+html.tsx`, visible on keyboard focus with styled focus ring. |
+| **Keyboard focus outlines** | Global `*:focus-visible` CSS rule applies a `2px solid #4169E1` outline to all focusable elements. |
+| **Reduced motion (CSS)** | `@media (prefers-reduced-motion: reduce)` disables CSS animations and transitions site-wide. |
+| **High contrast (CSS)** | `@media (prefers-contrast: more)` boosts `--text-secondary-alpha` and `--border-alpha` CSS variables. |
+| **Browser media query sync** | `AccessibilityProvider` listens to `prefers-reduced-motion` and `prefers-contrast: more` change events so in-app React state stays in sync with browser settings. |
+| **Hover feedback** | `WebHoverWrapper` provides opacity/scale hover states for interactive elements on web; no-ops on native. |
+
 ## Architecture
 
 ### AccessibilityProvider
 
-The central context (`context/accessibility-context.tsx`) manages all accessibility state:
+The central context (`context/accessibility-context.tsx`) manages all accessibility state across native and web:
 
 ```typescript
 interface AccessibilityContextType {
@@ -49,8 +62,8 @@ interface AccessibilityContextType {
 
 **Key behaviors:**
 - `textScale` = `Math.max(inAppToggle ? 1.25 : 1.0, systemFontScale)`
-- `reduceMotion` = `inAppToggle || isSystemReduceMotion`
-- `highContrast` = `inAppToggle || isSystemBoldText`
+- `reduceMotion` = `inAppToggle || isSystemReduceMotion` (native `AccessibilityInfo` or web `prefers-reduced-motion`)
+- `highContrast` = `inAppToggle || isSystemBoldText` (native bold text or web `prefers-contrast: more`)
 
 ### AccessibleText Component
 
@@ -72,7 +85,7 @@ Added to `app/_layout.tsx` at the root level:
 </ReducedMotionConfig>
 ```
 
-This globally tells `react-native-reanimated` to skip animations when the iOS "Reduce Motion" setting is enabled.
+This globally tells `react-native-reanimated` to skip animations when the system "Reduce Motion" setting is enabled. On web, the CSS `@media (prefers-reduced-motion: reduce)` rule in `app/+html.tsx` provides an additional layer that disables CSS animations and transitions.
 
 ### High Contrast Colors
 
