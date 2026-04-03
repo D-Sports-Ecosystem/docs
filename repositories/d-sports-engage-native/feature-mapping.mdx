@@ -19,6 +19,14 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## UGC moderation and EULA gating
+
+- Users must accept the current terms of service version before posting or commenting in the locker room feed.
+- Report and block flows are available on all posts and comments via overflow menus.
+- Reports are submitted to `POST /api/moderation/reports` with a type, reason, and optional details.
+- Blocking a user immediately filters their content from the feed and persists via the user settings API.
+- Toast-based feedback confirms all moderation actions.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
