@@ -20,6 +20,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Locker room permalink contracts
+
+- Shared links expose **clean public IDs** — entity prefixes (`post_`, `comment_`) are stripped before building URLs.
+- When resolving an incoming link, the client re-adds the prefix to reconstruct internal IDs (e.g., `abc123` → `post_abc123`).
+- The base URL for permalinks defaults to `EXPO_PUBLIC_APP_WEB_URL` (fallback `https://app.d-sports.org`).
+- Backend locker room endpoints accept both prefixed and unprefixed IDs where applicable, so links generated before this change remain valid.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
