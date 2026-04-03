@@ -1,0 +1,109 @@
+---
+title: "UGC safeguards and EULA gating"
+description: "Report/block moderation UX, mandatory terms acceptance, and user-generated content policy enforcement in the native app."
+sidebarTitle: "UGC moderation"
+icon: "shield-check"
+---
+
+## Overview
+
+The native app enforces user-generated content (UGC) safeguards across all social surfaces. Before you can post or comment in the locker room feed, you must accept the current terms of service. You can report or block other users directly from the feed.
+
+These controls satisfy Apple App Store guideline **1.2 (User Generated Content)** and Google Play's UGC policy requirements.
+
+## EULA / terms gating
+
+### How it works
+
+1. When you tap **Post** or **Comment** for the first time (or after a terms version bump), a modal displays the full terms of service text.
+2. You must tap **Accept** to continue. The acceptance timestamp and version string are persisted to your user profile via the backend.
+3. Subsequent posts and comments proceed without the modal, as long as the stored `ugcTermsVersion` matches the current version constant.
+
+### Key files
+
+| File | Role |
+|------|------|
+| `constants/terms-of-service.ts` | `TERMS_OF_SERVICE_VERSION` and full text constant |
+| `hooks/use-feed-section.ts` | Gating logic: checks `user.ugcTermsAcceptedAt` and `ugcTermsVersion` before allowing post/comment creation |
+| `lib/api/user-api.ts` | `UserProfile.ugcTermsAcceptedAt` and `ugcTermsVersion` fields |
+| `context/user-context.tsx` | `ugcTermsAcceptedAt` and `ugcTermsVersion` on the `User` type |
+
+### Version bumping
+
+To require re-acceptance after a legal update:
+
+1. Update `TERMS_OF_SERVICE_VERSION` in `constants/terms-of-service.ts`.
+2. Update the `TERMS_OF_SERVICE_TEXT` constant with the revised copy.
+3. On next post or comment attempt, the modal re-appears because the stored version no longer matches.
+
+## Report flow
+
+You can report posts, comments, or users from the locker room feed.
+
+### Report types
+
+| Type | Description |
+|------|-------------|
+| `INAPPROPRIATE_CONTENT` | Default — content violates community guidelines |
+| `INAPPROPRIATE_NAME` | Offensive username or display name |
+| `SPAM` | Unsolicited or repetitive content |
+| `HARASSMENT` | Targeted harassment or bullying |
+| `OTHER` | Freeform reason |
+
+### UX flow
+
+1. Tap the **overflow menu** (three dots) on a post or comment.
+2. Select **Report**.
+3. Choose a report type and provide a reason (required) and optional details.
+4. Submit — the report is sent to `POST /api/moderation/reports` via `createModerationReport`.
+5. A toast confirms submission: *"Thanks. Our moderation team will review this and notify you after it is resolved."*
+
+### Key files
+
+| File | Role |
+|------|------|
+| `hooks/use-feed-section.ts` | `openReportForPost`, `openReportForComment`, `submitReport` handlers |
+| `lib/api/locker-room-api.ts` | `ModerationReportType`, `ModerationReportPayload`, `createModerationReport` |
+| `components/locker-room/FeedSection.tsx` | Report modal UI |
+
+## Block flow
+
+You can block users directly from the feed.
+
+1. Tap the **overflow menu** on a post or comment.
+2. Select **Block user**.
+3. The block is applied immediately — the blocked user's posts and comments are removed from your current feed view.
+4. A toast confirms: *"Their content has been removed from your current feed."*
+
+Blocked users are managed via `useUserSettings().blockUser` / `unblockUser`. You can view and manage your blocked users list in **Settings → Privacy → Blocked users**.
+
+### Key files
+
+| File | Role |
+|------|------|
+| `hooks/use-feed-section.ts` | `handleBlockAuthor` — optimistic feed filtering + API call |
+| `hooks/use-user-settings.ts` | `blockUser`, `unblockUser`, `blockedUsers` state |
+| `components/settings/modals/BlockedUsersModal.tsx` | Blocked users management UI |
+
+## Toast feedback
+
+All moderation actions provide toast-based feedback using the app's shared toast system (`lib/toast.ts`):
+
+| Action | Toast type | Message |
+|--------|-----------|---------|
+| Report submitted | Success | "Report sent" |
+| Report failed | Error | Error message from API |
+| Block applied | Success | "User blocked" |
+| Block failed | Error | Error message from API |
+| Terms acceptance failed | Error | "Unable to continue" |
+
+## App store review considerations
+
+When submitting a build that includes UGC surfaces, include evidence that:
+
+- The report flow is accessible from any post or comment.
+- The block flow immediately removes content from the reporter's view.
+- Terms acceptance is required before posting or commenting.
+- The terms text includes sections on prohibited content (section 6.2), reporting/moderation (section 6.3), enforcement (section 6.4), and blocking (section 6.5).
+
+See the [app review evidence log](/repositories/d-sports-engage-native/compliance/app-store-review-evidence-log) for the submission checklist.
