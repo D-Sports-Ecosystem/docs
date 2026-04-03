@@ -19,6 +19,14 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Interactive games
+
+- **Daily Pick'Em** — Users make daily predictions on matchups; game state and results are backed by `games-api.ts`.
+- **Daily Spin Wheel** — A daily reward spinner with animated wheel and prize logic.
+- **Guess the Player** — Players identify athletes from clues; player data is sourced from `players.ts` constants.
+
+All games are surfaced in the locker room via a featured games carousel and contribute to quest progression and points.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
