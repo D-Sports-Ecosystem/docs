@@ -6,7 +6,7 @@ icon: "coins"
 
 ## Points source of truth
 
-`PointsHistory` is the append-only ledger for awarded points.
+`PointsHistory` is the append-only ledger for all awarded points. It is also the **single source of truth for the global leaderboard** — the global board score for each user is computed by summing every `PointsHistory` row for that user.
 
 Common point write paths:
 
@@ -14,6 +14,8 @@ Common point write paths:
 - Daily quest completion
 - Onboarding completion
 - Backfill/fix scripts
+
+After writing a `PointsHistory` row, callers invoke `syncUserGlobalAggregateFromTeamBoards()` to recompute the user's global `LeaderboardEntry` from the full `PointsHistory` total.
 
 ## Points record fields
 
@@ -29,9 +31,9 @@ Key fields in `PointsHistory`:
 
 ## Read behavior
 
-- User totals are typically aggregated from `PointsHistory`.
+- **Global leaderboard**: scores are the `SUM(points)` across all `PointsHistory` rows for a user (no board or season filter).
+- **Team leaderboards**: scores aggregate `PointsHistory` filtered by the board's `leaderboardId` and the active `seasonId`.
 - Completed quest history endpoint derives quest-oriented history from points records.
-- Leaderboard APIs aggregate from points history with season/board scoping logic.
 
 ## Migration-era behavior
 

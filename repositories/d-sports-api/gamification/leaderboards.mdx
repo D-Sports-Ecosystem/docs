@@ -1,37 +1,50 @@
 ---
 title: "Leaderboards"
-description: "Team and global leaderboard behavior with season-scoped scoring."
+description: "Team and global leaderboard behavior with points history as the single source of truth."
 icon: "medal"
 ---
 
 ## Board types
 
-- **Team boards**: non-global boards tied to a team.
-- **Global board**: single global board aggregating active-season scoring.
+- **Global board** — the single `isGlobal: true` leaderboard. Its scores are derived entirely from `PointsHistory` (see [global scoring](#global-scoring-from-points-history) below).
+- **Team boards** — non-global boards tied to a team via `Leaderboard.teamId`. Created on demand by `getOrCreateTeamLeaderboard()`.
 
 ## Resolution behavior
 
 `GET /api/leaderboard` supports:
 
-- `?leaderboardId=<id>` for direct board lookup.
-- `?teamId=<teamId>` to resolve/create the team board.
-- no params for global board behavior.
+- `?teamId=<teamId>` — resolves (or creates) the team board. Preferred by clients over `leaderboardId`.
+- `?leaderboardId=<id>` — direct board lookup by numeric ID.
+- No params — returns the global board (`isGlobal: true`).
 
-## Scoring behavior in Season 0.5
+On every request the endpoint upserts the authenticated user into the resolved board so they always appear in results.
 
-- Team boards aggregate `PointsHistory` by:
-  - matching active `seasonId`
-  - matching requested board `leaderboardId`
-- Global board aggregates by:
-  - matching active `seasonId` only
+## Global scoring from points history
+
+`PointsHistory` is the **single source of truth** for global leaderboard scores. The function `applySyncUserGlobalAggregateFromTeamBoards()` in `lib/leaderboard.ts` recomputes the global entry for a user by summing all of their `PointsHistory` rows (regardless of `leaderboardId` or `seasonId`) and upserting the total into the global `LeaderboardEntry`.
+
+This means:
+
+- The global board always reflects the user's lifetime earned points.
+- Team boards maintain their own `LeaderboardEntry.points` independently.
+- Server actions, cron jobs, and backfill scripts call `syncUserGlobalAggregateFromTeamBoards()` to keep the global board in sync after point-awarding events.
+
+## Team board scoring
+
+Team boards aggregate `PointsHistory` by:
+
+- Matching active `seasonId`
+- Matching the requested board's `leaderboardId`
+
+Points writes should include board and season scope when context is available.
 
 ## Enrollment and write behavior
 
-- Some flows enroll users on global board paths.
-- `getUserLeaderboards()` currently returns global board IDs only in current implementation.
-- Points writes should include board + season scope when context is available.
+- `ensureUserIsEnrolledInOGLeaderboard()` creates a zero-point entry for a user on any board if one does not exist.
+- `getUserLeaderboards()` currently returns only the global board ID.
+- Quest completion, daily visits, and onboarding flows write to `PointsHistory` and then sync the global aggregate.
 
 ## Notes
 
-- Stream/search/stats leaderboard routes are available for consumption use cases.
+- Stream, search, and stats leaderboard routes are available for read-only consumption.
 - Reset and archive lifecycle routes exist but are not covered in this non-admin gamification deep dive.
