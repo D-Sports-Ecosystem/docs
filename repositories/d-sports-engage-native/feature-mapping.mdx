@@ -7,6 +7,12 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Authentication and MFA
+
+- Email/password sign-in uses Clerk's combined sign-in-or-up flow with automatic second-factor challenge.
+- MFA verification supports TOTP, SMS phone code, and backup code strategies — the app auto-detects which methods the user has enabled.
+- OAuth sign-in (Google, Apple) is available alongside email/password and bypasses MFA (handled by the OAuth provider).
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.

@@ -35,10 +35,25 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- **Multi-factor authentication (MFA)** was implemented via Clerk, supporting TOTP authenticator apps, SMS phone codes, and backup codes during sign-in.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
 - Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+
+## Authentication and MFA
+
+The app uses **Clerk** for authentication with a combined sign-in-or-up flow. Multi-factor authentication is fully supported during email/password sign-in:
+
+| MFA method | Strategy | Description |
+| --- | --- | --- |
+| Authenticator app | `totp` | 6-digit code from any TOTP-compatible app |
+| SMS | `phone_code` | Code sent to the user's registered phone number |
+| Backup codes | `backup_code` | One-time recovery codes for account access |
+
+When Clerk returns `needs_second_factor` after password verification, the login screen automatically detects which MFA strategies the user has enabled and presents the appropriate input. Users can switch between TOTP and SMS if both are available, or fall back to a backup code.
+
+MFA enrollment and management (enabling TOTP, adding a phone number, generating backup codes) are handled through the Clerk-hosted account portal — the **Login & Security** modal in settings directs users to this provider-managed flow.
 
 ## Backend integration surfaces
 
