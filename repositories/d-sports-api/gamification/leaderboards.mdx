@@ -6,16 +6,30 @@ icon: "medal"
 
 ## Board types
 
-- **Team boards**: non-global boards tied to a team.
-- **Global board**: single global board aggregating active-season scoring.
+- **Team boards**: non-global boards tied to a team via `teamId`.
+- **Global board**: single global board aggregating active-season scoring (`isGlobal: true`).
 
 ## Resolution behavior
 
-`GET /api/leaderboard` supports:
+`GET /api/leaderboard` supports three resolution modes (in priority order):
 
-- `?leaderboardId=<id>` for direct board lookup.
-- `?teamId=<teamId>` to resolve/create the team board.
-- no params for global board behavior.
+1. `?teamId=<teamId>` — resolves or creates the team board via `getOrCreateTeamLeaderboard`. This is preferred over `leaderboardId` because it always hits the canonical team board.
+2. `?leaderboardId=<id>` — direct board lookup by numeric ID.
+3. No params — returns the global D-Sports leaderboard.
+
+### Slug-based resolution
+
+`getTeamLeaderboardBySlug(slug)` resolves a team leaderboard by the team's slug field. If the team exists but has no linked board, it attempts orphan linking (see below) before returning `null`.
+
+### Orphan leaderboard linking
+
+Legacy data may contain leaderboard rows with the correct name (e.g. `"House of Doge Leaderboard"`) but a `null` `teamId`. When you request a team board and no row with a matching `teamId` exists, the system:
+
+1. Searches for an orphaned row where `teamId` is `null`, the name matches the expected pattern (`<team name> Leaderboard`), and `isGlobal` is `false`.
+2. If found, links the orphan by setting its `teamId` to the requesting team's ID.
+3. Returns the now-linked board, preserving any existing entries and points.
+
+This prevents creating duplicate empty boards when a team board already exists but was never properly linked.
 
 ## Scoring behavior in Season 0.5
 
