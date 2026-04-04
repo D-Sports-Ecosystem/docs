@@ -10,6 +10,7 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
 - Feature logic: extracted hooks for wallet, shop, locker room, and settings.
 - Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- The leaderboard tab uses a nested Stack layout (`app/(tabs)/leaderboard/_layout.tsx`) with an `index` route for the team overview and a dynamic `[teamSlug]` route for per-team or global leaderboard screens.
 
 ## State and context boundaries
 
