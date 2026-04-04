@@ -403,7 +403,7 @@
           { "name": "handle", "in": "query", "schema": { "type": "string" } }
         ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "User object or suggestions array" }, "401": { "description": "Unauthorized" } }
+        "responses": { "200": { "description": "User object (includes `claimedRewardsCount` — the number of rewards the user has claimed) or suggestions array" }, "401": { "description": "Unauthorized" } }
       },
       "patch": {
         "tags": ["User"],
