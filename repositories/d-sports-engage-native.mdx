@@ -9,6 +9,7 @@ icon: "smartphone"
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Current version:** `1.16.1`
 
 ## Tech stack
 
@@ -20,6 +21,7 @@ icon: "smartphone"
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
+| Badge assets | Supabase (public `badge-assets` bucket) |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
 | Package    | Bun                       |
@@ -30,11 +32,15 @@ icon: "smartphone"
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Profile** — Achievements, fan details grid, header chips, follow/follower modals, points history
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
 
+- **Profile redesign** — Achievements, fan details grid, header chips, and mobile-responsive layout were ported into the native app. New `components/profile/` directory adds `AchievementChip`, `AchievementsSection`, `ProfileAchievementsModal`, `ProfileFollowersModal`, `ProfileFollowingModal`, and `ProfilePointsHistoryModal`.
+- **Badge and achievement system** — Fan-tier badges (Rookie, Rising Star, All-Star) and role badges (superadmin, admin, dev, staff, moderator) are now supported with rarity tiers (`common`, `rare`, `epic`, `legendary`, `mythic`). Badge artwork loads from Supabase with native disk caching via `CachedBadgeImage`.
+- **Supabase integration** — Two new environment variables (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY`) enable client-side badge-asset fetching from the public `badge-assets` bucket.
+- **EAS Update CI** — A GitHub Actions workflow (`.github/workflows/eas-update.yml`) publishes iOS OTA updates to EAS on push to `master`.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -44,6 +50,7 @@ icon: "smartphone"
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
+- Profile endpoints supply badge metadata (`badgeMetadata`, `levelBadge`) with rarity tiers, icon keys, and display ordering. The client renders server-provided metadata first and falls back to local badge mapping when unavailable.
 - Retry/caching logic and auth token injection are centralized in app API client modules.
 
 ## Quest and pass UX integration
@@ -62,14 +69,34 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+All runtime-accessible variables use the `EXPO_PUBLIC_*` prefix. You need the following keys in your `.env` file:
+
+| Variable | Service |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb (Web3) |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat IAP |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase client URL (badge assets) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase anon/publishable key |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the variables listed above.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. Type-check with `bun tsc --noEmit`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## CI/CD
+
+The repository includes an **EAS Update** GitHub Actions workflow that publishes iOS OTA updates on push to `master`. The workflow uses Bun for dependency installation and requires an `EXPO_TOKEN` secret for EAS CLI authentication.
 
 ## Deep dives
 

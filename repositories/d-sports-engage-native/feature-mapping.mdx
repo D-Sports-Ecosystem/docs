@@ -7,6 +7,15 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Profile and achievements
+
+- Profile screens render achievements, fan details, header chips, and follow/follower lists.
+- Achievement data flows through a normalized model shared by own-profile, public-profile, and the achievements modal.
+- Badge artwork is fetched from Supabase (`badge-assets` bucket) and disk-cached on native. The client uses server-provided `badgeMetadata` and `levelBadge` fields as the primary source and falls back to local badge mapping.
+- Fan level is calculated as `Math.floor(points / 1000) + 1` (minimum 1).
+- Rarity tiers (`common`, `rare`, `epic`, `legendary`, `mythic`) influence visual treatment of achievement cards.
+- Points history and social follow lists are accessible via dedicated profile modals.
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
