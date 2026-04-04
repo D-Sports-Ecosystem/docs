@@ -30,11 +30,14 @@ icon: "smartphone"
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Profile** — User profile, achievements, and settings
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
 
+- **Achievement badges redesigned** — profile achievements now use a shared `ProfileAchievement` model and reusable components (`AchievementCard`, `AchievementChip`, `AchievementsSection`) across own profile, public profile, and the achievements modal.
+- **Fan level badge system added** — a points-based fan level badge (Rookie, Rising, All-Star, Legend, Mythic) is computed client-side and rendered alongside earned badges.
+- **Responsive achievement grid** — achievement cards use adaptive column sizing for mobile and desktop instead of fixed widths.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.

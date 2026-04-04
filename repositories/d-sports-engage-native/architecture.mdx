@@ -23,6 +23,16 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Profile achievements architecture
+
+Profile achievements use a shared data model (`ProfileAchievement` in `lib/profile-achievements.ts`) that normalizes badge and level data into a single structure consumed by all profile surfaces.
+
+- **Shared model** — `buildProfileAchievements()` accepts raw badge strings and optional points, returning a typed array with stable IDs, source metadata, and pre-resolved visual styles.
+- **Fan level badges** — a points-based tier (Rookie → Rising → All-Star → Legend → Mythic) is computed client-side via `getFanLevel()` and rendered alongside earned badges.
+- **Badge style resolution** — `getRewardBadgeStyle()` in `lib/badge-utils.ts` maps badge labels to gradient, icon, and color tokens used by all achievement UI components.
+- **Reusable components** — `components/profile/AchievementCard`, `AchievementChip`, and `AchievementsSection` are shared across own profile, public profile, and the achievements modal.
+- **Responsive grid** — `AchievementsSection` adapts column count (2–4) based on viewport width for consistent rendering on mobile and web.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
