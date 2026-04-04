@@ -35,10 +35,11 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- **Badge rarity registry** — A client-side badge registry (`lib/badge-asset-map.ts`) now overrides the API's default `common` rarity tier with design-accurate tiers (rare, epic, legendary). This avoids depending on the backend to return correct rarity for known badge types.
+- **Badge image fallback** — When the API profile payload omits `badgeImageUrl`, the app resolves artwork URLs locally from Supabase public storage (`lib/badge-image-urls.ts`).
+- **Badge image caching** — Native platforms cache badge artwork to local files via MMKV bookkeeping (`lib/resolve-badge-image-uri.ts`), avoiding redundant downloads.
+- **Supabase client env vars** — `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` are now required for badge image resolution and client-side Supabase features.
+- **EAS OTA CI** — A GitHub Actions workflow (`.github/workflows/eas-update.yml`) publishes over-the-air updates via EAS Update on pushes to `develop` and `main`.
 
 ## Backend integration surfaces
 
@@ -62,10 +63,25 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+All runtime keys use the `EXPO_PUBLIC_` prefix. Set these in your `.env` file:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb Web3 client ID |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (used for badge image resolution) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and configure the variables listed above.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
