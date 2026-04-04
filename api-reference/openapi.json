@@ -513,11 +513,63 @@
     },
     "/api/user/top-users": {
       "get": {
-        "tags": ["User"],
-        "summary": "Top users",
-        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
+        "tags": ["User", "Gamification"],
+        "summary": "Top users by points",
+        "description": "Retrieves the top users ranked by total PointsHistory points. Each user includes points, fan level, follower count, and rank.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of users to return (defaults to 10).",
+            "schema": { "type": "integer", "default": 10 }
+          }
+        ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": {
+            "description": "Top users sorted by total points descending.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "topUsers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string", "nullable": true },
+                              "handle": { "type": "string", "nullable": true },
+                              "profileUrl": { "type": "string", "nullable": true },
+                              "points": { "type": "integer", "description": "Total PointsHistory points." },
+                              "level": { "type": "integer", "description": "Fan level derived from points (floor(points / 1000) + 1)." },
+                              "followerCount": { "type": "integer", "description": "Number of followers." },
+                              "rank": { "type": "integer", "description": "1-based rank in the returned list." },
+                              "stats": {
+                                "type": "object",
+                                "properties": {
+                                  "totalPoints": { "type": "integer" },
+                                  "followerCount": { "type": "integer" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Authentication required." },
+          "500": { "description": "Internal server error." }
+        }
       }
     },
     "/api/user/recommended": {
