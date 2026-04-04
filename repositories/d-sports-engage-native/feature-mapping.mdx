@@ -19,6 +19,13 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Profile and achievements
+
+- Achievement badges are rendered from a shared `ProfileAchievement` model across own profile, public profile, and the achievements modal.
+- Badge data comes from backend user profile payloads; visual styling is resolved client-side via `getRewardBadgeStyle()`.
+- A client-computed fan level badge (based on points thresholds) is included alongside backend-sourced badges.
+- Achievement display adapts responsively between mobile (2 columns) and desktop (up to 4 columns).
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
