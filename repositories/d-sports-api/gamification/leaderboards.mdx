@@ -28,7 +28,8 @@ icon: "medal"
 ## Enrollment and write behavior
 
 - Some flows enroll users on global board paths.
-- `getUserLeaderboards()` currently returns global board IDs only in current implementation.
+- `getUserLeaderboards()` returns the global board ID **and** any team board IDs that match the user's favorite teams (resolved via `resolveUserFavoriteTeamIds`). Points from quest completions propagate to all returned boards.
+- `syncMissingQuestPointsToLeaderboards()` runs on login to reconcile team-board points with the global aggregate via `syncUserGlobalAggregateFromTeamBoards`.
 - Points writes should include board + season scope when context is available.
 
 ## Notes
