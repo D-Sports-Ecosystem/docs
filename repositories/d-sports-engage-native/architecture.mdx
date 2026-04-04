@@ -26,5 +26,16 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+
+## Web platform architecture
+
+The app runs as a web target via Expo's Metro bundler with static output. Key web-specific layers:
+
+- **HTML shell** (`app/+html.tsx`) — configures `<head>` meta tags, PWA manifest link, OneSignal web SDK, accessibility CSS (skip-to-content, `focus-visible`, `prefers-reduced-motion`, `prefers-contrast`), and Vercel Analytics.
+- **Document titles** (`components/web/WebDocumentTitle.tsx`) — a web-only component that sets `document.title` based on the current Expo Router pathname. Title mapping lives in `lib/web/document-title.ts`.
+- **Icon system** (`components/Icon/`) — a unified `Icon` component wrapping `lucide-react-native` with a custom `iconMap` of ~200 named icons. Falls back to `HelpCircle` for unknown names. Works on all platforms.
+- **Hover interactions** (`components/ui/WebHoverWrapper.tsx`) — a `Pressable` wrapper that adds hover opacity/scale on web via `onHoverIn`/`onHoverOut`. No-op on native.
+- **Responsive container** (`components/layout/AppScreen.tsx`) — handles safe-area insets, status bar, and background color per theme. On web, content renders in a centered layout.
+- **Metro resolver** (`metro.config.js`) — custom resolver logic ensures Thirdweb and `@noble/hashes` modules resolve correctly on web by preferring `"browser"` condition names.
+- **Vercel config** (`vercel.json`) — SPA rewrites, image-proxy passthrough to `api.d-sports.org`, and immutable cache headers for `_expo/static/` assets.
