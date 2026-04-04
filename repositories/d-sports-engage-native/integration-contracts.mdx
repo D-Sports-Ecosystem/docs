@@ -8,6 +8,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Native auth uses backend-compatible token/session validation flows.
 - Protected feature calls require authenticated user context and must handle session expiry gracefully.
 
+## Profile and milestone contracts
+
+- `getUser` responses include `claimedRewardsCount` — a numeric count of claimed rewards used by the client to determine the milestone avatar ring tier.
+- Profile payloads may include `badgeMetadata` and `levelBadge` fields with badge IDs, rarity tiers, icon keys, and display order. The client falls back to local badge mapping when server metadata is unavailable.
+- Milestone tier thresholds are defined in shared `REWARD_MILESTONES` data; backend and client must stay aligned on threshold values.
+
 ## Quest and reward API contracts
 
 - Quest progression is backend-authoritative for eligibility and completion.
@@ -18,6 +24,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Team lists and team metadata come from `/api/teams`.
 - League metadata and branding come from `/api/leagues`.
+- Per-team leaderboard queries use `teamId` (not `leaderboardId`) so the canonical board is always returned.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
 ## Error handling and fallback UX
