@@ -19,6 +19,13 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Badge and achievement display
+
+- Profile achievements use a client-side rarity registry (`lib/badge-asset-map.ts`) instead of relying on the API's rarity field, which defaults to `common` for most rows.
+- Badge artwork resolves from Supabase public storage when the API payload omits `badgeImageUrl`.
+- Seven known badge types are registered: `rookie-fan`, `digital-badge`, `merchandise`, `rep-boost`, `mvp-starter`, `rep-vault`, and `mvp-elite`.
+- Rarity visual styles (colors, gradients, borders) are computed from `lib/badge-utils.ts` based on the registry tier.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
