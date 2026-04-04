@@ -800,6 +800,57 @@
         "responses": { "200": { "description": "{ reward, success }" } }
       }
     },
+    "/api/rewards/admin-override": {
+      "post": {
+        "tags": ["Rewards"],
+        "summary": "Force-claim reward (superadmin)",
+        "description": "Force-claims a reward for the authenticated superadmin, bypassing normal point requirements. Creates or updates the UserReward record.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardId"],
+                "properties": { "rewardId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message, reward: { id, title, isClaimed, isRedeemed } }" },
+          "400": { "description": "rewardId required" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden: superadmin only" },
+          "404": { "description": "Reward not found or inactive" }
+        }
+      },
+      "delete": {
+        "tags": ["Rewards"],
+        "summary": "Remove reward claim (superadmin)",
+        "description": "Removes a previously claimed reward for the authenticated superadmin.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardId"],
+                "properties": { "rewardId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message }" },
+          "400": { "description": "rewardId required" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden: superadmin only" }
+        }
+      }
+    },
     "/api/wallets": {
       "get": {
         "tags": ["Wallets", "Wallet and web3"],
