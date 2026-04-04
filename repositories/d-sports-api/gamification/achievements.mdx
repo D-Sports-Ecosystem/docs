@@ -1,6 +1,6 @@
 ---
 title: "Achievements"
-description: "Current achievement behavior and limitations in d-sports-api."
+description: "Achievement behavior, badge metadata, and badge image URLs in d-sports-api."
 icon: "badge-check"
 ---
 
@@ -13,13 +13,53 @@ Documented behavior includes:
 - Achievement order persistence/update via server action.
 - Static helper usage for specific achievement checks in utility code.
 
+## Badge metadata
+
+User profile responses from `GET /api/user` and `GET /api/user/profile` include a `badgeMetadata` array. Each item describes a badge earned through achievements, rewards, or fan-level progression.
+
+### Badge metadata fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique badge identifier (e.g., `fan-level-3`, achievement ID, or reward badge ID). |
+| `label` | `string` | Human-readable display label. |
+| `sourceType` | `"achievement" \| "reward" \| "level"` | Origin of the badge. |
+| `iconKey` | `string` | Icon identifier for client rendering. |
+| `rarityTier` | `"common" \| "rare" \| "epic" \| "legendary" \| "mythic"` | Visual rarity tier. |
+| `displayOrder` | `number` | Sort priority (lower values display first). |
+| `variant` | `"default" \| "secondary" \| "outline" \| "destructive" \| "verified" \| "count"` | Visual variant for badge styling. |
+| `earnedAt` | `Date?` | When the badge was earned (omitted for level badges). |
+| `isLevelBadge` | `boolean?` | `true` for the fan-level badge. |
+| `badgeImageUrl` | `string?` | HTTPS URL to badge artwork in Supabase Storage (`badge-assets` bucket). |
+
+### Badge image URLs
+
+The `badgeImageUrl` field provides a stable public URL to badge artwork stored in the Supabase `badge-assets` storage bucket. The API resolves artwork URLs using the badge `id` and `label` fields to match against known asset keys.
+
+**Available badge assets:**
+
+| Asset key | Filename | Matched when |
+|-----------|----------|--------------|
+| `rookie-fan` | `rookie-fan-badge.png` | ID contains `fan-level` or `level-`, or label contains "rookie fan". |
+| `digital-badge` | `digital-badge.png` | Label or ID contains "digital badge". |
+| `merchandise` | `merchandise-badge.png` | Label contains "merchandise" or "10%". |
+| `rep-boost` | `rep-boost-badge.png` | Label contains "rep boost". |
+| `mvp-starter` | `mvp-starter-badge.png` | Label contains "mvp starter". |
+| `rep-vault` | `rep-vault-badge.png` | Label contains "rep vault". |
+| `mvp-elite` | `mvp-bundle-badge.png` | Label contains "mvp elite" or "elite bundle". |
+
+<Note>
+  `badgeImageUrl` is `undefined` when no matching artwork exists or when the `NEXT_PUBLIC_SUPABASE_URL` environment variable is not configured. Clients should fall back to the `iconKey` for rendering when the URL is absent.
+</Note>
+
 ## What this means for integrators
 
-- Treat achievements as profile-associated metadata and ordering behavior today.
+- Badge metadata is returned as part of user profile responses — you do not need a separate API call.
+- Use `badgeImageUrl` when available for richer badge rendering; fall back to `iconKey` otherwise.
+- Badges are sorted by `displayOrder` then alphabetically by `label`.
 - Do not assume a full standalone achievement API surface exists yet.
 
 ## Planned expansion areas (documentation placeholders)
 
 - Achievement award triggers by gameplay event type.
 - Achievement API surface (if introduced).
-- Badge rendering and client consumption contracts.
