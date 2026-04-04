@@ -27,6 +27,7 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Games", "description": "Interactive games: daily spin, guess the player, pick-em" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -1088,6 +1089,124 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a daily wheel-spin result (coin or weekly-set bonus). Capped at 5 coin awards per day. Weekly-set bonus is idempotent per user per week. Creates a PointsHistory ledger row, upserts the team leaderboard entry when applicable, then syncs the global aggregate.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"], "description": "Type of spin reward." },
+                  "weekStartDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Required for weekly_set rewards. ISO date of the week start." },
+                  "landedSegmentId": { "type": "string", "description": "Optional client-side segment identifier for analytics." },
+                  "teamId": { "type": "string", "description": "Optional team context for leaderboard resolution." },
+                  "leaderboardId": { "type": "integer", "description": "Optional explicit team leaderboard ID." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ pointsAwarded, rewardType, alreadyAwarded, leaderboardUpdates }" },
+          "400": { "description": "Validation error (missing weekStartDate for weekly_set, etc.)" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal error" }
+        }
+      }
+    },
+    "/api/games/guess-player/session/start": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Start guess-the-player session",
+        "description": "Creates a new Guess the Player game session for the authenticated user. Superadmins receive the answer in the response for debugging.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Session data with clues and session ID" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal error" }
+        }
+      }
+    },
+    "/api/games/guess-player/session/guess": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Submit guess-the-player guess",
+        "description": "Submits a guess for an active Guess the Player session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sessionId", "guess"],
+                "properties": {
+                  "sessionId": { "type": "string", "description": "Active session ID." },
+                  "guess": { "type": "string", "description": "Player name guess." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Guess result (correct/incorrect, hints)" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Authentication required" },
+          "404": { "description": "Session not found" },
+          "500": { "description": "Internal error" }
+        }
+      }
+    },
+    "/api/games/guess-player/session/invalidate": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Invalidate guess-the-player session",
+        "description": "Marks an active Guess the Player session as invalid (e.g. user gave up or timed out).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sessionId", "reason"],
+                "properties": {
+                  "sessionId": { "type": "string", "description": "Session to invalidate." },
+                  "reason": { "type": "string", "maxLength": 80, "description": "Reason for invalidation (e.g. 'gave_up', 'timeout')." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Invalidation result" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Authentication required" },
+          "404": { "description": "Session not found" },
+          "500": { "description": "Internal error" }
+        }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Get pick-em players",
+        "description": "Returns the list of players available for the Pick 'Em game, merged from JSON seed data and the database.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ players: [{ id, name, team, pos, tier, goals, img }] }" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal error" }
+        }
       }
     }
   },
