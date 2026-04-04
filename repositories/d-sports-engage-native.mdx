@@ -29,12 +29,19 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, Top Fans leaderboard, and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
 
+**v1.16.2**
+- **Top Fans leaderboard** now uses real API data: `points`, `level`, `fans` (follower count), and `rank` replace the previous `xp`-based placeholders.
+- `profileUrl` is the preferred avatar field on `TopUser`; `avatar` is deprecated.
+- Web carousels for Top Fans and Top Teams gained mouse-drag scrolling and dot-based page navigation.
+- Report-and-hide UX now shows a success toast before the hide prompt, with a configurable toast duration constant.
+
+**Previous**
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
