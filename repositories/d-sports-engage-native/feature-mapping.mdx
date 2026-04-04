@@ -19,6 +19,13 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Locker room and content moderation
+
+- After reporting a post, comment, or profile, you are prompted to hide the content from your view.
+- Hidden UGC state is stored locally on the device using MMKV (`user_hidden_ugc_v1` key) and takes effect immediately — no server round-trip required.
+- The `useHiddenUgc` hook exposes `isPostHidden`, `isCommentHidden`, and `isProfileHidden` checkers that components use to filter feed items.
+- Hiding is scoped to the reporting user only; other users continue to see the content until backend moderation resolves the report.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
