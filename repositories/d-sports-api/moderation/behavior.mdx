@@ -20,6 +20,18 @@ icon: "list-checks"
 - Reports become inputs to internal review/escalation systems.
 - Social and user features may generate reportable targets that feed these routes.
 
+## Client-side UGC hiding (native app)
+
+After a report is successfully submitted, the native app (`d-sports-engage-native`) prompts the reporting user to hide the targeted content locally. This is a client-only convenience — hidden IDs are stored on-device in MMKV and do not affect what other users see. Backend moderation still controls visibility for all other users.
+
+Supported hide targets:
+
+- **Posts** — hidden by post ID
+- **Comments** — hidden by `postId:commentId` composite key
+- **Profiles** — hidden by user ID
+
+See [Native architecture — client-side UGC hiding](/repositories/d-sports-engage-native/architecture#client-side-ugc-hiding) for implementation details.
+
 ## Known caveats
 
 - Final resolution and enforcement state is not exposed as a full non-admin workflow in current docs scope.
