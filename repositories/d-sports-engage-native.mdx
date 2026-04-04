@@ -35,6 +35,12 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+_Current version: **1.16.4**_
+
+- **Achievement detail modal** — tapping any achievement badge on your profile (grid cards, header chips, or the "View all" list) opens a modal with a larger badge image, full title and description, rarity styling, and earned date.
+- **Remote badge artwork** — profile badge images are fetched from a Supabase `badge-assets` bucket and cached to disk on native via `CachedBadgeImage`; bundled PNGs are no longer required in the app binary.
+- **Clerk email/password login** — the login screen supports Clerk Core 3 email + password with OTP verification for new users and optional two-factor authentication (authenticator app, SMS, or backup code).
+- **EAS Update CI/CD** — a GitHub Actions workflow (`eas-update.yml`) publishes OTA updates to the `develop` and `main` branches on push.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
