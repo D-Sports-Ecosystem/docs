@@ -19,6 +19,18 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Profile badge system
+
+- A badge registry in `lib/badge-asset-map.ts` maps each achievement to display metadata (description, accent color, glow color, rarity tier).
+- Supported badge asset keys: `rookie-fan`, `digital-badge`, `exclusive-digital-content`, `merchandise`, `rep-boost`, `mvp-starter`, `rep-vault`, `mvp-elite`.
+- Badge artwork is served from Supabase public storage (`badge-assets` bucket). When the API response omits `badgeImageUrl`, the client resolves artwork via `getPublicBadgeImageUrl` using the achievement ID and label.
+- On native platforms, resolved badge images are cached locally using MMKV and `expo-file-system` to avoid redundant downloads. On web, `expo-image` prefetch is used instead.
+- A local fallback asset is bundled for the `exclusive-digital-content` badge for dev and offline use.
+
+## Public profile navigation
+
+- Viewing another user's profile at `/profile/[handle]` no longer activates the Profile tab pill, preventing incorrect tab highlighting when navigating from other tabs.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
