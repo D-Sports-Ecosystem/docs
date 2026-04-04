@@ -33,12 +33,15 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
-## What changed since last docs sync
+## What changed since last docs sync (v1.17.1)
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- **Per-team leaderboard routes** — `/leaderboard/[teamSlug]` and `/leaderboard/global` stack routes load boards by `teamId` so they match quest and sync data.
+- **MMKV cache fix** — Team detail "Top fans" and full leaderboard no longer share one cache shape; opening a modal before the full screen no longer shows an empty board.
+- **Official team label** — Fallback label "Official" when `isOfficial` is true and league is null.
+- **Locker room game routes** — Prize Wheel and Guess the Player open as dedicated stack routes (`/locker-room/wheel-spin`, `/locker-room/player-guess`) instead of nested modals.
+- **Points history** — Profile surfaces consume the `GET /api/user/points-history` endpoint so game awards appear alongside quest completions.
+- **Quest cache** — Quest list uses TTL-based MMKV cache, refetches on tab focus, and invalidates after quest start or reward claim.
+- **EAS OTA workflow** — A GitHub Actions workflow (`eas-update.yml`) publishes over-the-air updates to the `develop` and `main` branches on push.
 
 ## Backend integration surfaces
 
@@ -62,12 +65,28 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+The app reads `EXPO_PUBLIC_*` keys at runtime. Create a `.env` file in the repo root with:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication (live instance) |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (badge asset storage) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Copy `.env.example` to `.env` and fill in the values above (or use the committed `.env` for development defaults).
+3. Run `bunx expo start` — press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For OTA updates: `bun run update` (uses EAS Update).
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 

@@ -18,6 +18,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Team lists and team metadata come from `/api/teams`.
 - League metadata and branding come from `/api/leagues`.
+- **Leaderboard query** — `GET /api/leaderboard` accepts both `teamId` and `leaderboardId`; `teamId` takes precedence so the canonical per-team board is returned.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
 ## Error handling and fallback UX

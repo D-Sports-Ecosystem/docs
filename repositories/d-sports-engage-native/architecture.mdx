@@ -7,9 +7,11 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- **Routing:** `app/*` with grouped routes for tabs, auth, onboarding, and settings.
+- **Leaderboard routes:** `/leaderboard/[teamSlug]` and `/leaderboard/global` are stack routes that load boards by `teamId`.
+- **Locker room game routes:** `/locker-room/wheel-spin` and `/locker-room/player-guess` are dedicated stack routes (not nested modals).
+- **Feature logic:** extracted hooks for wallet, shop, locker room, and settings (e.g. `use-wallet-screen.ts`, `use-shop-screen.ts`).
+- **Shared contexts:** user, collectibles, accessibility, and UI visibility/state controls.
 
 ## State and context boundaries
 
@@ -28,3 +30,10 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- Android uses `softwareKeyboardLayoutMode: resize` for keyboard-aware layouts.
+
+## Deployment and OTA updates
+
+- **EAS Build** profiles: `development` (simulator/internal), `preview` (APK/internal), `staging`, and `production` (auto-increment).
+- **EAS Update (OTA)** — A GitHub Actions workflow (`eas-update.yml`) publishes over-the-air updates on push to `develop` or `main`. Run manually with `bun run update`.
+- **Runtime version** is pinned in `app.json` (`runtimeVersion`) and bumped with each release to control OTA compatibility.
