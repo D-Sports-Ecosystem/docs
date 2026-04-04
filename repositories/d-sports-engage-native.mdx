@@ -35,6 +35,8 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- **v1.17.1** — Per-team leaderboard stack routes (`/leaderboard/[teamSlug]`) resolve boards by `teamId` so rankings match the server. MMKV cache shape was fixed so opening a team detail modal before the full leaderboard no longer shows an empty list. Teams without league data (e.g. House of Doge) display an "Official" label instead of a generic fallback.
+- **v1.17.0** — Prize Wheel and Guess the Player open as dedicated stack routes from Locker Room. Points history includes game awards. Quest list refreshes on tab focus. Followed teams sort first in Explore Teams. Profile follow count syncs after follow/unfollow. Leaderboard modal closes before navigating to a user profile.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -44,6 +46,7 @@ icon: "smartphone"
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
+- `GET /api/leaderboard` now accepts `teamId` as the preferred query param; `leaderboardId` is still supported but `teamId` takes precedence so the canonical per-team board is always returned.
 - Retry/caching logic and auth token injection are centralized in app API client modules.
 
 ## Quest and pass UX integration

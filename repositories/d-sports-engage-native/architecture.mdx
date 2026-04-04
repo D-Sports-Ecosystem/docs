@@ -8,6 +8,8 @@ description: "Architecture overview for d-sports-engage-native application layer
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
 - Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
+- Leaderboard uses stack routes (`/leaderboard/[teamSlug]`) so each team has a dedicated screen that resolves the board by team id.
+- Locker room games (Prize Wheel, Guess the Player) open as dedicated stack routes (`/locker-room/wheel-spin`, `/locker-room/player-guess`) instead of nested modals.
 - Feature logic: extracted hooks for wallet, shop, locker room, and settings.
 - Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
 
