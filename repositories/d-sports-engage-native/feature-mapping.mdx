@@ -19,6 +19,20 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Profile achievements
+
+- Achievement badges render on own-profile, public-profile, and full achievements modal surfaces using a shared normalized model.
+- Tapping a badge opens `AchievementDetailModal` with a larger image, full title, description, rarity styling, and earned date.
+- Badge artwork loads from the Supabase `badge-assets` bucket via `CachedBadgeImage`; the client falls back to `resolveBadgeImageUri` when the API does not provide a `badgeImageUrl`.
+- Fan-level subtitle dynamically displays the user's actual fan level instead of a hardcoded value.
+
+## Authentication
+
+- Login uses Clerk Core 3 email + password flow with OTP email verification for new users.
+- Two-factor authentication is supported (authenticator app, SMS, or backup code).
+- OAuth via Apple and Google is unchanged.
+- The `/sign-up` route redirects to `/login` for a single entry point.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
