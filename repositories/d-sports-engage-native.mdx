@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, current version: **1.16.4**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -15,42 +15,70 @@ icon: "smartphone"
 | Category   | Technology                |
 | ---------- | ------------------------- |
 | Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Auth       | Clerk (Expo) v2.19        |
+| Payments   | RevenueCat (react-native-purchases) v9.10 |
+| Web3       | Thirdweb v5.118           |
+| State      | Zustand v5.0              |
+| Storage    | MMKV v4.1                 |
+| UI         | Lucide React Native v0.562 |
+| Navigation | Expo Router v6.0          |
+| Animations | React Native Reanimated v4.1 |
+| Package    | Bun v1.3.9                |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Wallet** — Tokens, holdings, pack opening, send/receive, crypto checkout (via PWA backend)
+- **Shop** — Collectibles, cart, coin bundles, crypto and fiat checkout
+- **Leaderboard** — Rankings, filters, and team-scoped views
+- **Locker room** — Social feed, quests, daily games (Pick 'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, achievements, badges, follower/following, and settings
 - **Theme** — Dark/light mode (default dark)
 
-## What changed since last docs sync
+## Environment variables
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+The app reads environment variables prefixed with `EXPO_PUBLIC_*` at runtime. Create a `.env` file at the repo root with the following keys:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (badge assets, client features) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+<Warning>
+  Only `EXPO_PUBLIC_*` keys are accessible at runtime. Never commit secret keys — the `.env` file is gitignored for local overrides (`.env*.local`).
+</Warning>
 
 ## Backend integration surfaces
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
+- Retry/caching logic and auth token injection are centralized in `lib/api/client.ts` with MMKV cache fallback via `lib/api/cache.ts`.
+
+## EAS builds and OTA updates
+
+The repo uses **Expo Application Services (EAS)** for native builds and over-the-air updates.
+
+| Command | Description |
+| ------- | ----------- |
+| `bun run build:dev` | Development build (all platforms) |
+| `bun run build:dev:ios` | Development build (iOS only) |
+| `bun run build:preview` | Preview/TestFlight build |
+| `bun run build:prod` | Production build |
+| `bun run update` | Push an OTA update via EAS Update |
+| `bun run submit:ios` | Submit to App Store |
+
+A GitHub Actions workflow (`.github/workflows/eas-update.yml`) automatically publishes OTA updates on push to `develop` or `main` branches.
 
 ## Quest and pass UX integration
 
-- Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
+- Quest UI reflects team-scoped eligibility and pass-gated progression where applicable.
 - Reward presentation differentiates free/unpaid states and claimability.
-- Native progression state is expected to mirror backend eligibility and completion semantics.
+- Native progression state mirrors backend eligibility and completion semantics.
 
 ## Team-aware experiences
 
@@ -65,9 +93,11 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` (or create `.env`) with the variables listed above.
 3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+4. Press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+5. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+6. Run `bun tsc --noEmit` to check types.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
