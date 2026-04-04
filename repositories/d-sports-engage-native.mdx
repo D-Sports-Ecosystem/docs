@@ -26,6 +26,7 @@ icon: "smartphone"
 
 ## Features
 
+- **Auth** — Email/password and OAuth (Apple, Google) login on a single screen; OTP verification for new accounts
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
@@ -35,6 +36,9 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- **Authentication consolidated on `/login`** — the login screen now supports email/password sign-in (and sign-up) alongside OAuth (Apple / Google). The separate `/sign-up` route redirects to `/login`.
+- A new `useEmailPasswordAuth` hook handles the combined sign-in-or-up flow using Clerk Core 3 internal future APIs, with OTP email verification for new accounts.
+- Help Center FAQ updated to reflect the new email/password auth flow.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
