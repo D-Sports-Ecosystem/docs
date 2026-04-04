@@ -20,6 +20,23 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Notification contracts
+
+The native app consumes in-app and push notifications from the backend. Each notification carries a `type` that determines rendering and deep-link behavior in the notification center.
+
+Supported notification types:
+
+| Type | Trigger |
+| ---- | ------- |
+| `DAILY_QUEST_REACTIVATED` | A daily quest resets and becomes available again |
+| `SYSTEM_ANNOUNCEMENT` | Platform-wide announcements from admins |
+| `SOCIAL_MENTION` | Another user mentions you in a locker room post |
+| `SOCIAL_FOLLOW` | Another user follows you |
+| `SOCIAL_COMMENT` | Another user comments on your locker room post |
+| `MODERATION_REPORT_UPDATE` | Status change on a moderation report you filed |
+
+Notifications are delivered over `IN_APP` or `PUSH_AND_IN_APP` channels. The client fetches notifications via `GET /api/user/notifications` with optional `status` filter (`UNREAD`, `READ`, `ARCHIVED`) and supports mark-read, mark-all-read, and archive actions.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
