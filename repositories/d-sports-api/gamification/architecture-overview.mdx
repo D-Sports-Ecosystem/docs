@@ -23,6 +23,18 @@ Gamification in `d-sports-api` is primarily implemented in:
 - `Leaderboard` and `LeaderboardEntry`: board membership and denormalized board points.
 - `LeaderboardSeason`: season lifecycle metadata.
 - `Reward` and `UserReward`: reward catalog and user claim state.
+- `Achievement`: profile-associated achievement records with badge metadata.
+- `FanLevelBadgeDefinition`: configurable fan-level badge tiers (level thresholds, icons, rarity).
+
+### Badge metadata assembly
+
+The `getUser` server action assembles a unified `badgeMetadata` array on the user profile by combining badges from three sources:
+
+1. **Achievements** (`sourceType: "achievement"`) — earned achievement badges.
+2. **Rewards** (`sourceType: "reward"`) — claimed reward badges.
+3. **Fan level** (`sourceType: "level"`) — a single computed badge based on the user's fan level (derived from total trophies).
+
+Fan-level badge definitions are loaded from `FanLevelBadgeDefinition` records at runtime, with a hardcoded fallback if the database table is empty or unavailable. The `BadgeVariant` enum (`DEFAULT`, `SECONDARY`, `OUTLINE`, `DESTRUCTIVE`, `VERIFIED`, `COUNT`) controls visual presentation across all badge sources.
 
 ## Quest assignment domains
 
@@ -41,6 +53,7 @@ Gamification in `d-sports-api` is primarily implemented in:
 - Reward outcomes include **free rewards** and **unpaid rewards** semantics.
 - Claim/redeem writes are validated against eligibility, status, and prior claims.
 - Reward effects propagate into user-visible quest/reward surfaces through API contracts.
+- Claimed rewards contribute badge metadata to the user profile response.
 
 ## Cross-feature flow
 

@@ -1,6 +1,6 @@
 ---
 title: "Achievements"
-description: "Current achievement behavior and limitations in d-sports-api."
+description: "Achievement behavior, badge metadata, and rendering contracts in d-sports-api."
 icon: "badge-check"
 ---
 
@@ -13,13 +13,48 @@ Documented behavior includes:
 - Achievement order persistence/update via server action.
 - Static helper usage for specific achievement checks in utility code.
 
+## Data model
+
+Each `Achievement` record includes badge presentation fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique achievement identifier. |
+| `badgeId` | `string?` | Optional external badge identifier for cross-referencing. |
+| `name` | `string` | Display label. |
+| `iconKey` | `string` | Icon identifier for client rendering (defaults to `"trophy"`). |
+| `rarityTier` | `Rarity` | One of `COMMON`, `RARE`, `EPIC`, `LEGENDARY`, `MYTHIC`. Defaults to `COMMON`. |
+| `displayOrder` | `int` | Sort priority (lower values appear first). Defaults to `100`. |
+| `variant` | `BadgeVariant` | Visual variant: `DEFAULT`, `SECONDARY`, `OUTLINE`, `DESTRUCTIVE`, `VERIFIED`, or `COUNT`. |
+| `unlockedAt` | `DateTime` | Timestamp when the achievement was earned. |
+
+## Badge metadata contract
+
+When you fetch a user profile via `getUser`, each achievement is normalized into a `BadgeMetadataItem` and included in the `badgeMetadata` array on the response. The normalized shape is:
+
+```typescript
+{
+  id: string;          // badgeId ?? achievement.id
+  label: string;       // achievement name
+  sourceType: "achievement";
+  iconKey: string;
+  rarityTier: "common" | "rare" | "epic" | "legendary" | "mythic";
+  displayOrder: number;
+  variant: "default" | "secondary" | "outline" | "destructive" | "verified" | "count";
+  earnedAt?: Date;     // maps from unlockedAt
+}
+```
+
+Badge metadata items are sorted by `displayOrder` ascending, then `label` alphabetically.
+
 ## What this means for integrators
 
-- Treat achievements as profile-associated metadata and ordering behavior today.
-- Do not assume a full standalone achievement API surface exists yet.
+- Achievement badge metadata is delivered as part of the user profile — no separate API call is needed.
+- Use `iconKey` and `variant` to render badge visuals client-side.
+- Use `rarityTier` for visual differentiation (glow, border color, etc.).
+- Sort order is server-authoritative via `displayOrder`.
 
-## Planned expansion areas (documentation placeholders)
+## Planned expansion areas
 
 - Achievement award triggers by gameplay event type.
 - Achievement API surface (if introduced).
-- Badge rendering and client consumption contracts.
