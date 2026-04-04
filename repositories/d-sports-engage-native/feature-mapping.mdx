@@ -7,20 +7,49 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
-## Wallet and pack opening
+## Wallet
 
-- Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
-- Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
-- Odds-disclosure surfaces read backend-provided probability payloads.
+- **Tokens and holdings** — Fetches balances and token metadata from `wallet-api`. Displays token details with brand color mapping (`lib/token-utils.ts`).
+- **Pack opening** — Full pack-open flow with animated reveal (`PackOpeningModal`), inventory refresh, and status tracking.
+- **Crypto checkout** — Thirdweb SDK signs on-chain transactions (Arbitrum, Ethereum, Polygon) and calls the PWA backend at `POST /api/checkout/crypto` + `POST /api/checkout/crypto/verify`.
+- **Fiat checkout** — RevenueCat handles Apple IAP (iOS), Google Play (Android), and Stripe (web).
 
-## Quest, rewards, and pass surfaces
+## Shop
 
-- Quest UI supports team-aware progression and pass-gated eligibility.
-- Reward states and claim flows follow backend quest/reward APIs.
-- Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- **Collectibles** — Grid of collectible cards with rarity-based styling (`lib/rarity-utils.ts`). Detail modals include 3D GLB viewers (Filament on native, Three.js on web).
+- **Cart** — Multi-item cart with coin bundles and collectible items managed in the Zustand store.
+- **Coin bundles** — In-app purchase bundles via RevenueCat with a dedicated `CoinBundleModal`.
 
-## Team and leaderboard integration
+## Locker room
 
-- Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
-- Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- **Social feed** — Post creation, reactions, comments, and UGC moderation (hide/report). Logic in `hooks/use-feed-section.ts`.
+- **Daily games** — Pick 'Em, Spin Wheel, and Guess the Player with dedicated game components.
+- **Quests** — Team-scoped quest progression, pass-gated eligibility, and reward claim flows. Quest detail modals show completion criteria and rewards.
+- **Explore** — Browse fans and teams with search and follow interactions.
+
+## Leaderboard
+
+- **Global and team-scoped** rankings with configurable filters.
+- `BaseLeaderboard` component handles pagination, styling, and modal expansion.
+
+## Profile
+
+- **User profile** — Avatar, bio, badges, achievements, points history, followers/following.
+- **Achievements** — Badge images cached via `CachedBadgeImage`, resolved through `lib/resolve-badge-image-uri.ts`.
+- **Other user profiles** — `app/profile/[handle].tsx` for viewing other users.
+
+## Settings
+
+- **Account** — Connected accounts, security, blocked users, account deletion.
+- **Appearance** — Theme toggle (dark/light).
+- **Accessibility** — Font size, motion reduction, screen reader optimizations. Synced via `AccessibilitySettingsSync` component.
+- **Notifications** — Push notification preferences (OneSignal).
+- **Support** — Contact support, report a problem, help center.
+- **Legal** — EULA, privacy policy, terms of service (`constants/eula.ts`, `constants/privacy-policy.ts`, `constants/terms-of-service.ts`).
+- **Changelog** — In-app changelog rendered from `constants/changelog-data.ts`.
+
+## Team-aware experiences
+
+- Team discovery, favorite-team interactions, and team detail modals are integrated across locker room and profile surfaces.
+- Team and league metadata is sourced from backend sync pipelines fed by the `leagues` repository.
+- `ExploreTeams` component provides search, filtering, and team follow interactions.

@@ -3,25 +3,66 @@ title: "Integration contracts"
 description: "Backend-facing contracts and behavior expectations for native client integrations."
 ---
 
+## API client overview
+
+All backend calls go through `lib/api/client.ts` which creates a typed HTTP client. The `useApi()` hook in `lib/api/index.ts` exposes domain-specific modules:
+
+| Module | File | Key endpoints |
+| ------ | ---- | ------------- |
+| `api.user` | `user-api.ts` | Profile CRUD, follow/unfollow, block, delete account |
+| `api.wallet` | `wallet-api.ts` | Balances, tokens, holdings, transaction history |
+| `api.shop` | `shop-api.ts` | Products, featured packs, collectibles listing |
+| `api.checkout` | `checkout-api.ts` | `POST /api/checkout/crypto`, `POST /api/checkout/crypto/verify` |
+| `api.quests` | `quests-api.ts` | Quest list, progress, claim, daily visit |
+| `api.leaderboard` | `leaderboard-api.ts` | Rankings, team-scoped leaderboards |
+| `api.lockerRoom` | `locker-room-api.ts` | Posts, comments, reactions, feed |
+| `api.teams` | `teams-api.ts` | Team list, team detail, favorites |
+| `api.collectibles` | `collectibles-api.ts` | Owned packs, items, opened packs |
+| `api.games` | `games-api.ts` | Daily Pick 'Em, Spin Wheel, Guess the Player |
+
 ## Auth/session contracts
 
-- Native auth uses backend-compatible token/session validation flows.
-- Protected feature calls require authenticated user context and must handle session expiry gracefully.
+- Authentication is handled by **Clerk** (`@clerk/clerk-expo`). The `UserContext` provides `getToken()` which returns a Clerk JWT.
+- The API client attaches `Authorization: Bearer <token>` to every authenticated request.
+- If no token is available and `requiresAuth` is `true` (the default), the request is blocked and returns `{ success: false, error: "Authentication required" }`.
+- Unauthenticated endpoints (e.g. public team data) must pass `requiresAuth: false`.
+
+## Response envelope contract
+
+The client expects every API response to conform to:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string; // machine-readable error code
+}
+```
+
+Responses missing a top-level `success` field are treated as `INVALID_RESPONSE_ENVELOPE` errors.
 
 ## Quest and reward API contracts
 
 - Quest progression is backend-authoritative for eligibility and completion.
-- Reward claim/redeem behavior must use server responses as truth for user-facing state.
+- Reward claim/redeem behavior uses server responses as the source of truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
+- The error code `QUEST_DAILY_VISIT_NOT_ELIGIBLE` is treated as an expected business rule (logged at `info`, not `error`).
 
 ## Team and league API contracts
 
 - Team lists and team metadata come from `/api/teams`.
 - League metadata and branding come from `/api/leagues`.
-- Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
+- Synced canonical data changes can propagate asynchronously; the client tolerates short-lived staleness via `fetchWithCache()` in `lib/api/cache.ts`.
+
+## Checkout contracts
+
+- **Fiat:** RevenueCat manages Apple IAP, Google Play, and Stripe subscriptions/purchases. The `RevenueCatProvider` in `lib/revenuecat/provider.tsx` wraps the app.
+- **Crypto:** The `CryptoCheckoutModal` uses Thirdweb to sign a transaction, then calls `POST /api/checkout/crypto` with the payment details. It polls `POST /api/checkout/crypto/verify` until confirmation or timeout. Supported chains: Arbitrum (default), Ethereum, Polygon.
 
 ## Error handling and fallback UX
 
-- Show user-actionable errors for purchase/open/claim failures.
-- Avoid silent failures for mutation endpoints.
-- Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
+- The client retries transient 5xx errors (including Prisma `P2024` pool timeouts) up to 3 times with exponential backoff (250 ms × 2^attempt).
+- Authorization (401) and validation (4xx) errors are **not** retried.
+- Mutation failures (purchase, pack open, claim) surface user-actionable error messages via toast notifications (`lib/toast.ts`).
+- Silent failures on mutation endpoints are avoided — all errors are surfaced in UI.

@@ -3,28 +3,98 @@ title: "Native architecture"
 description: "Architecture overview for d-sports-engage-native application layers and platform behavior."
 ---
 
-## App architecture
+## Project structure
 
-The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
+```text
+app/
+├── (auth)/              # Login, signup, reset-password, SSO callback
+├── (onboarding)/        # New-user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker-room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+└── _layout.tsx          # Root layout — provider hierarchy and auth protection
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+components/
+├── wallet/              # 9 wallet sub-components (TokenRow, PackOpeningModal, etc.)
+├── shop/                # 7 shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Feed, quests, games, team explore, fan explore
+├── leaderboard/         # Base leaderboard and modal
+├── profile/             # Achievements, badges, follow lists
+├── settings/            # Settings items, sections, modals, tab panels
+├── layout/              # AppScreen wrapper (responsive web max-width)
+├── ui/                  # Reusable primitives (Button, TextField, TutorialOverlay, etc.)
+├── Icon/                # Icon wrapper using lucide-react-native
+└── theme-provider.tsx   # Theme context (dark/light)
 
-## State and context boundaries
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+├── use-feed-section.ts  # Locker-room feed logic
+└── use-user-settings.ts # Settings state and handlers
 
-- Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+lib/api/                 # Domain API modules (see Integration contracts)
+context/                 # React context providers (user, collectibles, accessibility, navbar)
+services/                # Zustand store, MMKV storage adapter, core types
+theme/                   # Brand colors, spacing, typography tokens
+types/                   # Shared TypeScript types
+constants/               # Shared constants (wallet tokens, shop bundles, changelog)
+```
+
+## Routing
+
+The app uses **Expo Router 6** with file-based routing and typed routes (`experiments.typedRoutes: true`).
+
+- **`(tabs)/`** — Main bottom-tab navigation: wallet, shop, leaderboard, locker-room, profile.
+- **`(auth)/`** — Login, sign-up, continue-sign-up, reset-password, SSO callback.
+- **`(onboarding)/`** — New-user flow shown before first tab access.
+- **`settings/`** — Nested settings pages (account, appearance, accessibility, notifications, legal, support, changelog).
+- **`_layout.tsx`** — Root layout wraps the app in Clerk, RevenueCat, Sentry, user context, collectibles context, and accessibility context providers. Auth state redirects happen here.
+
+## Screen pattern
+
+Screen files in `app/(tabs)/` contain **only JSX**. All state, effects, and handlers live in dedicated hooks:
+
+- `hooks/use-wallet-screen.ts` — 30+ `useState` calls, wallet/token fetch effects, PIN verification, transaction handlers.
+- `hooks/use-shop-screen.ts` — Cart state, coin cart, product queries, carousel auto-scroll, checkout logic.
+- `hooks/use-feed-section.ts` — Locker-room feed loading, pagination, and interactions.
+
+Sub-components are extracted into `components/wallet/`, `components/shop/`, etc. with barrel exports via `index.ts`.
+
+## State management
+
+| Layer | Mechanism | Persistence |
+| ----- | --------- | ----------- |
+| Global store | Zustand (`services/store.ts`) | MMKV via `services/storage.ts` |
+| User session | `context/user-context.tsx` | Clerk tokens + backend sync |
+| Collectibles | `context/collectibles-context.tsx` | In-memory, refreshed from API |
+| Accessibility | `context/accessibility-context.tsx` | MMKV |
+| Navbar visibility | `context/navbar-visibility-context.tsx` | Reanimated shared value |
+
+The Zustand store manages theme, cart, and points. MMKV provides synchronous read/write via `getItem<T>()`, `setItem()`, and `removeItem()`.
 
 ## API client and retry behavior
 
-- All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+All network calls route through `lib/api/client.ts`:
+
+- **Auth injection:** Clerk bearer tokens are attached to every authenticated request.
+- **Response envelope:** The client expects `{ success, data?, error?, code? }` and normalizes all responses into `ApiResponse<T>`.
+- **Retry:** Transient 5xx errors (including Prisma `P2024` pool timeouts) retry up to 3 times with exponential backoff (250 ms base).
+- **Expected errors:** Business-rule error codes (e.g. `QUEST_DAILY_VISIT_NOT_ELIGIBLE`) are logged at `info` level, not `error`.
+
+The `useApi()` hook in `lib/api/index.ts` exposes all domain modules (`api.user`, `api.wallet`, `api.shop`, etc.) with authentication wired in.
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- **Android:** `API_URL` replaces `localhost` with `10.0.2.2` for emulator access.
+- **Web:** `AppScreen` limits content to 480 px with centered layout. `WebHoverWrapper` adds hover feedback on pressables.
+- **iOS:** Apple Sign-In, haptics via `expo-haptics`, and tracking transparency prompt.
+- **Animations:** React Native Reanimated 4 for scroll-driven navbar hide/show and shared-element transitions.
+
+## Path aliases
+
+Import with `@/*` which maps to the project root:
+
+```typescript
+import { useUser } from "@/context/user-context";
+import { getTokenColors } from "@/lib/token-utils";
+import type { Token } from "@/types/wallet.types";
+```
