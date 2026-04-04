@@ -20,6 +20,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Leaderboard API contracts
+
+- `GET /api/leaderboard` accepts both `teamId` and `leaderboardId` query params. When both are provided, `teamId` takes precedence so the canonical per-team board is always returned.
+- The global leaderboard is an aggregate of all team boards. The API computes global aggregates from the sum of team-board points.
+- The native client resolves team leaderboards by team id (not a stale numeric `leaderboardId`) to stay consistent with quest and sync data.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
