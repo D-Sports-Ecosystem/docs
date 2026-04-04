@@ -7,24 +7,90 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+### Routing (`app/`)
+
+- **Expo Router** with file-based routing and typed routes.
+- Route groups: `(tabs)` for main navigation, `(auth)` for login/signup, `(onboarding)` for new users.
+- `settings/` contains settings pages with nested modals and tabs.
+- Auth protection in `_layout.tsx` redirects based on authentication and onboarding state.
+
+### Modular screen pattern
+
+Screen files in `app/(tabs)/` contain **only imports and JSX**. All state, effects, and handlers live in dedicated hooks:
+
+- `hooks/use-wallet-screen.ts` — wallet/token fetch effects, PIN verification, transaction handlers
+- `hooks/use-shop-screen.ts` — cart state, product queries, carousel auto-scroll, checkout logic
+- `hooks/use-feed-section.ts` — locker room feed logic
+
+Sub-components are extracted into `components/<domain>/` directories with barrel `index.ts` exports. Stylesheets live in `styles/` or `components/<domain>/styles/` as `ComponentName.styles.ts`.
+
+### Component organization
+
+| Directory | Contents |
+| --------- | -------- |
+| `components/wallet/` | TokenRow, HoldingRow, ActionModal, TokenDetailModal, PackOpeningModal, and more |
+| `components/shop/` | CollectableCard, CartModal, CoinBundleModal, CryptoCheckoutModal, and more |
+| `components/locker-room/` | FeedSection, QuestSection, DailyPickEmGame, GuessThePlayerGame, DailySpinWheelGame |
+| `components/profile/` | AchievementCard, ProfileFollowListModal, ProfilePointsHistoryModal |
+| `components/settings/` | SettingItem, SettingSection, changelog, modals, and tabs |
+| `components/ui/` | Reusable primitives (Button, TextField, WebHoverWrapper, TutorialOverlay) |
+| `components/Icon/` | Icon wrapper using lucide-react-native with a centralized icon map |
 
 ## State and context boundaries
 
+- **Zustand** store in `services/store.ts` with MMKV persistence (`services/storage.ts`) for theme, cart, and points.
+- **React Context** providers in `context/`:
+  - `UserContext` — authentication, user profile, team membership
+  - `CollectiblesContext` — owned packs and items
+  - `NavBarVisibilityContext` — hide/show bottom nav on scroll
+  - `CreateActionContext` — FAB/action modal state
+  - `AccessibilityContext` — color-blind mode, text scaling, accessibility preferences
 - Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
 - User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+
+## Types and constants
+
+Types and constants are centralized to prevent duplication:
+
+- `types/wallet.types.ts` — `Token`, `ModalType`, `TransactionStatus`
+- `types/shop.types.ts` — `Collectable`, `CartItem`, `FeaturedPack`, `CoinBundle`, `rarityColors`
+- `types/checkout.types.ts` — `CryptoPaymentResponse`, `CryptoChain`
+- `constants/wallet.constants.ts` — `TOKENS`, `ACTIONS`, `WALLET_PROVIDERS`
+- `constants/shop.constants.ts` — `COIN_BUNDLES`, product mappers
 
 ## API client and retry behavior
 
-- All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- `lib/api/client.ts` — base HTTP client with auth token injection.
+- `lib/api/index.ts` — `useApi()` hook exposing all API modules.
+- Domain modules: `wallet-api.ts`, `shop-api.ts`, `user-api.ts`, `quests-api.ts`, `leaderboard-api.ts`, `locker-room-api.ts`, `teams-api.ts`, `collectibles-api.ts`, `checkout-api.ts`, `games-api.ts`.
+- `lib/api/cache.ts` — `fetchWithCache()` with MMKV cache-first fetching for offline resilience.
+
+## Checkout and payments
+
+- **RevenueCat** (`lib/revenuecat/provider.tsx`) — fiat payments via Apple IAP (native), Google Play (native), and Stripe (web).
+- **Crypto checkout** (`lib/api/checkout-api.ts`) — calls PWA backend `POST /api/checkout/crypto` and `POST /api/checkout/crypto/verify`.
+- **Thirdweb SDK** — on-chain transaction signing. Supported chains: Arbitrum (default), Ethereum, Polygon.
+- `lib/crypto/send-transaction.ts` — native-only crypto send (web throws; matches checkout constraints).
+
+## Theme system
+
+- `theme/colors.ts` — brand colors (Gold `#F5C842`, Royal Blue `#4169E1`), dark/light palettes.
+- `theme/typography.ts` and `theme/fonts.ts` — font families and typographic scales.
+- `useTheme()` hook from `components/theme-provider.tsx` provides `resolvedTheme`.
+- Default theme is dark mode with base background `#0a0e1a`.
 
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- Web-target support exists with `AppScreen` responsive wrapper (`maxWidth: 480px`), web hover states, and PWA manifest (`display: standalone`).
+- Haptics, modal controls, and animation handling use platform-safe fallbacks via React Native Reanimated.
+
+## Path aliases
+
+All imports use the `@/*` alias (maps to project root):
+
+```typescript
+import { useUser } from "@/context/user-context";
+import { getTokenColors } from "@/lib/token-utils";
+import type { Token } from "@/types/wallet.types";
+```
