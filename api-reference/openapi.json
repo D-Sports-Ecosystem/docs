@@ -925,33 +925,83 @@
       "post": {
         "tags": ["Checkout", "Commerce and purchases"],
         "summary": "Checkout with D-Sports Cash",
+        "description": "Processes checkout using the user's D-Sports Cash balance. Supports single-item checkout via itemId/itemType/quantity, or cart checkout via cartItems[]. The transaction runs at Serializable isolation with automatic retry on serialization conflicts (up to 3 attempts).",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "itemId": { "type": "string" },
-                  "itemType": { "type": "string" },
-                  "quantity": { "type": "integer" },
-                  "cartItems": { "type": "array" }
+                  "itemId": { "type": "string", "description": "Item identifier (required for single-item checkout)." },
+                  "itemType": { "type": "string", "enum": ["product", "pack"], "description": "Type of item being purchased." },
+                  "quantity": { "type": "integer", "default": 1, "description": "Quantity for single-item checkout." },
+                  "cartItems": {
+                    "type": "array",
+                    "description": "Array of cart items for multi-item checkout. When provided, itemId/itemType/quantity are ignored.",
+                    "items": {
+                      "type": "object",
+                      "required": ["itemId", "itemType", "quantity"],
+                      "properties": {
+                        "itemId": { "type": "string" },
+                        "itemType": { "type": "string", "enum": ["product", "pack"] },
+                        "quantity": { "type": "integer" }
+                      }
+                    }
+                  }
                 }
               }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ paymentId, remainingBalance }" } }
+        "responses": {
+          "200": {
+            "description": "Purchase completed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "paymentId": { "type": "string" },
+                    "remainingBalance": { "type": "number" },
+                    "currency": { "type": "string", "example": "dsportsCash" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error (invalid item or quantity)." },
+          "401": { "description": "Authentication required." },
+          "500": { "description": "Insufficient balance, user not found, or internal error." }
+        }
       }
     },
     "/api/dsports-cash": {
       "get": {
         "tags": ["D-Sports Cash", "Commerce and purchases"],
         "summary": "Get D-Sports Cash balance",
-        "description": "Query: userId (admin impersonation).",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
+        "description": "Returns the authenticated user's D-Sports Cash balance. Admins can impersonate another user by passing a userId query parameter.",
+        "parameters": [{ "name": "userId", "in": "query", "description": "Target user ID for admin impersonation. Requires admin role.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ dsportsCash }" } }
+        "responses": {
+          "200": {
+            "description": "Balance retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "dsportsCash": { "type": "number", "description": "Current D-Sports Cash balance." }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Authentication required." },
+          "403": { "description": "Admin role required for impersonation." },
+          "404": { "description": "User not found." }
+        }
       }
     },
     "/api/dashboard": {
