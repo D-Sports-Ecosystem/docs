@@ -20,6 +20,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Leaderboard caching contracts
+
+- All leaderboard fetches use `fetchLeaderboardWithCache` with a unified `CacheKeys.LEADERBOARD(query)` key that resolves by scope (global, team, or ID).
+- The team modal "Top fans" preview uses a separate `LEADERBOARD_PREVIEW` key to avoid shape conflicts with the full leaderboard response.
+- Cache invalidation (e.g. after a server-side points backfill) calls `invalidateLeaderboardGlobalCache()`, which removes the global key only.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
