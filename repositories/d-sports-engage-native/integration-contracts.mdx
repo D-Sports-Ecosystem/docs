@@ -20,6 +20,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Top Fans / Top Users contract
+
+- The Top Users endpoint returns a `TopUser` object per user with `points`, `level`, `followerCount`, `rank`, and `profileUrl`.
+- `xp` is no longer used — `points` is the canonical score field.
+- `avatar` is deprecated in favor of `profileUrl`.
+- The client maps `TopUser` to the local `TopFans` type via `mapTopUsersToTopFans` in `constants/lockerroom.constants.ts`. This function applies fallback logic for `points`, `level`, `fans`, and `rank` when optional API fields are absent.
+- Badge labels are derived from point thresholds using `getFanBadgeLabel` rather than level-based tiers.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
