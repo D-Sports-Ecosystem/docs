@@ -553,6 +553,20 @@
         "responses": { "200": { "description": "Star status" } }
       }
     },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check username availability",
+        "description": "Checks if a username (handle) is available. Case-insensitive match.",
+        "parameters": [{ "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The username to check" }],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success: true, data: { available: boolean } }" },
+          "400": { "description": "Username is required" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/api/user/isOnboarded": {
       "get": {
         "tags": ["User"],
