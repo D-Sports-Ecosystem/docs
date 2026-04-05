@@ -11,6 +11,8 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
+- Crypto checkout supports Arbitrum (default), Ethereum, and Polygon chains via Thirdweb SDK.
+- Fiat payments are handled through RevenueCat (Apple IAP on iOS, Google Play on Android, Stripe on web).
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
 ## Quest, rewards, and pass surfaces
@@ -19,8 +21,41 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Locker room and games
+
+- Social feed with post creation, comments, and user interaction.
+- **Daily pick-em game** — users predict outcomes with backend-validated results.
+- **Guess the player game** — interactive player identification challenge.
+- **Daily spin wheel** — daily reward mechanic with animated wheel.
+- **Featured games carousel** — rotates available games for discovery.
+- Explore fans and teams discovery surfaces.
+- User profile hover cards and user stats display.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team detail modals show team info, branding, and related content.
+
+## Profile and achievements
+
+- Milestone avatars with progressive unlock tiers.
+- Achievement cards and chips with detail modals.
+- Profile followers/following lists with follow actions.
+- Points history tracking and display.
+- Cached badge images with local asset mapping.
+
+## Notifications
+
+- Push notifications via OneSignal (`react-native-onesignal`).
+- In-app notification screen at `app/notifications.tsx`.
+- Notification settings configurable in settings.
+
+## Settings
+
+- Account management including in-app account deletion.
+- Appearance, accessibility, audio, notification, data, privacy, legal, room, and support settings.
+- In-app changelog viewer.
+- Help center with FAQ and contact support form.
+- Report-a-problem flow with structured feedback.
