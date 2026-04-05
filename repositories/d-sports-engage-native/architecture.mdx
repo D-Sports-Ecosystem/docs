@@ -3,28 +3,81 @@ title: "Native architecture"
 description: "Architecture overview for d-sports-engage-native application layers and platform behavior."
 ---
 
-## App architecture
+## Routing
 
-The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
+The app uses **Expo Router 6** with file-based routing and typed routes enabled. Route groups organize the navigation hierarchy:
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+| Route group       | Purpose                                   |
+| ----------------- | ----------------------------------------- |
+| `(auth)/`         | Login, signup, SSO callback, password reset |
+| `(onboarding)/`   | New user onboarding flow                  |
+| `(tabs)/`         | Main 5-tab navigation                     |
+| `settings/`       | Settings pages with nested modals/tabs    |
 
-## State and context boundaries
+The root layout (`app/_layout.tsx`) wraps the app in provider hierarchy (Clerk, RevenueCat, Thirdweb, user context, theme, accessibility) and handles auth-based redirects.
 
-- Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+## Screen-hook pattern
 
-## API client and retry behavior
+Screen files contain **only imports and JSX**. All state, effects, and handlers live in dedicated hooks:
 
-- All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- `hooks/use-wallet-screen.ts` — wallet state, token fetch, PIN verification, transaction handlers
+- `hooks/use-shop-screen.ts` — cart state, product queries, carousel auto-scroll, checkout logic
+- `hooks/use-feed-section.ts` — locker room feed loading, pagination, interactions
+
+Sub-components are extracted into `components/wallet/`, `components/shop/`, and `components/locker-room/` with barrel exports via `index.ts`.
+
+## Tab bar architecture
+
+The tab bar implementation differs by platform:
+
+- **iOS** — `app/(tabs)/_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` for system tab bar behavior. Uses `systemChromeMaterialDark` material with gold selection tint (`#FFD700`).
+- **Android and web** — `app/(tabs)/_layout.tsx` renders a custom `PillTabBar` overlay with `expo-blur` and tints from `tab-config.ts`.
+- **Shared config** — `app/(tabs)/tab-config.ts` defines tab order, SF Symbol pairs (iOS), and active-tab pathname matching rules.
+
+## State management
+
+| Layer            | Technology       | Scope                          |
+| ---------------- | ---------------- | ------------------------------ |
+| Global store     | Zustand 5        | Theme, cart, points            |
+| Persistence      | MMKV 4           | Synchronous read/write         |
+| Auth and profile | React Context    | `UserContext` in `context/`    |
+| Collectibles     | React Context    | `CollectiblesContext`          |
+| UI visibility    | React Context    | Navbar visibility, FAB state   |
+| Accessibility    | React Context    | Font scale, reduced motion     |
+
+Zustand persistence uses an MMKV adapter (`services/storage.ts`). The store (`services/store.ts`) provides `getItem<T>()`, `setItem()`, and `removeItem()`.
+
+## API client layer
+
+All network calls route through `lib/api/*` modules:
+
+- `lib/api/client.ts` — base HTTP client with auth token injection and error normalization
+- `lib/api/cache.ts` — `fetchWithCache()` MMKV cache-first fetching for offline resilience
+- Domain modules: `wallet-api`, `shop-api`, `user-api`, `quests-api`, `leaderboard-api`, `locker-room-api`, `teams-api`, `collectibles-api`, `checkout-api`, `games-api`
+- `lib/api/index.ts` — `useApi()` hook that exposes all modules
+
+Quest, reward, and team flows consume backend eligibility as the source of truth.
+
+## Theme system
+
+- `theme/colors.ts` — brand colors (Gold `#F5C842`, Royal Blue `#4169E1`), dark/light palettes with base dark `#0a0e1a`
+- `theme/typography.ts` and `theme/fonts.ts` — type scale and font definitions
+- `theme/spacing.ts` — spacing tokens
+- `components/theme-provider.tsx` — `useTheme()` hook provides `resolvedTheme`
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- **iOS** — Native tab bar (Liquid Glass), Apple Sign-In, haptic feedback, system push via OneSignal
+- **Android** — Custom pill tab bar with blur, edge-to-edge layout, adaptive icon
+- **Web** — PWA-ready (`display: standalone`), responsive `maxWidth: 480px` container (`components/layout/AppScreen.tsx`), web hover states via `WebHoverWrapper`, keyboard navigation support
+- Haptics, modal controls, and animations use platform-safe fallbacks via Reanimated 4
+
+## Path aliases
+
+Import using the `@/*` alias (maps to project root):
+
+```typescript
+import { useUser } from "@/context/user-context";
+import { getTokenColors } from "@/lib/token-utils";
+import type { Token } from "@/types/wallet.types";
+```
