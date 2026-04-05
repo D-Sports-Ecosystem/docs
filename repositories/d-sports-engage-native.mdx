@@ -12,26 +12,71 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
+| Category   | Technology                           |
+| ---------- | ------------------------------------ |
 | Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Auth       | Clerk (Expo)                         |
+| Payments   | RevenueCat (react-native-purchases)  |
+| Web3       | Thirdweb                             |
+| State      | Zustand                              |
+| Storage    | MMKV                                 |
+| UI         | Lucide React Native                  |
+| Navigation | Expo Router 6.0                      |
+| Animations | React Native Reanimated 4.1          |
+| Package    | Bun                                  |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
+- **Locker room** — Social feed, quests, and fan engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+- **PWA support** — Responsive desktop layout, web hover states, keyboard navigation
+
+## Project structure
+
+```tree
+app/
+├── (auth)/              # Login/signup screens
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation
+│   ├── wallet.tsx       # Wallet screen
+│   ├── shop.tsx         # Shop screen
+│   ├── leaderboard.tsx  # Leaderboard screen
+│   ├── locker-room.tsx  # Social feed
+│   └── profile.tsx      # User profile
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers + auth
+
+components/
+├── wallet/              # Wallet sub-components
+├── shop/                # Shop sub-components
+├── locker-room/         # Locker room components
+├── leaderboard/         # Leaderboard components
+├── layout/              # AppScreen wrapper (responsive web)
+├── ui/                  # Reusable UI primitives
+└── Icon/                # lucide-react-native wrapper
+
+hooks/
+├── use-wallet-screen.ts # All wallet state and handlers
+├── use-shop-screen.ts   # All shop state and handlers
+└── use-feed-section.ts  # Feed section logic
+
+lib/api/                 # API client modules
+context/                 # React Context providers
+services/                # Zustand store + MMKV storage
+```
+
+## Architecture patterns
+
+- **File-based routing** — Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Modular screen architecture** — Screen files contain only JSX; state/effects/handlers live in dedicated hooks
+- **Extracted sub-components** — Wallet and shop screens decomposed into `components/wallet/` and `components/shop/`
+- **Shared types and constants** — Centralized in `types/` and `constants/` directories
+- **API client layer** — Domain modules in `lib/api/` with MMKV cache fallback
+- **Crypto checkout** — Thirdweb SDK calls PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
 
 ## What changed since last docs sync
 
