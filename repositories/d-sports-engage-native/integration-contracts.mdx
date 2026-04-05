@@ -3,10 +3,35 @@ title: "Integration contracts"
 description: "Backend-facing contracts and behavior expectations for native client integrations."
 ---
 
-## Auth/session contracts
+## Auth and session contracts
 
-- Native auth uses backend-compatible token/session validation flows.
+- Native auth uses **Clerk** for authentication with backend-compatible token/session validation.
 - Protected feature calls require authenticated user context and must handle session expiry gracefully.
+- SSO callback handling in `app/(auth)/sso-callback.tsx` for OAuth providers.
+- Email/password auth logic is centralized in `hooks/use-email-password-auth.ts`.
+
+## API client contracts
+
+All API calls flow through `lib/api/client.ts` which provides:
+
+- Automatic auth token injection from Clerk session
+- Error normalization and consistent error response shapes
+- Base URL configured via `EXPO_PUBLIC_API_URL`
+
+Domain-specific modules in `lib/api/` map to backend route groups:
+
+| Module              | Backend routes consumed                |
+| ------------------- | -------------------------------------- |
+| `user-api.ts`       | `/api/user/*` — profile, settings, follows |
+| `wallet-api.ts`     | `/api/wallet/*` — balances, tokens, transactions |
+| `shop-api.ts`       | `/api/shop/*` — products, inventory    |
+| `checkout-api.ts`   | `/api/checkout/*` — fiat and crypto payments |
+| `collectibles-api.ts` | `/api/collectibles/*` — packs, items |
+| `quests-api.ts`     | `/api/quests/*` — progression, claims  |
+| `leaderboard-api.ts`| `/api/leaderboard/*` — rankings        |
+| `locker-room-api.ts`| `/api/locker-room/*` — posts, comments |
+| `teams-api.ts`      | `/api/teams/*`, `/api/leagues/*`       |
+| `games-api.ts`      | `/api/games/*` — daily games           |
 
 ## Quest and reward API contracts
 
@@ -20,8 +45,22 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Checkout contracts
+
+- **Fiat** — RevenueCat SDK communicates with Apple/Google/Stripe. Server-side receipt validation happens through RevenueCat webhooks.
+- **Crypto** — Client calls `POST /api/checkout/crypto` to get payment parameters, signs with Thirdweb, then polls `POST /api/checkout/crypto/verify` for confirmation.
+
+## Caching behavior
+
+`lib/api/cache.ts` implements MMKV-backed cache-first fetching:
+
+- Cached responses are returned immediately while a background refresh occurs.
+- Cache keys are derived from the request URL and parameters.
+- Stale data is acceptable for read-heavy surfaces (leaderboards, team lists) but mutations always hit the network.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
+- Structured logging via `lib/logger.ts` with Sentry integration for error tracking.
