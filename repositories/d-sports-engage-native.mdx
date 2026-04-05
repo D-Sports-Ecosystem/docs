@@ -15,13 +15,14 @@ icon: "smartphone"
 | Category   | Technology                |
 | ---------- | ------------------------- |
 | Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
+| Auth       | Clerk (Expo), native Apple Sign In (iOS) |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6.0           |
+| Animations | Reanimated 4.1            |
 | Package    | Bun                       |
 
 ## Features
@@ -32,6 +33,30 @@ icon: "smartphone"
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
+- **Native auth** — Apple Sign In on iOS via Clerk
+
+## Project structure
+
+```text
+app/
+├── (auth)/              # Login/signup screens
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker-room, profile)
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers + auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, ActionModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components
+└── ui/                  # Reusable UI primitives (Button, TextField, etc.)
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+└── use-shop-screen.ts   # All shop state, effects, and handlers
+
+lib/api/                 # API client modules (wallet, shop, checkout, etc.)
+```
 
 ## What changed since last docs sync
 
