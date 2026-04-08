@@ -18,6 +18,7 @@ icon: "smartphone"
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
+| Database   | Supabase (client-side)    |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
@@ -30,6 +31,7 @@ icon: "smartphone"
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
+- **Games** — Daily pick-em (player data fetched from database) and daily spin wheel
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
@@ -65,9 +67,58 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env` and set the required environment variables (see below).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+
+### Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. You need to set the following in your `.env` file:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | D-Sports API backend base URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+## API client
+
+The app communicates with **d-sports-api** through a modular API client in `lib/api/`. Each domain has its own module:
+
+| Module | Endpoints |
+| ------ | --------- |
+| `user-api` | Profile, onboarding, follow/unfollow |
+| `wallet-api` | Tokens, holdings, transactions |
+| `shop-api` | Products, featured packs |
+| `checkout-api` | Crypto checkout via PWA backend |
+| `collectibles-api` | Owned packs and items |
+| `teams-api` | Team list, follow/unfollow, follower counts |
+| `games-api` | Daily pick-em players, daily spin rewards |
+| `quests-api` | Quests and quest progress |
+| `leaderboard-api` | Rankings and leaderboard data |
+| `locker-room-api` | Social feed posts and interactions |
+
+You access all modules through the `useApi()` hook:
+
+```typescript
+import { useApi } from "@/lib/api";
+
+const api = useApi();
+const result = await api.games.getPickEmPlayers();
+```
+
+<Note>
+  Player data for the daily pick-em game is now fetched from the database via `GET /api/games/pick-em/players` instead of being hardcoded in the client.
+</Note>
+
+## Architecture
+
+The app follows a modular screen pattern where screen files contain only JSX. All state, effects, and handlers live in dedicated hooks (for example, `hooks/use-wallet-screen.ts` and `hooks/use-shop-screen.ts`). Sub-components are extracted into `components/wallet/`, `components/shop/`, and `components/locker-room/` directories with barrel exports.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
