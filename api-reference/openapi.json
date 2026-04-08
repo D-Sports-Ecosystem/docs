@@ -1089,6 +1089,102 @@
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Returns whether a given username (handle) is available. No authentication required.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The username to check." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { available } }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List all users",
+        "description": "Paginated list of onboarded users sorted by newest first. Supports excluding users the caller already follows. Rate limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 }, "description": "Max users to return (1-100)." },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "If 'true', excludes users the caller already follows." }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create Thirdweb link",
+        "description": "Creates a Thirdweb link for the authenticated user. Returns the user ID and email with a session header.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": { "payload": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ userId, email }" },
+          "400": { "description": "Payload is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb proxy (GET)",
+        "description": "Proxies GET requests to allowed Thirdweb endpoints (RPC and embedded-wallet).",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Target Thirdweb URL to proxy." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied response" },
+          "400": { "description": "Invalid or missing url" }
+        }
+      },
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb proxy (POST)",
+        "description": "Proxies POST requests to allowed Thirdweb endpoints (RPC and embedded-wallet).",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Target Thirdweb URL to proxy." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied response" },
+          "400": { "description": "Invalid or missing url" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns the mapping between RevenueCat product IDs and platform entitlements (D-Sports Cash tiers and Frontline Pass).",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { mappings } }" }
+        }
+      }
     }
   },
   "components": {
