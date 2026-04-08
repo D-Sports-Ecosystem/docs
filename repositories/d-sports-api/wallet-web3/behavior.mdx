@@ -24,15 +24,31 @@ icon: "list-checks"
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.
 - Provider proxy/link routes bridge client flow to external web3 integrations.
 
+## PIN migration flow
+
+When a wallet PIN force-reset is triggered (via the `backfill-wallet-default-pin` script), the following happens:
+
+1. All existing wallets receive a default hashed PIN and are flagged with `pinMigrationRequired: true`.
+2. Each user with a wallet has `walletPinMigrationCompleted` set to `false`.
+3. On the next login, the client calls `POST /api/wallets/verify-pin`. If the wallet has no PIN or the migration flag is set, the response includes `requiresPinReset: true`.
+4. The client prompts the user to choose a new 6-digit PIN and calls `POST /api/wallets/set-pin` with the new value.
+5. `set-pin` hashes the new PIN, applies it to **all** of the user's wallets, clears `pinMigrationRequired`, and marks `walletPinMigrationCompleted: true` on the user record.
+
+<Note>
+  The PIN is exactly 6 digits and is hashed with SHA-256 before storage. Plain-text PINs are never persisted.
+</Note>
+
 ## Side effects and dependencies
 
 - Wallet identity and session state link directly to user auth context.
 - Wallet flows are consumed by collectibles and crypto checkout paths.
+- `set-pin` updates **all** wallets for the authenticated user, not just the wallet specified in the request.
 
 ## Known caveats
 
 - External web3 provider behavior can introduce transient errors and retry requirements.
 - Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
+- After a force-reset, users must complete PIN migration before they can access private keys.
 
 ## Exclusions
 
