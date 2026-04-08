@@ -26,7 +26,8 @@
     { "name": "D-Sports Cash", "description": "D-Sports Cash balance" },
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
-    { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Leagues", "description": "Leagues list and metadata" },
+    { "name": "Webhooks", "description": "RevenueCat and leagues-sync webhooks" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -229,6 +230,20 @@
         "responses": { "200": { "description": "{ totalUsers, totalPoints, lastWinner }" } }
       }
     },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with team counts. Optionally filter by country.",
+        "parameters": [
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive country filter" }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { leagues } }" }
+        }
+      }
+    },
     "/api/locker-room": {
       "get": {
         "tags": ["Locker room"],
@@ -415,7 +430,6 @@
       }
     },
     "/api/user/profile": {
-      "get": { "tags": ["User"], "summary": "Get profile", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Profile" } } },
       "patch": {
         "tags": ["User"],
         "summary": "Update profile",
@@ -691,6 +705,38 @@
         "summary": "Get opened packs",
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ packs }" } }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check username availability",
+        "description": "Returns whether the given handle is available. Case-insensitive.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The handle to check" }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { available: boolean } }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List community users",
+        "description": "Paginated list of all onboarded users. Rate-limited to 30 req/min.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 }, "description": "Max users to return" },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "Exclude users the caller already follows" }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limit exceeded" }
+        }
       }
     },
     "/api/quests": {
@@ -1034,6 +1080,32 @@
           }
         },
         "responses": { "200": { "description": "{ received: true }" } }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by CI on push to the leagues repo. Validates x-webhook-secret header against LEAGUES_WEBHOOK_SECRET.",
+        "parameters": [
+          { "name": "x-webhook-secret", "in": "header", "required": true, "schema": { "type": "string" }, "description": "Shared webhook secret" }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns product-to-entitlement mapping for RevenueCat. Includes D-Sports Cash tiers and the Frontline Pass.",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { mappings } }" }
+        }
       }
     },
     "/api/image-proxy": {
