@@ -39,6 +39,28 @@ icon: "smartphone"
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
 - Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- Account deletion now uses a two-step confirmation flow that calls `DELETE /api/user/delete`, deletes the synced Clerk user, and signs the user out on success.
+- OneSignal push notification bootstrap was hardened to handle new users whose backend profile does not yet exist — it retries with a Clerk sync before giving up.
+
+## Account deletion
+
+The app provides in-app account deletion to satisfy App Store Guideline 5.1.1(v). The flow lives under **Profile > Settings > Account Information > Account Deletion**.
+
+1. You tap **Delete Account** and confirm through a two-step alert.
+2. The client calls `DELETE /api/user/delete` on the backend.
+3. On success the Clerk authentication user is also deleted, and you are signed out.
+
+The deletion is irreversible. A recording script for App Review is included in `APP_REVIEW_ACCOUNT_DELETION_NOTES.md` in the repo root.
+
+## Push notifications (OneSignal)
+
+Push notification registration is managed by the `OneSignalBootstrap` component in the root layout. Key behaviors:
+
+- On mount the component fetches the user's push settings from `GET /api/user/settings`.
+- If push is disabled it opts the device out and calls `DELETE /api/user/push-subscription/:platform`.
+- If push is enabled it initializes the OneSignal SDK, requests permission, and upserts the subscription via `POST /api/user/push-subscription`.
+- For **new users** whose backend profile has not yet been created, the bootstrap retries after triggering a Clerk sync (`POST /api/user/sync-clerk`). This prevents startup errors when the backend returns a 404 for a freshly-signed-up user.
+- Web and native (iOS/Android) paths are handled separately, with native using `react-native-onesignal` and web using the OneSignal browser SDK.
 
 ## Backend integration surfaces
 

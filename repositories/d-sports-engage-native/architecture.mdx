@@ -23,6 +23,16 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Push notification bootstrap
+
+The `OneSignalBootstrap` component in `app/_layout.tsx` handles push registration for all platforms:
+
+- Fetches user push settings from the backend before initializing the SDK.
+- If push is disabled, it opts the device out and removes the server-side subscription.
+- If push is enabled, it initializes OneSignal, requests permission, and upserts the subscription.
+- Uses a **readiness-retry** pattern: when the backend returns 404 (user not yet provisioned), the component calls `POST /api/user/sync-clerk` to create the profile and retries. This prevents errors for users who have just completed sign-up but whose backend record has not yet been created.
+- Native and web code paths are separate — native uses `react-native-onesignal`, web uses the OneSignal browser SDK deferred loader.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
