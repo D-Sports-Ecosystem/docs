@@ -6,9 +6,9 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version 1.10.10) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile. The app also runs as a PWA on web with a responsive desktop layout.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Run:** `bunx expo start` — then press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 
 ## Tech stack
 
@@ -18,20 +18,81 @@ icon: "smartphone"
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
-| State      | Zustand                   |
+| State      | Zustand 5                 |
 | Storage    | MMKV                      |
+| Animations | React Native Reanimated   |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
+| Monitoring | Sentry                    |
 | Package    | Bun                       |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
+- **Wallet** — Token balances, top holdings (real-time value), pack opening, crypto checkout via PWA backend
+- **Shop** — Collectibles, 3D model viewer, cart, coin bundles, crypto and fiat checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, daily pick'em, spin wheel, guess-the-player games, quests
+- **Profile** — User profile, settings, and team membership
+- **Onboarding** — New-user onboarding flow with team selection
 - **Theme** — Dark/light mode (default dark)
+- **Image caching** — Cross-platform image caching for shop and wallet screens
+
+## Project structure
+
+```
+app/
+├── (auth)/              # Login, signup, SSO, password reset
+├── (onboarding)/        # New-user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (TokenRow, HoldingRow, ActionModal, etc.)
+├── shop/                # Shop sub-components (CartModal, CryptoCheckoutModal, etc.)
+├── locker-room/         # Locker room components (feed, games, quests)
+├── leaderboard/         # Leaderboard components
+├── settings/            # Settings modals and tabs
+├── ui/                  # Reusable primitives (Button, TextField, WebHoverWrapper)
+└── Icon/                # Icon wrapper using lucide-react-native
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+└── use-feed-section.ts  # Feed state and handlers
+
+lib/api/                 # API client modules (wallet, shop, user, quests, checkout, etc.)
+lib/api/cache.ts         # MMKV-backed cache with TTL support
+context/                 # React Context providers (user, collectibles, navbar visibility)
+services/                # Zustand store, MMKV storage adapter, core types
+theme/                   # Brand colors and design tokens
+```
+
+## Architecture
+
+- **Screen-hook separation** — screen files contain only JSX; all state and logic live in dedicated hooks (e.g. `use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **File-based routing** via Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`
+- **Zustand + MMKV** for global state with synchronous persistence
+- **React Context** for auth (`UserContext`), collectibles, and navbar visibility
+- **API caching** — `fetchWithCache()` serves stale MMKV data immediately, then refreshes from the API with configurable TTL per resource
+- **Crypto checkout** via Thirdweb SDK calling the PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
+- **PWA-ready** — `display: standalone`, responsive `maxWidth: 480px` container on desktop, web hover states
+- **Path alias** — `@/*` maps to the project root
+
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. Create a `.env` file at the repo root:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | d-sports-api backend URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID (Web3) |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
 
 ## What changed since last docs sync
 
@@ -65,9 +126,21 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+2. Copy `.env.example` to `.env` and fill in the values above.
+3. Run `bunx expo start` — press `a` for Android, `i` for iOS, or open in a browser for web.
+4. Run `bun tsc --noEmit` to check TypeScript.
+
+## EAS builds
+
+The app uses [EAS Build](https://docs.expo.dev/build/introduction/) with these profiles:
+
+| Profile | Command | Use case |
+| ------- | ------- | -------- |
+| `development` | `bun run build:dev` | Dev client with simulator support |
+| `preview` | `bun run build:preview` | Internal distribution (Android APK) |
+| `production` | `bun run build:prod` | App Store / Play Store release |
+
+OTA updates are published automatically via GitHub Actions on push to `main` using `eas update`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
