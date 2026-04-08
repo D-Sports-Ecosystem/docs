@@ -35,7 +35,8 @@
     { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
     { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
     { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" },
+    { "name": "Admin teams", "description": "Team management endpoints for admins and team owners" }
   ],
   "paths": {
     "/api/auth/native-token": {
@@ -1088,6 +1089,255 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/teams": {
+      "get": {
+        "tags": ["Admin teams"],
+        "summary": "List teams (admin)",
+        "description": "Returns all teams for platform admins, or only the caller's teams when `my=true`.",
+        "parameters": [
+          { "name": "my", "in": "query", "description": "Set to `true` to list only teams the caller manages.", "schema": { "type": "string", "enum": ["true"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of team objects" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Admin teams"],
+        "summary": "Create team",
+        "description": "Creates a new team. Requires team-provisioning permission.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "logoUrl": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ id }" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}": {
+      "get": {
+        "tags": ["Admin teams"],
+        "summary": "Get team by ID",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Team object" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Team not found" }
+        }
+      },
+      "put": {
+        "tags": ["Admin teams"],
+        "summary": "Update team",
+        "description": "Updates a team's details. Requires manage permission for the team.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "logoUrl": { "type": "string" },
+                  "description": { "type": "string" },
+                  "website": { "type": "string" },
+                  "themeColor": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Team not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin teams"],
+        "summary": "Delete team",
+        "description": "Hard-deletes a team. Requires manage permission.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Team not found" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/upload-logo": {
+      "post": {
+        "tags": ["Admin teams"],
+        "summary": "Upload team logo",
+        "description": "Uploads an image file as the team's logo (max 5 MB). The file is stored in Supabase and the public URL is returned. Use this instead of setting `logoUrl` directly when you have a file to upload.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary", "description": "Image file (PNG, JPEG, etc.). Max 5 MB." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ url, path, bucket }" },
+          "400": { "description": "Missing file, non-image file, or file too large" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members": {
+      "get": {
+        "tags": ["Admin teams"],
+        "summary": "List team members",
+        "description": "Returns all members (admins/editors/viewers) of a team.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of team member objects" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Admin teams"],
+        "summary": "Add team member",
+        "description": "Adds a user to the team or updates their role if already a member. Only owners and admins can add members; only platform admins can assign the owner role.",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": { "type": "string" },
+                  "role": { "type": "string", "enum": ["owner", "editor", "viewer"], "default": "editor" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Team member object" },
+          "400": { "description": "userId is required" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/api/admin/teams/{teamId}/members/{userId}": {
+      "patch": {
+        "tags": ["Admin teams"],
+        "summary": "Update member role",
+        "description": "Changes a team member's role. Only team owners can change roles; only platform admins can promote to or demote from owner.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role"],
+                "properties": {
+                  "role": { "type": "string", "enum": ["owner", "editor", "viewer"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated team member object" },
+          "400": { "description": "Invalid role" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Member not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin teams"],
+        "summary": "Remove team member",
+        "description": "Removes a member from the team. Only owners can remove members; only platform admins can remove owners. Cannot remove the last owner.",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "Cannot remove the last owner" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Member not found" }
+        }
+      }
+    },
+    "/api/admin/teams/sync": {
+      "post": {
+        "tags": ["Admin teams"],
+        "summary": "Sync canonical teams",
+        "description": "Loads `data/canonical-teams.json`, upserts teams by slug, ensures per-team leaderboards, then runs league linking. Admin only.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dryRun": { "type": "boolean", "description": "When true, no changes are persisted." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ ok, dryRun, canonicalTotal, created, updated, unchanged, leaderboardsEnsured, errors, summary }" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden – admin access required" }
+        }
       }
     }
   },
