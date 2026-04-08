@@ -6,32 +6,34 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
-
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+**d-sports-engage-native** (package name: `engage-native`, version `1.10.10`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile. The app also targets web with a responsive PWA layout.
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category    | Technology                                         |
+| ----------- | -------------------------------------------------- |
+| Framework   | Expo 54, React Native 0.81, React 19               |
+| Language    | TypeScript 5.9                                      |
+| Auth        | Clerk (Expo)                                        |
+| Payments    | RevenueCat (react-native-purchases)                 |
+| Web3        | Thirdweb                                            |
+| State       | Zustand 5 + MMKV persistence                       |
+| Storage     | MMKV                                                |
+| UI          | Lucide React Native                                 |
+| Navigation  | Expo Router 6 (file-based, typed routes)            |
+| Animations  | React Native Reanimated 4                           |
+| Monitoring  | Sentry                                              |
+| Package     | Bun                                                 |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
+- **Wallet** — tokens, holdings, pack opening, crypto checkout (via PWA backend on Arbitrum, Ethereum, Polygon)
+- **Shop** — collectibles, cart, coin bundles, 3D model viewer, fiat and crypto checkout
+- **Leaderboard** — rankings and filters
+- **Locker room** — social feed, quests, daily pick-em, spin wheel, guess-the-player games
+- **Profile** — user profile, team membership, settings
+- **Theme** — dark/light mode (default dark)
+- **PWA** — standalone web mode with responsive desktop layout (`max-width: 480px`)
 
 ## What changed since last docs sync
 
@@ -64,12 +66,123 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Clone and install">
+    ```bash
+    git clone <repo-url>
+    cd d-sports-engage-native
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Create a `.env` file at the project root with the following `EXPO_PUBLIC_*` variables:
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+    | Variable | Description |
+    | -------- | ----------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication publishable key |
+    | `EXPO_PUBLIC_API_URL` | API backend URL (e.g. `https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+    <Note>Only `EXPO_PUBLIC_*` keys are accessible at runtime in the Expo app.</Note>
+  </Step>
+  <Step title="Start the development server">
+    ```bash
+    bunx expo start
+    ```
+
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+</Steps>
+
+## Build commands
+
+| Command | Description |
+| ------- | ----------- |
+| `bunx expo start` | Start development server |
+| `bun run web` | Start web development server |
+| `bun run build:web` | Export static web build |
+| `bun run build:dev` | EAS development build (all platforms) |
+| `bun run build:preview` | EAS preview build (all platforms) |
+| `bun run build:prod` | EAS production build (all platforms) |
+| `bun run android` | Local Android build |
+| `bun run ios` | Local iOS build |
+| `bun tsc --noEmit` | TypeScript type check |
+
+<Tip>Append `:ios` or `:android` to any `build:*` command for a single-platform build (e.g. `bun run build:dev:ios`).</Tip>
+
+## Project structure
+
+```tree
+app/
+├── (auth)/              # Login, signup, SSO, password reset
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals/tabs
+├── profile/[handle].tsx # Dynamic user profile route
+└── _layout.tsx          # Root layout with providers + auth protection
+
+components/
+├── wallet/              # 9 wallet sub-components (TabButton, ActionModal, TokenDetailModal, etc.)
+├── shop/                # 7 shop sub-components (CartModal, CryptoCheckoutModal, PackDetailModal, etc.)
+├── locker-room/         # Social feed, quests, daily games, explore sections
+├── leaderboard/         # Leaderboard display and modal
+├── settings/            # Settings items, sections, and modals
+├── layout/              # AppScreen responsive wrapper
+├── ui/                  # Reusable UI primitives (Button, TextField, WebHoverWrapper, etc.)
+├── Icon/                # Lucide icon wrapper
+└── theme-provider.tsx   # Dark/light theme context
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+├── use-feed-section.ts  # Locker room feed logic
+└── use-carousel-scroll.ts # Carousel auto-scroll behavior
+
+lib/
+├── api/                 # API client modules (wallet, shop, user, quests, checkout, leaderboard, etc.)
+│   ├── client.ts        # Base HTTP client with auth token injection
+│   ├── cache.ts         # MMKV cache-first fetching
+│   └── index.ts         # useApi() hook exposing all API modules
+├── revenuecat/          # RevenueCat in-app purchases provider
+├── crypto/              # On-chain transaction signing (native + web)
+└── supabase.ts          # Supabase client initialization
+
+context/
+├── user-context.tsx          # Authentication, user profile, team membership
+├── collectibles-context.tsx  # Owned packs and items
+├── navbar-visibility-context.tsx
+└── create-action-context.tsx
+
+services/
+├── store.ts             # Zustand global store (theme, cart, points)
+├── storage.ts           # MMKV persistence adapter
+└── types.ts             # Core types (User, Room, Team, Product)
+
+types/                   # Shared TypeScript types (wallet, shop, checkout, API)
+constants/               # Shared constants (tokens, coin bundles, locker room config)
+theme/                   # Brand colors, spacing, typography tokens
+```
+
+## Architecture patterns
+
+- **File-based routing** — Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)` and typed routes
+- **Modular screen architecture** — screen files contain only JSX; all state, effects, and handlers live in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`)
+- **Extracted sub-components** — wallet and shop screens decomposed into `components/wallet/` and `components/shop/` with barrel exports
+- **Zustand + MMKV** — global state with synchronous persistence
+- **React Context** — auth (`UserContext`), collectibles, navbar visibility
+- **API client layer** — `lib/api/` with domain modules and MMKV cache fallback
+- **Crypto checkout** — Thirdweb SDK calling the PWA backend for on-chain payments (Arbitrum, Ethereum, Polygon)
+- **Fiat checkout** — RevenueCat for Apple IAP (native), Google Play (native), and Stripe (web)
+- **Path alias** — `@/*` maps to project root
+
+## Linking and deep links
+
+The app uses the `engagenative` custom URL scheme and supports associated domains for universal links on iOS (`applinks:dsports.app`). Apple Sign In is enabled.
 
 ## Deep dives
 
