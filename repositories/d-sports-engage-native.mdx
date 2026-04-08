@@ -12,25 +12,29 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                                    |
+| -------------- | --------------------------------------------- |
+| Framework      | Expo 54, React Native 0.81, React 19          |
+| Auth           | Clerk (Expo)                                  |
+| Payments       | RevenueCat (react-native-purchases)           |
+| Web3           | Thirdweb                                      |
+| State          | Zustand                                       |
+| Storage        | MMKV                                          |
+| UI             | Lucide React Native                           |
+| Navigation     | Expo Router (typed routes)                    |
+| Push           | OneSignal                                     |
+| Error tracking | Sentry                                        |
+| Analytics      | Vercel Analytics                              |
+| Package        | Bun                                           |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, quests, daily games (Pick 'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, followers/following, points history
+- **Settings** — Account, notifications, privacy, accessibility, appearance, support
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
@@ -64,10 +68,96 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Clone and install">
+    Clone the repository and install dependencies:
+
+    ```bash
+    git clone <repo-url>
+    cd d-sports-engage-native
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Create a `.env` file in the project root with the following keys:
+
+    | Variable | Description |
+    | -------- | ----------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for authentication |
+    | `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 features |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store app ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier (e.g. `premium`) |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+
+    <Note>Only `EXPO_PUBLIC_*` keys are accessible at runtime in the Expo app.</Note>
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    bunx expo start
+    ```
+
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+</Steps>
+
+## EAS build profiles
+
+The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with the following profiles defined in `eas.json`:
+
+| Profile | Purpose | Distribution |
+| ------- | ------- | ------------ |
+| `development` | Dev client with simulator support | Internal |
+| `development-device` | Dev client on physical devices | Internal |
+| `preview` | Internal testing (APK on Android) | Internal |
+| `staging` | Pre-production with auto-increment | Default |
+| `production` | App Store / Play Store release | Default |
+
+Common build commands:
+
+```bash
+bun run build:dev:ios       # Development build (iOS)
+bun run build:dev:android   # Development build (Android)
+bun run build:preview       # Preview build (all platforms)
+bun run build:prod          # Production build (all platforms)
+```
+
+## OTA updates
+
+Pushes to `main` trigger an EAS Update via GitHub Actions (`.github/workflows/eas-update.yml`). The workflow publishes an over-the-air update for iOS using the branch channel.
+
+To publish an update manually:
+
+```bash
+bun run update
+```
+
+## iOS permissions and entitlements
+
+The app declares the following in `app.json` under `expo.ios.infoPlist`:
+
+| Key | Purpose |
+| --- | ------- |
+| `NSUserTrackingUsageDescription` | App Tracking Transparency prompt |
+| `NSLocationWhenInUseUsageDescription` | Required by dependencies (e.g. OneSignal) that link against location APIs, even if you do not call them directly |
+| `ITSAppUsesNonExemptEncryption` | Set to `false` — no custom encryption |
+
+The app also uses Apple Sign In (`usesAppleSignIn: true`) and associated domains for deep linking (`applinks:dsports.app`).
+
+## Project structure
+
+| Path | Description |
+| ---- | ----------- |
+| `app/` | Expo Router screens (auth, onboarding, tabs, settings, profile) |
+| `components/` | Reusable UI components organized by feature |
+| `hooks/` | Custom React hooks (carousel, haptics, shop, wallet, etc.) |
+| `lib/api/` | API client modules per domain (user, wallet, shop, leaderboard, etc.) |
+| `context/` | React contexts (user, accessibility, collectibles, navbar) |
+| `theme/` | Colors, spacing, and typography tokens |
+| `services/` | RevenueCat service, storage (MMKV), and Zustand store |
+| `constants/` | App-level constants (shop, wallet, locker room, changelog) |
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
