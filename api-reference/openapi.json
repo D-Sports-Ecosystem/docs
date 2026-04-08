@@ -810,21 +810,29 @@
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
         "summary": "Add wallet",
+        "description": "Creates a custodial wallet. Provide either encryptedPrivateKey or privateKey (not both). Optional mnemonic and pin for initial setup.",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["address"],
                 "properties": {
-                  "address": { "type": "string" },
-                  "encryptedPrivateKey": { "type": "string" }
+                  "address": { "type": "string", "description": "Ethereum address (0x-prefixed, 40 hex chars)" },
+                  "encryptedPrivateKey": { "type": "string", "description": "Pre-encrypted private key" },
+                  "privateKey": { "type": "string", "description": "Raw private key (server encrypts on save)" },
+                  "mnemonic": { "type": "string", "description": "BIP-39 mnemonic phrase" },
+                  "pin": { "type": "string", "description": "Initial wallet PIN" }
                 }
               }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ wallet }" } }
+        "responses": {
+          "201": { "description": "{ wallet }" },
+          "400": { "description": "Validation error (missing address, invalid format, or conflicting key fields)" }
+        }
       },
       "delete": {
         "tags": ["Wallets", "Wallet and web3"],
@@ -838,6 +846,49 @@
         },
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "{ message }" } }
+      }
+    },
+    "/api/wallets/link-challenge": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create wallet link challenge",
+        "description": "Generates a one-time SIWE-style message for proving ownership of an external wallet before linking it.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ challengeId, message, expiresAt }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/wallets/link-external": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Link external wallet",
+        "description": "Verifies a signed challenge and links a non-custodial wallet from an external provider (e.g. MetaMask, WalletConnect).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["challengeId", "message", "signature", "address", "provider"],
+                "properties": {
+                  "challengeId": { "type": "string", "description": "ID returned by /api/wallets/link-challenge" },
+                  "message": { "type": "string", "description": "The challenge message that was signed" },
+                  "signature": { "type": "string", "description": "Wallet signature over the challenge message" },
+                  "address": { "type": "string", "description": "Ethereum address of the external wallet" },
+                  "provider": { "type": "string", "description": "Wallet provider identifier (e.g. metamask, walletconnect)" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ wallet }" },
+          "400": { "description": "Validation error, expired challenge, signature mismatch, or wallet already linked" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     },
     "/api/wallets/set-pin": {
