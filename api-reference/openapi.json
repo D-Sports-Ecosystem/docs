@@ -27,6 +27,7 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Notifications", "description": "In-app notifications and push subscriptions" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -1088,6 +1089,232 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "List notifications",
+        "description": "Returns paginated in-app notifications for the authenticated user. Filter by status (UNREAD, READ, ARCHIVED, or ALL).",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["all", "unread", "read", "archived"], "default": "all" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { notifications, unreadCount, pagination: { page, limit, total, hasMore } } }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Mark all notifications as read",
+        "description": "Marks every UNREAD notification for the authenticated user as READ.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { updated, readAt } }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/read": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Mark notification as read",
+        "description": "Marks a single notification as READ. If already ARCHIVED the status stays ARCHIVED.",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated notification object" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/archive": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Archive notification",
+        "description": "Sets the notification status to ARCHIVED and records archivedAt.",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated notification object" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/user/push-subscriptions": {
+      "get": {
+        "tags": ["Notifications", "User"],
+        "summary": "List push subscriptions",
+        "description": "Returns all push notification subscriptions for the authenticated user.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of push subscription objects" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Notifications", "User"],
+        "summary": "Register or update push subscription",
+        "description": "Upserts a push subscription keyed by userId + platform. Used by native apps to register their OneSignal subscription ID.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["platform"],
+                "properties": {
+                  "platform": { "type": "string", "description": "Device platform, e.g. ios, android, web" },
+                  "provider": { "type": "string", "default": "onesignal" },
+                  "externalSubscriptionId": { "type": "string", "description": "OneSignal subscription ID" },
+                  "pushToken": { "type": "string", "description": "Raw device push token" },
+                  "isEnabled": { "type": "boolean", "default": true },
+                  "metadata": { "type": "object", "description": "Optional device metadata" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Created or updated subscription object" },
+          "400": { "description": "platform is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["Notifications", "User"],
+        "summary": "Remove push subscription",
+        "description": "Deletes push subscriptions for the authenticated user on the given platform.",
+        "parameters": [
+          { "name": "platform", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "platform is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/settings": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user settings",
+        "description": "Returns the full settings object for the authenticated user, including push notification preferences.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Settings object" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user settings",
+        "description": "Updates user settings. All fields are optional. Includes push notification toggles (pushEnabled, notifyMentions, notifyLikes, notifyComments, notifyFollows, notifyRoomInvites) and accessibility/appearance options.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "privateProfile": { "type": "boolean" },
+                  "showOnlineStatus": { "type": "boolean" },
+                  "allowDirectMessages": { "type": "boolean" },
+                  "appearanceTheme": { "type": "string" },
+                  "pushEnabled": { "type": "boolean" },
+                  "notifyMentions": { "type": "boolean" },
+                  "notifyLikes": { "type": "boolean" },
+                  "notifyComments": { "type": "boolean" },
+                  "notifyFollows": { "type": "boolean" },
+                  "notifyRoomInvites": { "type": "boolean" },
+                  "reduceMotion": { "type": "boolean" },
+                  "largerText": { "type": "boolean" },
+                  "highContrast": { "type": "boolean" },
+                  "screenReaderSupport": { "type": "boolean" },
+                  "hapticFeedback": { "type": "boolean" },
+                  "dataSaverMode": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated settings object" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/blocks": {
+      "get": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "List blocked users",
+        "description": "Returns all users blocked by the authenticated user.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of { id, createdAt, user } objects" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Block user",
+        "description": "Blocks a user by ID. Idempotent.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["blockedUserId"],
+                "properties": {
+                  "blockedUserId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Block object" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "User not found" }
+        }
+      },
+      "delete": {
+        "tags": ["User", "Moderation and reporting"],
+        "summary": "Unblock user",
+        "description": "Removes a block. Pass blockedUserId as query parameter or in JSON body.",
+        "parameters": [
+          { "name": "blockedUserId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "blockedUserId is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/data-export": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Export user data",
+        "description": "Generates a JSON export of all data associated with the authenticated user.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "JSON data export" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     }
   },
