@@ -27,6 +27,7 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Games", "description": "Interactive games: daily spin wheel, pick-em" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -1034,6 +1035,49 @@
           }
         },
         "responses": { "200": { "description": "{ received: true }" } }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a wheel-spin landing. `rewardType=coin` grants 150 pts (max 5 per day). `rewardType=weekly_set` grants 500 pts once per week (requires `weekStartDate`). Points are applied to the user's team leaderboard and synced to the global aggregate.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"] },
+                  "weekStartDate": { "type": "string", "description": "ISO date (YYYY-MM-DD). Required when rewardType is weekly_set." },
+                  "landedSegmentId": { "type": "string", "description": "Client-side segment identifier for analytics." },
+                  "teamId": { "type": "string", "description": "Team ID, slug, or name to resolve the target leaderboard." },
+                  "leaderboardId": { "type": "integer", "description": "Explicit leaderboard ID (overrides teamId resolution)." }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ pointsAwarded, rewardType, alreadyAwarded, leaderboardUpdates }" },
+          "400": { "description": "Validation error (missing weekStartDate or invalid payload)" },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": ["Games", "Gamification"],
+        "summary": "List pick-em players",
+        "description": "Returns the current pick-em player pool with name, team, position, tier (elite / allstar / underdog), goals, and image URL. Merges database records with a bundled JSON seed.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success, data: { players } }" },
+          "401": { "description": "Authentication required" }
+        }
       }
     },
     "/api/image-proxy": {
