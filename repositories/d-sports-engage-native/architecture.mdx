@@ -28,3 +28,13 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+
+### Tab bar
+
+The bottom tab bar uses platform-specific implementations defined in `app/(tabs)/`:
+
+- **iOS** — `_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` with `systemChromeMaterialDark` and gold selection color (`#FFD700`).
+- **Android and web** — `_layout.tsx` renders a JS `Tabs` layout with a hidden default bar and a custom `PillTabBar` overlay. Android uses `expo-blur` (`BlurView`) for the blur surface.
+- **Shared config** — `tab-config.ts` defines tab order, SF Symbol pairs (iOS), and helpers like `getActiveTabIndex` so `/profile/[handle]` does not highlight the Profile tab.
+
+The Android application ID is `com.dsports.engage`.
