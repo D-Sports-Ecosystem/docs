@@ -26,7 +26,8 @@
     { "name": "D-Sports Cash", "description": "D-Sports Cash balance" },
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
-    { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Leagues", "description": "Leagues list and metadata" },
+    { "name": "Webhooks", "description": "RevenueCat and league-sync webhooks" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -415,7 +416,6 @@
       }
     },
     "/api/user/profile": {
-      "get": { "tags": ["User"], "summary": "Get profile", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Profile" } } },
       "patch": {
         "tags": ["User"],
         "summary": "Update profile",
@@ -1089,6 +1089,131 @@
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues", "Platform and infrastructure"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with colors, metadata, and team counts. Optionally filter by country.",
+        "parameters": [
+          { "name": "country", "in": "query", "description": "Case-insensitive country filter.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ leagues: [{ id, slug, name, fullName, country, logo, logoFormat, colors, source, _count }] }" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List community users",
+        "description": "Paginated list of all onboarded users. Supports excluding users the caller already follows. Rate-limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "description": "Max results (1-100, default 50).", "schema": { "type": "integer", "default": 50 } },
+          { "name": "excludeFollowing", "in": "query", "description": "Set to `true` to exclude users already followed.", "schema": { "type": "string", "enum": ["true", "false"] } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Authentication required" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Case-insensitive lookup to check whether a handle is already taken.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "description": "The handle to check.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ available: boolean }" },
+          "400": { "description": "Username query parameter is required" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns the product-to-entitlement mapping for RevenueCat integration. Includes D-Sports Cash tiers and the Frontline Pass subscription.",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ mappings: [{ productId, entitlement, metadata: { coins, name } }] }" }
+        }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": ["Misc", "Wallet and web3"],
+        "summary": "Thirdweb proxy (GET)",
+        "description": "Proxies GET requests to allowed Thirdweb upstream URLs (RPC and embedded-wallet endpoints).",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "description": "Upstream Thirdweb URL to proxy.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied upstream response" },
+          "400": { "description": "Invalid or missing url" }
+        }
+      },
+      "post": {
+        "tags": ["Misc", "Wallet and web3"],
+        "summary": "Thirdweb proxy (POST)",
+        "description": "Proxies POST requests to allowed Thirdweb upstream URLs, forwarding headers and body.",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "description": "Upstream Thirdweb URL to proxy.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "Proxied upstream response" },
+          "400": { "description": "Invalid or missing url" }
+        }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create Thirdweb link",
+        "description": "Creates a Thirdweb link for the authenticated user. Returns the user ID and email with a session header.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": { "payload": { "type": "object", "description": "Thirdweb link payload." } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ userId, email }" },
+          "400": { "description": "Missing payload" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks", "Platform and infrastructure"],
+        "summary": "League sync webhook",
+        "description": "Webhook triggered by GitHub Actions to synchronize league data from the leagues repository into the database.",
+        "parameters": [
+          { "name": "x-webhook-secret", "in": "header", "required": true, "description": "Must match LEAGUES_WEBHOOK_SECRET.", "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "Sync result object" },
+          "401": { "description": "Invalid or missing webhook secret" }
+        }
+      }
     }
   },
   "components": {
@@ -1101,7 +1226,7 @@
       "webhookSecret": {
         "type": "http",
         "scheme": "bearer",
-        "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+        "description": "Webhook secret token. REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat; LEAGUES_WEBHOOK_SECRET (x-webhook-secret header) for /api/webhooks/leagues-sync."
       }
     }
   }
