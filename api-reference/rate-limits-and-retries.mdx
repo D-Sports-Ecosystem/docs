@@ -11,6 +11,16 @@ Non-admin API clients should assume conservative retry behavior:
 - Do not blind-retry writes unless route behavior is idempotent or guarded by server checks.
 - Avoid concurrent duplicate writes for the same user action.
 
+## Built-in transient retry behavior
+
+The API backend uses an internal `fetchWithRetry` utility for outbound requests to upstream services (for example, CoinMarketCap price feeds). This means:
+
+- Upstream calls automatically retry on status codes `429`, `500`, `502`, `503`, and `504`.
+- Retries use **exponential backoff** starting at 1 second, doubling each attempt, capped at 10 seconds.
+- A maximum of **3 retries** are attempted before the backend returns an error to you.
+
+Because the backend already handles transient upstream failures, you generally do not need to add your own retry logic for endpoints that aggregate third-party data (such as `/api/crypto-prices` or `/api/wallets/coin-prices`). A single client request is usually sufficient.
+
 ## Stream endpoints
 
 For SSE endpoints (leaderboard and locker room streams):
