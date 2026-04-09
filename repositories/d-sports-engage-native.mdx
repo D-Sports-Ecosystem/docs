@@ -1,75 +1,144 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native 0.81, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version **1.17.3**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+The app also supports web via Expo's static output, running as a responsive PWA with `display: standalone`.
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category    | Technology                                    |
+| ----------- | --------------------------------------------- |
+| Framework   | Expo 54, React Native 0.81, React 19          |
+| Auth        | Clerk (Expo)                                  |
+| Payments    | RevenueCat (react-native-purchases)           |
+| Web3        | Thirdweb                                      |
+| State       | Zustand + MMKV persistence                    |
+| Push        | OneSignal                                     |
+| Monitoring  | Sentry                                        |
+| UI          | Lucide React Native                           |
+| Navigation  | Expo Router 6 (file-based, typed routes)      |
+| Package     | Bun                                           |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
-
-## What changed since last docs sync
-
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
-
-## Backend integration surfaces
-
-- Primary API source: `d-sports-api` under `/api/*`.
-- Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
-
-## Quest and pass UX integration
-
-- Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
-- Reward presentation differentiates free/unpaid states and claimability.
-- Native progression state is expected to mirror backend eligibility and completion semantics.
-
-## Team-aware experiences
-
-- Team discovery, favorite-team interactions, and leaderboard context are integrated across locker room and profile surfaces.
-- Team and league metadata is sourced from backend sync pipelines fed by the `leagues` repository.
-
-## Compliance and legal: pack opening odds
-
-- Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
-- Disclosure values must come from backend payloads and remain visible/accessible near open actions.
+- **Wallet** — tokens, holdings, pack opening, crypto checkout (Arbitrum, Ethereum, Polygon)
+- **Shop** — collectibles, cart, coin bundles, 3D model viewer, checkout via RevenueCat or crypto
+- **Leaderboard** — team-scoped rankings and filters
+- **Locker room** — social feed, daily pick'em, spin wheel, guess-the-player games
+- **Profile** — achievements, milestone avatars, follow lists, points history
+- **Settings** — account, appearance, accessibility, notifications, data, legal, support
+- **Theme** — dark/light mode (default dark)
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+### Prerequisites
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+- [Bun](https://bun.sh) v1.3+
+- [Expo CLI](https://docs.expo.dev/get-started/set-up-your-environment/) (via `bunx expo`)
+- iOS Simulator (macOS) or Android Emulator, or a physical device with Expo Go
+
+### Install and run
+
+```bash
+# Install dependencies
+bun install
+
+# Start the development server
+bunx expo start
+# Press 'a' for Android, 'i' for iOS, or scan the QR code with Expo Go
+```
+
+### Environment variables
+
+Create a `.env` file in the project root. Only keys prefixed with `EXPO_PUBLIC_` are accessible at runtime.
+
+| Variable                              | Purpose                        |
+| ------------------------------------- | ------------------------------ |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`   | Clerk authentication           |
+| `EXPO_PUBLIC_API_URL`                 | Backend API base URL           |
+| `EXPO_PUBLIC_TW_CLIENT_ID`           | Thirdweb client ID             |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY`     | RevenueCat API key             |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID        |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name    |
+| `EXPO_PUBLIC_SUPABASE_URL`           | Supabase project URL           |
+| `EXPO_PUBLIC_SUPABASE_KEY`           | Supabase publishable key       |
+
+### Available scripts
+
+| Command                    | Description                          |
+| -------------------------- | ------------------------------------ |
+| `bun run start`            | Start Expo dev server                |
+| `bun run web`              | Start Expo for web                   |
+| `bun run build:web`        | Export static web build              |
+| `bun run build:dev`        | EAS development build (all platforms)|
+| `bun run build:preview`    | EAS preview build (internal)         |
+| `bun run build:prod`       | EAS production build                 |
+| `bun run submit:ios`       | Submit iOS build to App Store        |
+| `bun run submit:android`   | Submit Android build to Google Play  |
+| `bun run prebuild:clean`   | Clean Expo prebuild                  |
+| `bun tsc --noEmit`         | TypeScript type check                |
+
+### EAS build profiles
+
+The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with these profiles defined in `eas.json`:
+
+| Profile        | Distribution | Channel        | Notes                    |
+| -------------- | ------------ | -------------- | ------------------------ |
+| `development`  | Internal     | `development`  | Dev client, iOS simulator|
+| `development-device` | Internal | `development`| Dev client, physical device |
+| `preview`      | Internal     | `preview`      | Android APK              |
+| `staging`      | —            | `staging`      | Auto-increment version   |
+| `production`   | —            | `production`   | Auto-increment version   |
+
+## Project structure
+
+```text
+app/
+├── (auth)/              # Login, signup, SSO, password reset
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers and auth protection
+
+components/
+├── wallet/              # Wallet sub-components (token rows, modals, pack opening)
+├── shop/                # Shop sub-components (cart, checkout, 3D viewer)
+├── locker-room/         # Social feed, games, quests, explore
+├── leaderboard/         # Leaderboard rows, modals, team quests
+├── profile/             # Achievement cards, milestone avatars, follow lists
+├── settings/            # Setting items, changelog, modals, tabs
+├── ui/                  # Reusable primitives (Button, TextField, TutorialOverlay)
+├── Icon/                # Icon wrapper using lucide-react-native
+└── theme-provider.tsx   # Theme context (dark/light)
+
+hooks/                   # Feature hooks (wallet, shop, feed, haptics, auth)
+lib/api/                 # API client modules (wallet, shop, user, quests, teams, etc.)
+lib/revenuecat/          # RevenueCat in-app purchases provider
+context/                 # React Context providers (user, collectibles, accessibility)
+services/                # Zustand store, MMKV storage, types
+theme/                   # Colors, spacing, typography tokens
+types/                   # Shared TypeScript types
+constants/               # App constants and data
+```
+
+## Backend integration surfaces
+
+- Primary API source: `d-sports-api` at the URL set by `EXPO_PUBLIC_API_URL`.
+- The native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
+- Retry, caching (MMKV cache-first), and auth token injection are centralized in `lib/api/client.ts`.
+- Crypto checkout calls the PWA backend at `POST /api/checkout/crypto` and `POST /api/checkout/crypto/verify`.
+
+## Platform-specific tab bar
+
+- **iOS** uses `NativeTabs` from `expo-router/unstable-native-tabs` for the system tab bar with SF Symbol icons.
+- **Android and web** use a custom `PillTabBar` overlay with `expo-blur`.
+- Shared tab configuration lives in `app/(tabs)/tab-config.ts`.
 
 ## Deep dives
 
