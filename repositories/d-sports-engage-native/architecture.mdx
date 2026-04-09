@@ -7,24 +7,71 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- **Routing:** `app/*` with grouped routes for `(tabs)`, `(auth)`, `(onboarding)`, and `settings/`.
+- **Feature logic:** extracted hooks (`hooks/use-wallet-screen.ts`, `hooks/use-shop-screen.ts`, etc.) keep screen files as thin render shells.
+- **Shared contexts:** user, collectibles, accessibility, navbar visibility, and create-action state.
+
+## Modular architecture
+
+The codebase enforces strict modular patterns:
+
+- **Screen files are thin render shells** — files in `app/(tabs)/` contain only imports and JSX. All state, effects, and handlers live in custom hooks under `hooks/`.
+- **External stylesheets** — `StyleSheet.create()` is never placed inside component files. All styles go in `styles/` subdirectories as `ComponentName.styles.ts`.
+- **One component per file** — each component gets its own `.tsx` file with a named export. Related components are grouped in `components/<domain>/` with a barrel `index.ts`.
+- **Centralized types and constants** — shared types live in `types/<domain>.types.ts`, constants in `constants/<domain>.constants.ts`.
+- **File size limit** — no file should exceed ~300 lines; large files are split into sub-components, hooks, styles, and types.
+- **Path aliases** — all imports use `@/*` (maps to project root).
+
+## Tab bar architecture
+
+The app uses platform-specific tab bar implementations:
+
+### iOS
+
+`app/(tabs)/_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` for the system tab bar. Key details:
+- Uses `systemChromeMaterialDark` background with gold selection tint (`#FFD700`).
+- Wallet tab shows a numeric `Badge` for unopened packs.
+- SF Symbol pairs are defined in `app/(tabs)/tab-config.ts`.
+- `disableTransparentOnScrollEdge` prevents the bar from losing its dark material on scroll.
+
+### Android and web
+
+`app/(tabs)/_layout.tsx` uses the JS `Tabs` component with a hidden default bar and a custom `PillTabBar` overlay. Android uses `expo-blur` (`BlurView`) for the pill background.
+
+### Shared config
+
+`app/(tabs)/tab-config.ts` defines tab order, SF Symbol pairs for iOS, and helper functions like `getActiveTabIndex` and `isPublicProfileStackRoute`.
 
 ## State and context boundaries
 
 - Local/ephemeral UI state lives near feature hooks and components.
 - Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+- **Zustand** store in `services/store.ts` with MMKV persistence for theme, cart, and points.
+- **React Context** providers in `context/`: `UserContext`, `CollectiblesContext`, `NavBarVisibilityContext`, `CreateActionContext`, and `AccessibilityContext`.
+
+## Accessibility architecture
+
+The app supports all 9 Apple Accessibility Nutrition Label categories. The central `AccessibilityContext` (`context/accessibility-context.tsx`) manages:
+
+- **VoiceOver and Voice Control** — all interactive elements have `accessibilityRole`, `accessibilityLabel`, `accessibilityHint`, and `accessibilityState`.
+- **Larger text** — respects iOS Dynamic Type via `AccessibilityInfo` with in-app 1.25× toggle, capped at 2× via `maxFontSizeMultiplier`.
+- **Reduced motion** — `ReducedMotionConfig` from `react-native-reanimated` at the root layout, plus in-app toggle.
+- **High contrast** — `theme/colors.ts` exports `darkHighContrast` and `lightHighContrast` variants; activated by in-app toggle or iOS Bold Text setting.
+- **Differentiate without color** — directional arrows (▲/▼) alongside price change colors, text labels on rarity badges.
+
+See [Accessibility compliance](/repositories/d-sports-engage-native/compliance/accessibility) for the full implementation matrix.
 
 ## API client and retry behavior
 
 - All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- `lib/api/client.ts` is the base HTTP client with auth token injection.
+- `lib/api/cache.ts` provides `fetchWithCache()` using MMKV for cache-first fetching.
+- Domain modules: `wallet-api.ts`, `shop-api.ts`, `user-api.ts`, `quests-api.ts`, `leaderboard-api.ts`, `locker-room-api.ts`, `teams-api.ts`, `collectibles-api.ts`, `checkout-api.ts`.
+- Quest/reward/team flows consume backend eligibility as source of truth.
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- **iOS:** system tab bar via `NativeTabs`, native haptics, Apple authentication.
+- **Android:** custom pill tab bar with `BlurView`, platform keyboard handling (`softwareKeyboardLayoutMode: resize`).
+- **Web:** responsive `maxWidth: 480px` container via `AppScreen`, hover states via `WebHoverWrapper`, PWA manifest with `display: "standalone"`.
+- Haptics, modal controls, and animation handling use platform-safe fallbacks.
