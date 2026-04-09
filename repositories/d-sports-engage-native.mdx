@@ -6,51 +6,72 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version **1.17.4**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Run:** `bunx expo start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **TypeScript check:** `bun tsc --noEmit`
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                                    |
+| -------------- | --------------------------------------------- |
+| Framework      | Expo 54, React Native 0.81, React 19          |
+| Auth           | Clerk (`@clerk/clerk-expo`)                   |
+| Payments       | RevenueCat (`react-native-purchases`)         |
+| Web3           | Thirdweb                                      |
+| State          | Zustand 5                                     |
+| Storage        | MMKV                                          |
+| UI             | Lucide React Native                           |
+| Navigation     | Expo Router 6                                 |
+| Push           | OneSignal (`react-native-onesignal`)          |
+| Error tracking | Sentry (`@sentry/react-native`)               |
+| Animations     | React Native Reanimated 4                     |
+| Package        | Bun                                           |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
+- **Wallet** — Tokens, holdings, pack opening, send/receive, crypto checkout (via PWA backend)
+- **Shop** — Collectibles, cart, coin bundles, fiat (RevenueCat) and crypto checkout
+- **Leaderboard** — Per-team and global rankings with team-slug routes
+- **Locker room** — Social feed, quest center, and mini-games (Daily Spin Wheel, Guess the Player, Daily Pick'em)
+- **Profile** — User profile, milestone avatar rings, achievements, follower/following lists, points history
+- **Settings** — Account, accessibility, appearance, notifications, support, legal, and in-app account deletion
+- **Theme** — Dark mode default (base `#0a0e1a`, gold `#F5C842`, blue `#4169E1`)
 
-## What changed since last docs sync
+## Environment variables
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+The app reads `EXPO_PUBLIC_*` environment variables at runtime. You need to set these in a `.env` file at the repo root:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
 
 ## Backend integration surfaces
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
+- Retry/caching logic and auth token injection are centralized in `lib/api/client.ts`.
+
+## EAS builds and OTA updates
+
+The repo includes EAS build profiles in `eas.json` and a GitHub Actions workflow (`.github/workflows/eas-update.yml`) for OTA updates:
+
+- Pushes to `develop` publish an OTA update to the **develop** branch.
+- Pushes to `main` publish an OTA update to the **main** branch.
+- Build commands: `bun run build:dev`, `bun run build:preview`, `bun run build:prod` (all via `eas-cli`).
 
 ## Quest and pass UX integration
 
-- Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
+- Quest UI reflects team-scoped eligibility and pass-gated progression where applicable.
 - Reward presentation differentiates free/unpaid states and claimability.
-- Native progression state is expected to mirror backend eligibility and completion semantics.
+- Native progression state mirrors backend eligibility and completion semantics.
 
 ## Team-aware experiences
 
@@ -65,9 +86,10 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Create a `.env` file with the required environment variables listed above.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For native builds: `expo run:ios` or `expo run:android`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
