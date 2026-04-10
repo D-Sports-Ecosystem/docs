@@ -26,5 +26,7 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
+- The app supports iPad and Mac (via iPad app) with `supportsTablet: true` and `requireFullScreen: false`. Orientation is set to `"default"` so the UI adapts to portrait and landscape.
+- The `AppScreen` layout wrapper applies safe-area insets (`left`/`right`) so content reflows correctly on wider screens without a fixed `maxWidth`.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
