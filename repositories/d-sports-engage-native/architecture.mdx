@@ -3,28 +3,105 @@ title: "Native architecture"
 description: "Architecture overview for d-sports-engage-native application layers and platform behavior."
 ---
 
-## App architecture
+## Project structure
 
-The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
+```text
+app/
+├── (auth)/              # Login/signup screens
+├── (onboarding)/        # New user onboarding flow
+├── (tabs)/              # Main tab navigation
+│   ├── wallet.tsx       # Wallet screen (JSX only — logic in hook)
+│   ├── shop.tsx         # Shop screen (JSX only — logic in hook)
+│   ├── leaderboard/     # Leaderboard screens
+│   ├── locker-room/     # Social feed
+│   └── profile.tsx      # User profile
+├── settings/            # Settings pages with nested modals/tabs
+└── _layout.tsx          # Root layout with providers + auth protection
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+components/
+├── wallet/              # Extracted wallet sub-components
+├── shop/                # Extracted shop sub-components
+├── locker-room/         # Locker room components
+├── leaderboard/         # Leaderboard components
+├── profile/             # Profile components
+├── settings/            # Settings components
+├── navigation/          # PillTabBar, tab config
+├── layout/              # AppScreen wrapper (responsive web max-width)
+├── ui/                  # Reusable UI primitives
+├── Icon/                # Icon wrapper (lucide-react-native)
+└── theme-provider.tsx   # Theme context (dark/light)
 
-## State and context boundaries
+hooks/                   # Feature hooks (use-wallet-screen, use-shop-screen, etc.)
+lib/api/                 # API client modules with MMKV cache fallback
+context/                 # React Context providers (user, collectibles, navbar)
+services/                # Zustand store, MMKV storage, types
+theme/                   # Brand colors, design tokens
+types/                   # Shared TypeScript types
+constants/               # Shared constants
+```
 
-- Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+## Routing
 
-## API client and retry behavior
+The app uses **Expo Router** with file-based routing and typed routes enabled.
+
+- **Route groups:** `(tabs)` for main navigation, `(auth)` for login/signup, `(onboarding)` for new users
+- **Settings:** `settings/` directory contains settings pages with nested components, modals, and tabs
+- **Auth protection:** `_layout.tsx` automatically redirects based on authentication and onboarding state
+- **Path alias:** `@/*` maps to the project root
+
+## Screen pattern
+
+Screen files contain **only imports and JSX**. All state, effects, and handlers live in dedicated hooks:
+
+- `hooks/use-wallet-screen.ts` — wallet state, token fetch effects, PIN verification, transaction handlers
+- `hooks/use-shop-screen.ts` — cart state, product queries, carousel auto-scroll, checkout logic
+- `hooks/use-feed-section.ts` — locker room feed logic
+
+Sub-components are extracted into `components/wallet/`, `components/shop/`, etc. with barrel exports via `index.ts`.
+
+## Tab bar
+
+The tab bar implementation differs by platform:
+
+- **iOS:** uses `NativeTabs` from `expo-router/unstable-native-tabs` (system UIKit tab bar) with `systemChromeMaterialDark` material and gold selection accent (`#FFD700`).
+- **Android + web:** uses a custom JS `PillTabBar` overlay with `expo-blur` (`BlurView`). The default system tab bar is hidden.
+- **Shared config:** `components/navigation/tab-config.ts` defines tab order, SF Symbol pairs for iOS, and active-tab resolution logic.
+
+## State management
+
+| Layer | Technology | Location |
+| ----- | ---------- | -------- |
+| Global store | Zustand 5 + MMKV persistence | `services/store.ts`, `services/storage.ts` |
+| Auth and user | React Context | `context/user-context.tsx` |
+| Collectibles | React Context | `context/collectibles-context.tsx` |
+| Navbar visibility | React Context | `context/navbar-visibility-context.tsx` |
+| Local/ephemeral | Component state in hooks | `hooks/use-*-screen.ts` |
+
+## API client and caching
 
 - All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- `lib/api/client.ts` handles auth token injection (Clerk), error normalization, and retry strategy.
+- `lib/api/cache.ts` provides `fetchWithCache()` with MMKV cache-first fetching.
+- Domain modules: `wallet-api.ts`, `shop-api.ts`, `user-api.ts`, `quests-api.ts`, `leaderboard-api.ts`, `locker-room-api.ts`, `teams-api.ts`, `collectibles-api.ts`, `checkout-api.ts`, `games-api.ts`.
+
+## Checkout and payments
+
+| Method | Technology | Details |
+| ------ | ---------- | ------- |
+| Fiat (Apple IAP, Google Play, Stripe) | RevenueCat | `lib/revenuecat/provider.tsx` |
+| Crypto (on-chain) | Thirdweb SDK | `lib/api/checkout-api.ts` calls `POST /api/checkout/crypto`, Thirdweb signs the transaction |
+
+Supported chains for crypto checkout: **Arbitrum** (default), Ethereum, Polygon.
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- **iOS/Android:** platform differences are handled in native-specific layout files (e.g., `_layout.ios.tsx` vs `_layout.android.tsx`) and runtime checks.
+- **Web:** responsive desktop layout via `AppScreen` wrapper (`maxWidth: 480px`), web hover states (`WebHoverWrapper`), PWA manifest with `display: standalone`.
+- **Haptics:** `expo-haptics` with platform-safe fallbacks.
+- **Animations:** React Native Reanimated 4 for scroll-based navbar hide/show and UI transitions.
+
+## Widgets
+
+- **iOS:** `RankOrPointsWidget` (small/medium) and `LiveStatusActivity` (Live Activity for score updates) via `expo-widgets`.
+- **Android:** `RankOrPointsWidget` via `react-native-android-widget`, refreshes every 30 minutes.
+- Widget data is prepared in `lib/widget-data.ts`.

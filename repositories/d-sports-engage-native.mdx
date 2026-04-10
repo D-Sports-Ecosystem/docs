@@ -1,56 +1,71 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native 0.83, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version **1.18.1**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Run:** `bunx expo start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **TypeScript check:** `bun tsc --noEmit`
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category      | Technology                                      |
+| ------------- | ----------------------------------------------- |
+| Framework     | Expo 55, React Native 0.83.4, React 19.2        |
+| Auth          | Clerk (`@clerk/clerk-expo`)                     |
+| Payments      | RevenueCat (`react-native-purchases`)           |
+| Web3          | Thirdweb SDK                                    |
+| State         | Zustand 5 + MMKV persistence                   |
+| Navigation    | Expo Router 55 (file-based, typed routes)        |
+| Push          | OneSignal (`react-native-onesignal`)            |
+| Monitoring    | Sentry (`@sentry/react-native`)                |
+| Analytics     | Vercel Analytics                                |
+| UI            | Lucide React Native                             |
+| Animations    | React Native Reanimated 4                        |
+| Package       | Bun                                             |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
+- **Wallet** — token balances, holdings, pack opening, crypto checkout (Thirdweb + PWA backend)
+- **Shop** — collectibles, 3D model viewer, cart, coin bundles, RevenueCat + crypto checkout
+- **Leaderboard** — team-scoped rankings, quest hero icons, per-team quest sections
+- **Locker room** — social feed, daily pick'em, spin wheel, guess the player, explore fans/teams
+- **Profile** — achievement badges, milestone avatars, follow lists, points history
+- **Settings** — account management, accessibility, appearance, notifications, support, changelog
+- **Widgets** — iOS home screen and Live Activity widgets, Android home screen widget
+- **Theme** — dark/light mode (default dark)
 
-## What changed since last docs sync
+## Environment variables
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+The app uses `EXPO_PUBLIC_*` prefixed variables accessible at runtime:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement ID |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
 
 ## Backend integration surfaces
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
+- Retry/caching logic and auth token injection are centralized in `lib/api/client.ts` with MMKV cache fallback.
+- Crypto checkout calls the PWA backend (`POST /api/checkout/crypto` and `/api/checkout/crypto/verify`), then signs on-chain via Thirdweb.
 
 ## Quest and pass UX integration
 
-- Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
+- Quest UI reflects team-scoped eligibility and pass-gated progression where applicable.
 - Reward presentation differentiates free/unpaid states and claimability.
-- Native progression state is expected to mirror backend eligibility and completion semantics.
+- Native progression state mirrors backend eligibility and completion semantics.
 
 ## Team-aware experiences
 
@@ -64,12 +79,36 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Copy `.env` and set your `EXPO_PUBLIC_*` keys for Clerk, RevenueCat, Thirdweb, and the API base URL.
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Build for devices (optional)">
+    ```bash
+    # Development build (all platforms)
+    bun run build:dev
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+    # Preview build (iOS only)
+    bun run build:preview:ios
+
+    # Production build with App Store submission
+    bun run build:submit:ios
+    ```
+  </Step>
+</Steps>
+
+The app targets both native and web (responsive) and uses the same backend (`d-sports-api`) as the PWA for API and checkout flows.
 
 ## Deep dives
 
