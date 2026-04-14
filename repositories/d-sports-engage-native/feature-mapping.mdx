@@ -11,6 +11,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
+- Crypto checkout supports Arbitrum (default), Ethereum, and Polygon via Thirdweb SDK.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
 ## Quest, rewards, and pass surfaces
@@ -24,3 +25,16 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Locker room games
+
+- **Daily pick 'em** — daily prediction game with team-scoped picks via `lib/api/games-api.ts`.
+- **Spin wheel** — daily spin wheel game with reward distribution.
+- **Guess the player** — player identification game with image-based clues.
+- Games are surfaced in a featured carousel on the locker room screen.
+
+## Widgets and Live Activities
+
+- **iOS home-screen widgets** display rank or wallet points (small and medium sizes).
+- **iOS Live Activities** show live score/status updates on the lock screen and Dynamic Island.
+- **Android home-screen widgets** display rank or wallet points with 30-minute auto-refresh.
