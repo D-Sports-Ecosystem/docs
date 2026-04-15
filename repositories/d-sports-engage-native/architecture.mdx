@@ -5,26 +5,59 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 ## App architecture
 
-The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
+The native app is structured around Expo Router file-based routing, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+```
+app/
+├── (auth)/           # Login, signup, SSO callback, password reset
+├── (onboarding)/     # New-user onboarding flow
+├── (tabs)/           # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/         # Settings pages with nested modals and tabs
+└── _layout.tsx       # Root layout with provider hierarchy and auth protection
+```
+
+- **Routing:** `app/*` with grouped routes for `(tabs)`, `(auth)`, `(onboarding)`, and `settings/`. Typed routes are enabled via `experiments.typedRoutes`.
+- **Screen pattern:** Screen files contain only JSX. All state, effects, and handlers live in dedicated hooks (e.g. `hooks/use-wallet-screen.ts`, `hooks/use-shop-screen.ts`).
+- **Feature components:** Extracted into domain directories — `components/wallet/`, `components/shop/`, `components/locker-room/`, `components/leaderboard/`, `components/profile/`, `components/settings/`.
+- **Shared contexts:** `UserContext` (auth and profile), `CollectiblesContext` (owned packs/items), `AccessibilityContext`, `NavBarVisibilityContext`, `CreateActionContext`.
+
+## Tab bar
+
+The tab bar uses platform-specific implementations:
+
+- **iOS:** `app/(tabs)/_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` for the system UIKit tab bar. The wallet tab shows a numeric badge for unopened packs.
+- **Android and web:** `app/(tabs)/_layout.tsx` uses a custom `PillTabBar` overlay with `expo-blur` on Android.
+- **Shared config:** `components/navigation/tab-config.ts` defines tab order, SF Symbol pairs for iOS, and active-tab detection logic.
 
 ## State and context boundaries
 
+- **Zustand** (`services/store.ts`) with MMKV persistence (`services/storage.ts`) for global state (theme, cart, points).
+- **React Context** providers in `context/` for auth, collectibles, navbar visibility, and action modal state.
 - Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
 - User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
 
 ## API client and retry behavior
 
-- All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- All network calls route through `lib/api/*` modules with a centralized client in `lib/api/client.ts`.
+- The client handles auth token injection (via Clerk), error normalization, and retry strategy.
+- `lib/api/cache.ts` provides `fetchWithCache()` for MMKV cache-first fetching.
+- Domain API modules: `wallet-api.ts`, `shop-api.ts`, `user-api.ts`, `quests-api.ts`, `leaderboard-api.ts`, `locker-room-api.ts`, `teams-api.ts`, `collectibles-api.ts`, `checkout-api.ts`, `games-api.ts`.
+
+## Checkout and payments
+
+- **RevenueCat** (`lib/revenuecat/provider.tsx`) handles fiat payments: Apple IAP (native), Google Play (native), Stripe (web).
+- **Crypto checkout** (`lib/api/checkout-api.ts`) calls the PWA backend at `POST /api/checkout/crypto` and `POST /api/checkout/crypto/verify`.
+- **Thirdweb SDK** provides on-chain transaction signing. Supported chains: Arbitrum (default), Ethereum, Polygon.
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- iOS/Android platform differences are handled via platform-specific file extensions (e.g. `_layout.ios.tsx`, `_layout.android.tsx`).
+- **Haptics:** `hooks/use-haptics.ts` with platform-safe fallbacks.
+- **Animations:** React Native Reanimated 4.x for scroll-based navbar visibility and UI transitions.
+- Web-target support exists with responsive `maxWidth: 480px` container (`components/layout/AppScreen.tsx`), hover states, and PWA manifest.
+
+## Widgets
+
+- **iOS:** Home screen widgets (`RankOrPointsWidget`) and Live Activities (`LiveActivityStatus`) via `expo-widgets`.
+- **Android:** Home screen widgets via `react-native-android-widget` with a `RankOrPointsWidget`.
+- Widget data is managed in `lib/widget-data.ts` with controls in `widgets/widget-controls.ts`.

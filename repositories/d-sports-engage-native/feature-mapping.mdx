@@ -12,15 +12,45 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
+- Crypto checkout supports Arbitrum, Ethereum, and Polygon chains via Thirdweb SDK.
+- Fiat checkout uses RevenueCat for Apple IAP, Google Play, and Stripe (web).
 
 ## Quest, rewards, and pass surfaces
 
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest detail modals and quest hero icons are displayed in leaderboard and locker room sections.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team detail modals show team metadata, logos, and associated leaderboard rankings.
+
+## Locker room and social
+
+- Social feed with post creation, commenting, and content moderation (hide/report UGC).
+- Featured games carousel with daily pick'em, spin wheel, and guess-the-player mini-games.
+- User profile hover cards and explore sections for fans and teams.
+- D-Sports Cash balance display and D-Sports Hub entry point.
+
+## Profile and achievements
+
+- Milestone avatars with progressive visual upgrades based on user achievements.
+- Achievement cards, chips, and detail modals with badge images.
+- Follow/following lists with profile navigation.
+- Points history modal for tracking engagement rewards.
+
+## Push notifications
+
+- OneSignal integration (`react-native-onesignal`) for push notification delivery.
+- In-app notification center at `app/notifications.tsx`.
+- Notification settings management in `app/settings/notifications.tsx`.
+
+## Widgets and Live Activities
+
+- iOS home screen widgets showing rank or wallet points (`RankOrPointsWidget`).
+- iOS Live Activities for score and status updates (`LiveActivityStatus`).
+- Android home screen widgets via `react-native-android-widget`.
