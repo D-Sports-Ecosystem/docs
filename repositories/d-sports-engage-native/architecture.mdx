@@ -28,3 +28,18 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+
+### Tab bar
+
+- **iOS:** Uses `NativeTabs` from `expo-router/unstable-native-tabs` for a system-native tab bar with Liquid Glass dark material.
+- **Android and web:** Uses a custom JS `PillTabBar` overlay with `expo-blur` and hidden default tab bar.
+- Tab configuration is shared via `components/navigation/tab-config.ts`.
+
+## Widgets
+
+The app supports home-screen widgets on both platforms:
+
+- **iOS** — `expo-widgets` provides a `RankOrPointsWidget` (small/medium) and a `LiveStatusActivity` (Live Activity for score updates).
+- **Android** — `react-native-android-widget` provides a `RankOrPointsWidget` that refreshes every 30 minutes.
+
+Widget data is managed in `lib/widget-data.ts` and `widgets/widget-controls.ts`.
