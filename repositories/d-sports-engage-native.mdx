@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -14,7 +14,7 @@ icon: "smartphone"
 
 | Category   | Technology                |
 | ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
+| Framework  | Expo 55, React Native 0.83, React 19 |
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
@@ -35,6 +35,7 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- **v1.18.3**: Expo doctor schema cleanup removed invalid `app.json` fields and aligned config with SDK 55 validation. Square padded icon assets were added for native icon validation. Production auto-submit scripts were added for Android and all-platform release flows.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -68,6 +69,7 @@ icon: "smartphone"
 2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For production submissions: use the auto-submit scripts (e.g., `bun run build:submit:all` or `bun run build:submit:android`) added in v1.18.3.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
