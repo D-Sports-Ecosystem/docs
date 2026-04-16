@@ -11,16 +11,56 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
+- Crypto send/receive transactions use Thirdweb SDK with Arbitrum, Ethereum, and Polygon chain support.
+- Opened packs section tracks inventory with detail modals for each opened pack.
 - Odds-disclosure surfaces read backend-provided probability payloads.
+
+## Shop and checkout
+
+- Collectible browsing with rarity-based styling, detail modals, and 3D model viewers (Filament on native, Three.js on web).
+- Cart management with coin bundles and fiat checkout via RevenueCat (Apple IAP, Google Play, Stripe).
+- Crypto checkout flow with wallet selection, on-chain transaction signing, and verification polling.
+
+## Locker room and social
+
+- Social feed with post creation, comments, and user-generated content moderation (hide/report).
+- **Daily pick'em game** — team-based daily predictions.
+- **Spin wheel game** — daily reward wheel with animated spin.
+- **Guess-the-player game** — player identification challenge.
+- Explore fans and explore teams discovery surfaces.
+- User profile hover cards with follow/block actions.
 
 ## Quest, rewards, and pass surfaces
 
-- Quest UI supports team-aware progression and pass-gated eligibility.
+- Quest UI supports team-aware progression and pass-gated eligibility with quest detail modals.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- Leaderboard displays with team-scoped ranking views, quest hero icons, and team quest sections.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Profile and achievements
+
+- User profile with milestone avatars, achievement cards/chips, and badge display.
+- Achievement detail modals with cached badge images.
+- Follow lists (followers/following) with profile modals.
+- Points history tracking.
+
+## Settings
+
+- **Account** — connected accounts, security, blocked users, account deletion.
+- **Appearance** — dark/light theme toggle.
+- **Accessibility** — accessibility preferences with sync across sessions.
+- **Notifications** — push notification preferences (OneSignal).
+- **Support** — contact support, report problem, help center.
+- **Legal** — terms of service, privacy policy, EULA.
+- **Changelog** — in-app changelog with timeline UI.
+
+## Widgets and Live Activities
+
+- **iOS home-screen widget** — rank or points display (`RankOrPointsWidget`).
+- **iOS Live Activity** — live status updates for scores (`LiveActivityStatus`).
+- **Android home-screen widget** — rank or points display via `react-native-android-widget`.
