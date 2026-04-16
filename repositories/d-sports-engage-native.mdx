@@ -1,28 +1,30 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native 0.83, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version **1.18.2**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                |
+| -------------- | ------------------------- |
+| Framework      | Expo 55, React Native 0.83, React 19.2 |
+| Auth           | Clerk (Expo)              |
+| Payments       | RevenueCat (react-native-purchases) |
+| Web3           | Thirdweb                  |
+| State          | Zustand                   |
+| Storage        | MMKV                      |
+| UI             | Lucide React Native       |
+| Navigation     | Expo Router               |
+| Push           | OneSignal                 |
+| Error tracking | Sentry                    |
+| Package        | Bun                       |
 
 ## Features
 
@@ -30,21 +32,17 @@ icon: "smartphone"
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Profile** — User profile, badges, milestones, and settings
 - **Theme** — Dark/light mode (default dark)
-
-## What changed since last docs sync
-
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- **Widgets** — iOS and Android home-screen widgets (rank/points, live activity)
+- **EAS updates** — Over-the-air updates via EAS Update CI workflow
 
 ## Backend integration surfaces
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
+- Retry/caching logic and auth token injection are centralized in `lib/api/client.ts`.
+- MMKV cache-first fetching via `lib/api/cache.ts` for offline resilience.
 
 ## Quest and pass UX integration
 
@@ -65,11 +63,21 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Configure environment variables — the app reads only `EXPO_PUBLIC_*` keys at runtime:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk auth
+   - `EXPO_PUBLIC_API_URL` — API backend base URL
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` — RevenueCat
+   - `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_KEY` — Supabase client
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For production builds: `bun run build:prod` (EAS) or `bun run build:submit:ios` to auto-submit to App Store.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## EAS and CI
+
+The repository includes a GitHub Actions workflow (`.github/workflows/eas-update.yml`) that publishes over-the-air updates via **EAS Update** on push to `main`. The `runtimeVersion` in `app.json` must match the version string used in EAS builds — policy objects are not supported in bare workflow builds.
 
 ## Deep dives
 
