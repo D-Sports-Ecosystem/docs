@@ -25,6 +25,19 @@ The native app is structured around Expo Router screens, feature-oriented compon
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
+- iOS/Android platform differences are handled in native-specific layout files and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+
+### Tab bar
+
+The tab bar uses a platform-split approach:
+
+- **iOS** (`_layout.ios.tsx`) — uses `NativeTabs` from `expo-router/unstable-native-tabs` with the system tab bar. The wallet tab shows a numeric badge for unopened packs. The bar uses `systemChromeMaterialDark` with gold selection (`#FFD700`).
+- **Android and web** (`_layout.tsx`) — uses JS `Tabs` with a hidden default bar and a custom `PillTabBar` overlay. Android applies `expo-blur` for a blur effect.
+- **Shared config** (`tab-config.ts`) — defines tab order, SF Symbol pairs for iOS, and helper functions like `getActiveTabIndex` so `/profile/[handle]` does not highlight the Profile tab.
+
+### Widgets
+
+- **iOS** — `expo-widgets` provides a `RankOrPointsWidget` (small/medium) and a `LiveStatusActivity` Live Activity.
+- **Android** — `react-native-android-widget` provides a `RankOrPointsWidget` (3×2 cells, 30-minute refresh).
