@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native 0.83, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -12,17 +12,18 @@ icon: "smartphone"
 
 ## Tech stack
 
-| Category   | Technology                |
-| ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
-| Auth       | Clerk (Expo)              |
-| Payments   | RevenueCat (react-native-purchases) |
-| Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
-| UI         | Lucide React Native       |
-| Navigation | Expo Router               |
-| Package    | Bun                       |
+| Category       | Technology                                  |
+| -------------- | ------------------------------------------- |
+| Framework      | Expo 55, React Native 0.83, React 19       |
+| Auth           | Clerk (Expo)                                |
+| Payments       | RevenueCat (react-native-purchases)         |
+| Web3           | Thirdweb                                    |
+| State          | Zustand                                     |
+| Storage        | MMKV                                        |
+| UI             | Lucide React Native                         |
+| Navigation     | Expo Router                                 |
+| Monitoring     | Sentry, OneSignal                           |
+| Package        | Bun                                         |
 
 ## Features
 
@@ -31,14 +32,36 @@ icon: "smartphone"
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
+- **Widgets** — iOS and Android home screen widgets (rank/points, live activity)
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
 
+- Upgraded to **Expo 55**, **React Native 0.83**, and **TypeScript 5.9**.
+- Android release builds now use **R8 minification and resource shrinking** (`enableMinifyInReleaseBuilds` and `enableShrinkResourcesInReleaseBuilds` via `expo-build-properties`). This is a potentially breaking change — test thoroughly after upgrading.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
 - Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+
+## Android builds and R8
+
+Android release builds have R8 minification and resource shrinking enabled. This is configured in `app.json` under `expo-build-properties`:
+
+```json
+{
+  "android": {
+    "kotlinVersion": "2.1.20",
+    "minSdkVersion": 26,
+    "enableMinifyInReleaseBuilds": true,
+    "enableShrinkResourcesInReleaseBuilds": true
+  }
+}
+```
+
+<Warning>
+  R8 can cause runtime crashes if native libraries or reflection-heavy code is not properly kept via ProGuard rules. Test all screens and native modules (crypto, RevenueCat, Sentry, OneSignal) on a release build before shipping.
+</Warning>
 
 ## Backend integration surfaces
 
@@ -65,9 +88,11 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Configure environment variables — you need keys for Clerk, RevenueCat, Thirdweb, Supabase, and the API base URL. Only `EXPO_PUBLIC_*` keys are accessible at runtime.
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For production builds: `bun run build:prod` (all platforms) or `bun run build:prod:ios` / `bun run build:prod:android`.
+6. Run `bun tsc --noEmit` to check types.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
