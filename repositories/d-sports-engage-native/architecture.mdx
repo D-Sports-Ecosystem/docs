@@ -7,24 +7,51 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- **Routing:** `app/*` with grouped routes — `(tabs)` for main navigation, `(auth)` for login/signup, `(onboarding)` for new users, and `settings/` for nested settings pages.
+- **Feature logic:** Screen files contain only imports and JSX. All state, effects, and handlers live in dedicated hooks (e.g., `hooks/use-wallet-screen.ts`, `hooks/use-shop-screen.ts`).
+- **Shared contexts:** `UserContext` (auth/profile), `CollectiblesContext` (owned packs/items), `NavBarVisibilityContext` (scroll-based nav hide/show), `CreateActionContext` (FAB/action modal state), and `AccessibilityContext`.
+
+## Tab bar
+
+The tab bar has platform-specific implementations:
+
+- **iOS:** `app/(tabs)/_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` (system UIKit tab bar). The wallet tab shows a numeric badge for unopened packs. The app uses `systemChromeMaterialDark` with gold selection tint (`#FFD700`).
+- **Android and web:** `app/(tabs)/_layout.tsx` uses JS-based `Tabs` with a hidden default bar and a custom `PillTabBar` overlay. Android uses `expo-blur` (`BlurView`) for the pill background.
+- **Shared config:** `components/navigation/tab-config.ts` defines tab order, SF Symbol pairs for iOS, and active-tab pathname rules.
 
 ## State and context boundaries
 
 - Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+- Cross-screen state is managed with **Zustand** (`services/store.ts`) persisted to **MMKV** (`services/storage.ts`).
+- User/session-sensitive state is coordinated with backend auth and profile sync endpoints via `context/user-context.tsx`.
 
 ## API client and retry behavior
 
 - All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- `lib/api/client.ts` is the base HTTP client with auth token injection from Clerk.
+- `lib/api/cache.ts` provides `fetchWithCache()` for MMKV cache-first fetching.
+- Domain modules: `wallet-api.ts`, `shop-api.ts`, `user-api.ts`, `quests-api.ts`, `leaderboard-api.ts`, `locker-room-api.ts`, `teams-api.ts`, `collectibles-api.ts`, `checkout-api.ts`.
+- Quest/reward/team flows consume backend eligibility as source of truth.
+
+## Checkout and payments
+
+- **Fiat payments:** RevenueCat (`lib/revenuecat/provider.tsx`) handles Apple IAP (native), Google Play (native), and Stripe (web).
+- **Crypto checkout:** `lib/api/checkout-api.ts` calls the PWA backend (`POST /api/checkout/crypto` and `POST /api/checkout/crypto/verify`). Thirdweb SDK handles on-chain transaction signing.
+- **Supported chains:** Arbitrum (default), Ethereum, Polygon.
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- **iOS:** Native tab bar with Liquid Glass material, Apple Sign In, haptic feedback via `expo-haptics`.
+- **Android:** Custom pill tab bar with blur, adaptive icons, predictive back gesture disabled.
+- **Web:** Responsive max-width container (`components/layout/AppScreen.tsx` at 480px), hover states via `components/ui/WebHoverWrapper.tsx`, PWA manifest with `display: standalone`.
+- Haptics, modal controls, and animation handling use platform-safe fallbacks with React Native Reanimated.
+
+## Push notifications
+
+OneSignal is used for push notifications across iOS and Android. The `onesignal-expo-plugin` config plugin handles native setup during `expo prebuild`. Subscription management is in `lib/onesignal-subscription.ts`.
+
+## Widgets
+
+- **iOS:** Live Activity widget (`widgets/ios/LiveActivityStatus.tsx`) and rank/points widget (`widgets/ios/RankOrPointsWidget.tsx`).
+- **Android:** Home-screen widgets via `react-native-android-widget` with registry in `widgets/android/registry.tsx`.
+- **Shared:** `widgets/widget-controls.ts` provides control logic and data helpers.
