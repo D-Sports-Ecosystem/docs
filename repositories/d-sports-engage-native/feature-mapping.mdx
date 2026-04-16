@@ -12,15 +12,70 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
+- Crypto checkout supports Arbitrum (default), Ethereum, and Polygon chains via Thirdweb SDK.
+- Opened packs section tracks previously opened pack contents.
+
+## Shop and commerce
+
+- Collectible cards, featured packs, and coin bundles are fetched from backend shop/product endpoints.
+- Cart management with add-to-cart toast notifications and full cart modal.
+- Fiat checkout via RevenueCat (Apple IAP on iOS, Google Play on Android, Stripe on web).
+- Crypto checkout via `CryptoCheckoutModal` with wallet selection, transaction signing, and verification polling.
+- 3D collectible preview via `NativeGlbViewer` (native) and `WebGlbViewer` (web).
 
 ## Quest, rewards, and pass surfaces
 
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest detail modals display progress and completion criteria.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team detail modals show team information, branding, and member stats.
+
+## Locker room and social
+
+- Social feed with posts, comments, and user interaction.
+- Fan exploration and team exploration modals.
+- User profile hover cards with follow/block actions.
+- Hidden content (UGC) preview with report/hide functionality.
+
+## Daily games
+
+- **Daily pick-em** — `DailyPickEmGame` component with team-based daily predictions.
+- **Spin wheel** — `DailySpinWheelGame` component with animated prize wheel and reward claiming.
+- **Guess the player** — `GuessThePlayerGame` component with player identification challenges.
+- Featured games carousel on the locker room screen.
+
+## Profile and achievements
+
+- User profile with achievements, milestones, badges, and points history.
+- Milestone avatar system with progressive visual unlocks.
+- Follow/followers system with dedicated list modals.
+- Profile badges sourced from backend with cached images.
+
+## Settings
+
+- **Account** — profile editing, connected accounts, blocked users, security, account deletion.
+- **Appearance** — theme selection (dark/light).
+- **Accessibility** — accessibility features with persistent sync across sessions.
+- **Notifications** — push notification preferences.
+- **Privacy, legal, data** — privacy controls, terms of service, EULA, data management.
+- **Support** — help center, contact support, report problem screens.
+- **Changelog** — in-app changelog with timeline view.
+
+## Widgets
+
+- **iOS** — `RankOrPointsWidget` (system small/medium) and `LiveActivityStatus` (accessory rectangular/inline).
+- **Android** — `RankOrPointsWidget` with 30-minute auto-refresh.
+- Widget data is prepared by `lib/widget-data.ts` and pushed via `widgets/widget-controls.ts`.
+
+## Notifications
+
+- Push notifications via **OneSignal** with production app group support.
+- In-app notifications screen (`app/notifications.tsx`) for viewing notification history.
+- Subscription management via `lib/onesignal-subscription.ts`.
