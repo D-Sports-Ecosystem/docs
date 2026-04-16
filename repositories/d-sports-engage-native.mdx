@@ -14,14 +14,14 @@ icon: "smartphone"
 
 | Category   | Technology                |
 | ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
+| Framework  | Expo 55, React Native 0.83, React 19 |
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 55            |
 | Package    | Bun                       |
 
 ## Features
@@ -35,6 +35,9 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- Upgraded to **Expo 55**, **React Native 0.83**, and **Expo Router 55**.
+- Removed usage of deprecated edge-to-edge APIs for Android; predictive back gesture is disabled.
+- Added EAS Update CI workflow for OTA publishing on `develop` and `main` branches (iOS only).
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -65,9 +68,10 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Configure environment variables — `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_TW_CLIENT_ID`, `EXPO_PUBLIC_REVENUECAT_API_KEY`, and `EXPO_PUBLIC_SUPABASE_URL` are required. See `.env` in the repo root.
+3. Run `bunx expo start` — press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. OTA updates are published automatically via GitHub Actions on pushes to `develop` and `main`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
