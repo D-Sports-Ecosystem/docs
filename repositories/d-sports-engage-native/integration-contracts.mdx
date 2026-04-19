@@ -20,6 +20,23 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Badge metadata contract
+
+Profile badge rendering depends on server-provided metadata fields in the user payload:
+
+- **`badgeMetadata`** — array of badge objects with `id`, `label`, `iconKey`, `rarityTier`, `displayOrder`, `variant`, `sourceType`, and `earnedAt`. Non-level badges are filtered from this array.
+- **`levelBadge`** — a single badge object describing the user's fan-level badge, with the same field shape as `badgeMetadata` entries plus an `isLevelBadge` flag.
+
+Native behavior:
+
+- When `badgeMetadata` is present and non-empty, badge rendering uses server-defined ordering, rarity, and icon values exclusively.
+- When `badgeMetadata` is absent or empty, the app falls back to legacy string-based badge label matching.
+- Level badge rendering prefers `levelBadge` from the server; if missing, the app computes a local level from points.
+
+<Warning>
+  Badge IDs are not yet enforced as unique in the schema. A follow-up migration will add a unique constraint on `badgeId` after legacy data cleanup.
+</Warning>
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.

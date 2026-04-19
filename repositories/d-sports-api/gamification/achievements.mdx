@@ -6,20 +6,45 @@ icon: "badge-check"
 
 ## Current state
 
-Achievement support is currently narrower than quests/points/leaderboards/rewards.
+Achievements and badges are now served as structured metadata in user profile payloads. The `getUser` transform includes normalized `badgeMetadata` and `levelBadge` fields alongside legacy `achievements` and `userRewards` arrays.
 
 Documented behavior includes:
 
 - Achievement order persistence/update via server action.
 - Static helper usage for specific achievement checks in utility code.
+- **Badge metadata fields** on achievements and rewards: `badgeId`, `iconKey`, `rarityTier`, `displayOrder`, and `variant`. These are indexed (non-unique) for safe rollout.
+- **Fan level badge definitions** — `FanLevelBadgeDefinition` model supports DB-defined level badge descriptors with runtime fallback defaults when no definition exists.
+
+## Badge metadata payload shape
+
+Each badge metadata entry returned in `badgeMetadata` includes:
+
+| Field          | Type     | Description                                      |
+| -------------- | -------- | ------------------------------------------------ |
+| `id`           | string   | Unique badge identifier                          |
+| `label`        | string   | Display name                                     |
+| `iconKey`      | string   | Icon identifier (maps to client icon set)        |
+| `rarityTier`   | string   | One of `common`, `rare`, `epic`, `legendary`, `mythic` |
+| `displayOrder` | number   | Server-defined sort priority                     |
+| `variant`      | string   | Visual variant hint for client rendering         |
+| `sourceType`   | string   | `achievement`, `reward`, or `level`              |
+| `earnedAt`     | string   | ISO timestamp when the badge was earned          |
+| `isLevelBadge` | boolean  | `true` for the fan-level badge entry             |
+
+The `levelBadge` field uses the same shape and represents the user's current fan-level badge.
 
 ## What this means for integrators
 
-- Treat achievements as profile-associated metadata and ordering behavior today.
-- Do not assume a full standalone achievement API surface exists yet.
+- Native and web clients should consume `badgeMetadata` and `levelBadge` as the primary badge source.
+- Legacy `achievements` and `userRewards` fields remain in the payload for backward compatibility but are not the preferred source for badge rendering.
+- Badge display order and rarity are server-authoritative when metadata is present.
 
-## Planned expansion areas (documentation placeholders)
+<Warning>
+  `badgeId` is not yet enforced as unique. A follow-up migration will add a uniqueness constraint after legacy data cleanup.
+</Warning>
+
+## Planned expansion areas
 
 - Achievement award triggers by gameplay event type.
-- Achievement API surface (if introduced).
-- Badge rendering and client consumption contracts.
+- Standalone achievement API surface (if introduced).
+- Enforcement of `badgeId` uniqueness after data cleanup migration.

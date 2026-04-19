@@ -7,6 +7,20 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Profile badges and achievements
+
+Profile surfaces consume server-provided badge metadata as the primary achievement source. The native app renders badges using a two-tier strategy:
+
+1. **Server metadata first** — when the user payload includes `badgeMetadata` and `levelBadge` fields, the app renders badges using server-defined IDs, rarity tiers, icon keys, display order, and variants.
+2. **String-based fallback** — when server metadata is unavailable, the app falls back to legacy string-label badge mapping for backward compatibility.
+
+Key details:
+
+- Own profile, public profile, and the achievements modal all share the same `buildProfileAchievements` pipeline.
+- Fan-level badges support server-defined descriptors (`FanLevelBadgeDefinition`) with local point-based fallback when metadata is absent.
+- Rarity tiers (`common`, `rare`, `epic`, `legendary`, `mythic`) map to gradient, border, and text color visuals.
+- Badge display order is server-authoritative when metadata is present.
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
