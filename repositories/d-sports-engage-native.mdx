@@ -35,6 +35,8 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
+- **Badge system** — A full badge registry maps achievement IDs and labels to asset keys (e.g. `rookie-fan`, `exclusive-digital-content`, `mvp-elite`). Badge artwork is resolved from Supabase public storage; when the API omits `badgeImageUrl`, the client falls back to `getPublicBadgeImageUrl` for a stable URL. A local asset (`exclusive-digital-content-badge.png`) is bundled for dev and offline fallback.
+- **Public profile tab fix** — Viewing another user's profile via `/profile/[handle]` no longer highlights the Profile tab pill in the bottom navigation bar.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.

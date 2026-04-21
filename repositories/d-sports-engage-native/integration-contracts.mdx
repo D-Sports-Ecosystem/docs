@@ -20,6 +20,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Badge image resolution contract
+
+- The profile API may include `badgeImageUrl` on achievement payloads. When present, the client uses it directly.
+- When `badgeImageUrl` is omitted (older caches or partial responses), the client resolves artwork locally via `getPublicBadgeImageUrl(id, label)`, which maps the achievement ID and label to a Supabase public storage URL in the `badge-assets` bucket.
+- The client-side badge filename map must stay in sync with Supabase storage filenames. If badge artwork is renamed or added server-side, the native `BADGE_FILENAME` map needs a corresponding update.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
