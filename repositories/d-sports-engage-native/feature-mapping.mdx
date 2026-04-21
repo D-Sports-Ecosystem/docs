@@ -5,22 +5,70 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Feature parity with backend/PWA
 
-`d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
+`d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns. The table below summarizes surface coverage:
+
+| Surface              | Native status | Key components                          |
+| -------------------- | ------------- | --------------------------------------- |
+| Wallet               | Full          | Token list, holdings, pack opening, crypto checkout |
+| Shop                 | Full          | Collectibles, cart, coin bundles, fiat + crypto     |
+| Leaderboard          | Full          | Global and team-scoped rankings          |
+| Locker room          | Full          | Feed, quests, daily games                |
+| Profile              | Full          | Achievements, badges, milestone avatars, follows |
+| Settings             | Full          | 15+ pages including account deletion     |
+| Notifications        | Full          | OneSignal push + in-app notifications    |
+| Onboarding           | Full          | Multi-step team selection flow           |
 
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
+- Opened packs section tracks previously opened pack contents.
+- Token detail modals show price history, send/receive actions, and connected wallet info.
+
+## Shop and checkout
+
+- Collectible browsing with rarity-based card styling and 3D model viewers (GLB via Filament on native, Three.js on web).
+- Cart with quantity management, coin bundles, and featured pack carousels.
+- **Fiat checkout** — RevenueCat handles Apple IAP, Google Play, and Stripe (web).
+- **Crypto checkout** — Thirdweb SDK for on-chain transactions. Chains: Arbitrum (default), Ethereum, Polygon. Flow: wallet select → `prepareTransaction` → `sendTransaction` → poll verification.
 
 ## Quest, rewards, and pass surfaces
 
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest detail modals show requirements, progress, and reward previews.
+
+## Daily games
+
+- **Daily Pick'Em** — team-based prediction game with streak tracking.
+- **Daily Spin Wheel** — animated prize wheel with reward distribution.
+- **Guess the Player** — player identification game with hint system.
+
+Games are surfaced in the locker room via the `FeaturedGamesCarousel` component and backed by `lib/api/games-api.ts`.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team detail modals show roster, stats, and fan community info.
+
+## Profile and achievements
+
+- Profile cards with header, stats, and follow/following counts.
+- Achievement system with cards, chips, and detail modals.
+- Milestone avatars with level-based visual progression.
+- Badge system with cached images and asset resolution via `lib/badge-utils.ts`.
+- Points history modal with transaction log.
+
+## Settings
+
+- **Account** — profile editing, connected accounts, blocked users, security, account deletion
+- **Appearance** — theme toggle (dark/light)
+- **Accessibility** — font scale, reduced motion, screen reader optimizations
+- **Notifications** — push notification preferences
+- **Support** — help center, contact support, report a problem
+- **Legal** — terms of service, privacy policy, EULA
+- **Changelog** — in-app version history
