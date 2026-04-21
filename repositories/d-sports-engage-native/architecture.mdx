@@ -23,6 +23,32 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## MMKV caching layer
+
+API responses are cached locally via MMKV through `lib/api/cache.ts`. Each domain has a dedicated TTL and cache key scheme:
+
+| Domain | TTL | Key pattern |
+| --- | --- | --- |
+| Teams | 5 min | `api_cache:teams` |
+| Quests | 2 min | `api_cache:quests` |
+| Posts | 1 min | `api_cache:posts:<filter>` |
+| Leaderboard | 2 min | `api_cache:leaderboard:<scope>` |
+| Coin prices | 1 min | `api_cache:coin_prices` |
+| Wallets | 2 min | `api_cache:wallets` |
+| Shop products | 5 min | `api_cache:shop_products` |
+
+### Leaderboard cache keys
+
+Leaderboard data uses a unified `CacheKeys.LEADERBOARD(query)` function that resolves to one of three shapes:
+
+- **Global** (no args) — `api_cache:leaderboard:global`
+- **Team** — `api_cache:leaderboard:team:<teamId>`
+- **By ID** — `api_cache:leaderboard:id:<leaderboardId>`
+
+A separate `LEADERBOARD_PREVIEW` key (`api_cache:leaderboard:preview:<teamId>`) stores the abbreviated "Top fans" list shown in team modals. This key is intentionally distinct from the full team leaderboard to avoid shape mismatches in `BaseLeaderboard`.
+
+All leaderboard reads should go through `fetchLeaderboardWithCache`, which wraps `fetchWithCache` with `TTL.LEADERBOARD` (2 min). The pattern is stale-while-revalidate: serve non-expired cached data immediately, fetch fresh data in the background, and fall back to stale data on network error.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
