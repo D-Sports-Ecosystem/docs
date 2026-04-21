@@ -20,6 +20,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Leaderboard API contracts
+
+- The native client fetches leaderboard data from `GET /api/leaderboard`. Pass no params for the global board, `teamId` for a team board, or `leaderboardId` for a specific board by ID.
+- **Team boards must be fetched by `teamId`**, not `leaderboardId`. The backend resolves the canonical board via `getOrCreateTeamLeaderboard(teamId)`. Using the numeric `leaderboardId` from `/api/teams` can point to a legacy or empty row that does not contain quest-earned points.
+- Season metadata (name, days remaining, status) is included in every leaderboard response. The client renders a season banner when `showSeasonInfo` is enabled.
+- Additional endpoints: `/api/leaderboard/search` for user search, `/api/leaderboard/stats` for aggregate stats, `/api/leaderboard/seasons` for season history, and `/api/leaderboard/winners` for archived top-3 per season.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
