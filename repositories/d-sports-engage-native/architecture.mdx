@@ -23,6 +23,14 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Badge rarity registry
+
+The app uses a client-side badge registry to ensure profile achievements display design-accurate rarity tiers, regardless of what the backend returns.
+
+- **Registry** (`lib/badge-asset-map.ts`) — Maps known badge keys to rarity tiers (`common`, `rare`, `epic`, `legendary`), descriptions, accent/glow colors, and chip labels. The registry tier is authoritative for known badges because the API often returns `common` for all reward rows.
+- **Image URL fallback** (`lib/badge-image-urls.ts`) — When the API profile payload omits `badgeImageUrl`, the app builds a public Supabase Storage URL from the badge key and `EXPO_PUBLIC_SUPABASE_URL`. This mirrors the same URL logic in `d-sports-api`.
+- **Native image caching** (`lib/resolve-badge-image-uri.ts`) — On native platforms, badge artwork is downloaded once and cached to a local `file://` path tracked in MMKV. On web, `expo-image` prefetch is used with an AsyncStorage warm-set for repeat visits.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.

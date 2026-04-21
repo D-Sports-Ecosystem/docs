@@ -20,6 +20,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Badge rarity and image contracts
+
+- The API profile payload may include `badgeImageUrl` and `rarityTier` per achievement. When present, the client uses them.
+- When `badgeImageUrl` is absent, the client falls back to a locally computed Supabase Storage URL using the badge's `id` and `label` fields.
+- When `rarityTier` is `common` (or absent) for a known badge key, the client-side registry overrides it with the design-specified tier. This is intentional — the API currently returns `common` for most reward rows.
+- If the API begins returning accurate rarity tiers, the registry will defer to explicit non-default values from the server.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
