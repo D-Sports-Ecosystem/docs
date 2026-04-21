@@ -22,5 +22,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- Per-team leaderboard stack routes (`/leaderboard/[teamSlug]`) resolve boards by **team id** so rankings match the canonical server board.
+- Teams without league data (e.g. House of Doge) display an **Official** label when `isOfficial` is true but league metadata is absent.
+- MMKV cache shapes for team detail "Top fans" and full leaderboard are separated so opening a modal before the full screen does not produce an empty list.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
