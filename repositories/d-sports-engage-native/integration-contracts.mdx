@@ -20,6 +20,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Reward milestone contracts
+
+- The user profile API (`GET /api/user`) returns a `claimedRewardsCount` field representing the total number of rewards the user has claimed.
+- The native client uses this count to determine milestone tier unlocks (Starter at 2, Momentum at 4, Elite at 6, Legend at 8).
+- If `claimedRewardsCount` is not present in the API response, the client falls back to counting `userRewards` entries with a `claimedAt` timestamp.
+- Milestone tier visuals are rendered client-side; the backend is authoritative only for the claimed count.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.

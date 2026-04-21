@@ -19,6 +19,14 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Profile milestone avatar rings
+
+- Profile avatars display animated gradient rings that reflect the user's reward milestone tier.
+- Four tiers are defined — **Starter** (2 claims), **Momentum** (4), **Elite** (6), and **Legend** (8) — each with distinct colors, glow effects, and ring widths.
+- The active ring tier is determined by `claimedRewardsCount` from the user profile API response.
+- Users can switch between any unlocked tier via dot selectors below the avatar; the selection persists locally in MMKV storage.
+- Elite and Legend tiers include animated shimmer effects on the ring.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
