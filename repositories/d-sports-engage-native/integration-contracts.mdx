@@ -5,14 +5,17 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Auth/session contracts
 
-- Native auth uses backend-compatible token/session validation flows.
+- Native auth uses Clerk (Expo) with backend-compatible token/session validation flows.
+- The API client in `lib/api/client.ts` injects `Authorization` headers via `getToken()` from Clerk.
 - Protected feature calls require authenticated user context and must handle session expiry gracefully.
+- If `getToken()` returns null during cold start, requests proceed unauthenticated — endpoints requiring Clerk `auth()` on the server may return 401.
 
 ## Quest and reward API contracts
 
 - Quest progression is backend-authoritative for eligibility and completion.
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
+- Games API (`lib/api/games-api.ts`) provides daily game data (pick-em, spin wheel, guess-the-player).
 
 ## Team and league API contracts
 
@@ -20,8 +23,32 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Commerce and payment contracts
+
+- **RevenueCat** (`lib/revenuecat/provider.tsx`) handles fiat payments: Apple IAP (iOS), Google Play (Android), Stripe (web). The `premium` entitlement is checked for gated features.
+- **Crypto checkout** (`lib/api/checkout-api.ts`) calls backend `POST /api/checkout/crypto` to initiate and `POST /api/checkout/crypto/verify` to confirm on-chain payments.
+- **Thirdweb SDK** is used for on-chain transaction signing via `prepareTransaction` + `sendTransaction`. Supported chains: Arbitrum (default), Ethereum, Polygon.
+
+## Push notification contracts
+
+- **OneSignal** integration via `onesignal-expo-plugin` with production mode and app group `group.com.dsports.wallet.beta.dengage`.
+- Subscription management is handled in `lib/onesignal-subscription.ts`.
+- Notification preferences are managed in-app via settings and synced with the backend.
+
+## Error tracking contracts
+
+- **Sentry** (`@sentry/react-native/expo`) captures crashes and errors with project `engage-native`.
+- `AppErrorBoundary` wraps the app to catch rendering errors and report them.
+
+## OTA update contracts
+
+- **EAS Update** is configured with `runtimeVersion: "1.18.1"` matching the app version.
+- Updates are delivered to production, preview, and development branches via `bunx eas update`.
+- The `runtimeVersion` must be an explicit string (not a policy object) for bare/prebuilt workflow builds.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
+- Logger utility (`lib/logger.ts`) provides structured logging with level filtering.
