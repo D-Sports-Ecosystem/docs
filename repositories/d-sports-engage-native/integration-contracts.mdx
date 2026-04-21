@@ -20,6 +20,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Games API contracts
+
+- Interactive games (Daily Pick'Em, Spin Wheel, Guess the Player) consume endpoints via `lib/api/games-api.ts`.
+- Game state, daily availability, and results are server-authoritative.
+- Game completions contribute to quest progression and point awards through the backend.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.

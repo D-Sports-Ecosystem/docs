@@ -23,6 +23,12 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Push notifications and error tracking
+
+- **OneSignal** is integrated via `onesignal-expo-plugin` and `react-native-onesignal` for push notification delivery and subscription management.
+- **Sentry** (`@sentry/react-native`) provides crash reporting and error tracking across all platforms.
+- **Supabase** client-side JS is used for realtime features — this is not a direct database connection.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
