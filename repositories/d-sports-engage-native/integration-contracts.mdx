@@ -20,6 +20,15 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## User interests contract
+
+- `User.interests` is a `string[]` of slug IDs stored on the `User` row in Postgres (via Prisma).
+- Allowed slugs: `hockey`, `basketball`, `football`, `soccer`, `baseball`, `esports`, `gamification`, `stats`, `fan_engagement`, `collectibles`, `gambling`, `crypto`, `blockchain`, `fantasy_sports`, `live_events`, `merch_fashion`, `streaming`.
+- Native onboarding step 3 and the retroactive `/(onboarding)/interests` screen require **at least one** interest before continue.
+- `PATCH /api/user` accepts `interests: string[]`; server validates slugs and dedupes (max 20).
+- `GET /api/user` returns `interests` on the authenticated profile payload.
+- Retroactive gate: users with `onboardingComplete=true` and empty `interests` are redirected to `/(onboarding)/interests` until at least one interest is saved.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim failures.
