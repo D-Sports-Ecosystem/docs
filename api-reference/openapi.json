@@ -27,6 +27,7 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Leagues", "description": "Leagues metadata and team groupings" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -229,6 +230,18 @@
         "responses": { "200": { "description": "{ totalUsers, totalPoints, lastWinner }" } }
       }
     },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with metadata, colors, and team counts. Optionally filter by country.",
+        "parameters": [
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Filter leagues by country (case-insensitive)." }
+        ],
+        "security": [],
+        "responses": { "200": { "description": "{ success, data: { leagues } }" } }
+      }
+    },
     "/api/locker-room": {
       "get": {
         "tags": ["Locker room"],
@@ -412,6 +425,38 @@
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "Updated user" } }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List all users",
+        "description": "Paginated list of onboarded community users. Supports excluding already-followed users. Rate-limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 }, "description": "Max users to return (1–100)." },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "When 'true', excludes users you already follow." }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check username availability",
+        "description": "Returns whether a handle/username is available (case-insensitive check).",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The username to check." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ available: boolean }" },
+          "400": { "description": "Username is required" }
+        }
       }
     },
     "/api/user/profile": {
