@@ -1,37 +1,67 @@
 ---
 title: "Leaderboards"
-description: "Team and global leaderboard behavior with season-scoped scoring."
+description: "Team and global leaderboard behavior with canonical name resolution and season-scoped scoring."
 icon: "medal"
 ---
 
 ## Board types
 
-- **Team boards**: non-global boards tied to a team.
-- **Global board**: single global board aggregating active-season scoring.
+- **Team boards**: non-global boards tied to a team via `teamId`.
+- **Global board**: a single canonical board aggregating active-season scoring across all teams.
+
+## Canonical global resolution
+
+When no query parameters are provided, `GET /api/leaderboard` resolves the global board
+using a **name-first** strategy defined in `lib/leaderboard.ts`:
+
+1. Look up a board named **"D-Sports Leaderboard"** — if it exists and has `isGlobal: true`, use it.
+2. Fall back to **"D-Sports Global Leaderboard"** with the same check.
+3. If neither name matches, fall back to the `isGlobal: true` row with the **highest** `id`.
+
+This avoids returning a stale or duplicate global row when multiple `isGlobal: true`
+records exist in the database.
 
 ## Resolution behavior
 
-`GET /api/leaderboard` supports:
+`GET /api/leaderboard` supports three modes:
 
-- `?leaderboardId=<id>` for direct board lookup.
-- `?teamId=<teamId>` to resolve/create the team board.
-- no params for global board behavior.
+| Query param | Behavior |
+|---|---|
+| `?teamId=<teamId>` | Resolves (or creates) the team board via `getOrCreateTeamLeaderboard`. |
+| `?leaderboardId=<id>` | Direct board lookup by numeric ID. |
+| _(none)_ | Returns the canonical global board (see above). |
+
+`teamId` takes priority over `leaderboardId` when both are supplied.
 
 ## Scoring behavior in Season 0.5
 
 - Team boards aggregate `PointsHistory` by:
   - matching active `seasonId`
-  - matching requested board `leaderboardId`
+  - matching the requested board `leaderboardId`
 - Global board aggregates by:
   - matching active `seasonId` only
 
 ## Enrollment and write behavior
 
-- Some flows enroll users on global board paths.
-- `getUserLeaderboards()` currently returns global board IDs only in current implementation.
+- Visiting the leaderboard auto-enrolls the authenticated user with a zero-point entry if
+  they do not already have one on that board.
+- `getUserLeaderboards()` currently returns global board IDs only in the current implementation.
 - Points writes should include board + season scope when context is available.
+
+## Maintenance scripts
+
+Three scripts in `scripts/` help operators audit and repair global-board drift:
+
+| Script | Purpose |
+|---|---|
+| `list-leaderboards` | Prints every board with entry counts, point sums, `PointsHistory` row counts, and which row is canonical. Supports `--json`. |
+| `consolidate-duplicate-global-leaderboards` | Demotes extra `isGlobal: true` rows and deletes their entries. Supports `--dry-run`. |
+| `promote-global-leaderboard` | Promotes a specific board ID to the sole global, demoting all others. Supports `--dry-run` and `--target-id=<id>`. |
+
+After running any of these scripts, follow up with `sync-leaderboard-points` to
+repopulate entries from `PointsHistory`.
 
 ## Notes
 
-- Stream/search/stats leaderboard routes are available for consumption use cases.
+- Stream, search, and stats leaderboard routes are available for read-only consumption.
 - Reset and archive lifecycle routes exist but are not covered in this non-admin gamification deep dive.
