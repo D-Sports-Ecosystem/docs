@@ -62,12 +62,62 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_` prefix. Create a `.env` file at the repo root:
+
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication (live publishable key) |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for web3 wallet interactions |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store app ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (client-side features only) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable anon key |
+
+<Note>On Android emulators, `localhost` in `EXPO_PUBLIC_API_URL` is automatically rewritten to `10.0.2.2` by the API client.</Note>
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+2. Copy `.env.example` (or create `.env`) and fill in the variables above.
+3. Run `bunx expo start` — press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+4. For development builds, use EAS (see below).
+
+## EAS build profiles
+
+The project uses [Expo Application Services (EAS)](https://docs.expo.dev/build/introduction/) for native builds. Profiles are defined in `eas.json`:
+
+| Profile | Use case | Command |
+| --- | --- | --- |
+| `development` | Dev client with simulator support | `bun run build:dev` |
+| `development-device` | Dev client for physical devices | `bunx eas-cli build --profile development-device` |
+| `preview` | Internal distribution (APK on Android) | `bun run build:preview` |
+| `staging` | Staging channel with auto-increment | `bunx eas-cli build --profile staging` |
+| `production` | App Store / Play Store submission | `bun run build:prod` |
+
+You can also build per-platform with `:ios` or `:android` suffixes (e.g. `bun run build:dev:ios`).
+
+### OTA updates
+
+A GitHub Actions workflow (`.github/workflows/eas-update.yml`) publishes over-the-air updates via `eas update` on pushes to `develop` and `main` branches.
+
+## Integrations
+
+| Service | Purpose |
+| --- | --- |
+| **Sentry** | Error and performance monitoring (`@sentry/react-native`) |
+| **OneSignal** | Push notifications (`react-native-onesignal` + Expo plugin) |
+| **Clerk** | Authentication (sign-up, login, SSO, Apple Sign-In) |
+| **RevenueCat** | In-app purchases — Apple IAP (native), Google Play (native), Stripe (web) |
+| **Thirdweb** | On-chain wallet interactions and crypto checkout |
+| **Supabase** | Client-side data features |
+
+## Deep link scheme
+
+The app registers the `engagenative` URL scheme and supports universal links via the associated domain `applinks:dsports.app`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
