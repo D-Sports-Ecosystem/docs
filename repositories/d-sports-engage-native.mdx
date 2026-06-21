@@ -20,8 +20,10 @@ icon: "smartphone"
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
-| UI         | Lucide React Native       |
+| UI         | Custom components          |
 | Navigation | Expo Router               |
+| Icons      | Lucide (`lucide-react-native`) |
+| Deployment | Vercel (web), EAS (native) |
 | Package    | Bun                       |
 
 ## Features
@@ -33,8 +35,24 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
+## Web support
+
+The native app also runs as a responsive web application deployed to Vercel. Web support includes:
+
+- **PWA manifest** — standalone display mode with portrait orientation, favicons, and app icons (`site.webmanifest`)
+- **Dynamic document titles** — browser tab titles update per-route via `WebDocumentTitle` (e.g. "D-Sports Engage | Wallet")
+- **Icon system** — unified `Icon` component backed by `lucide-react-native`, which renders correctly on both native and web
+- **Web hover states** — `WebHoverWrapper` adds hover feedback (opacity/scale) on web Pressables; no-op on native
+- **Responsive layout** — `AppScreen` wrapper with safe-area handling and dark/light background support
+- **Accessibility** — skip-to-content link, `focus-visible` outlines, `prefers-reduced-motion` and `prefers-contrast` media queries in the web HTML shell
+- **Vercel deployment** — static export via `npx expo export --platform web`, SPA rewrites, image-proxy passthrough, and long-lived cache headers for static assets
+- **OneSignal web push** — web SDK initialized in the HTML `<head>` for push notification support
+
+To run the web target locally: `bunx expo start --web`.
+
 ## What changed since last docs sync
 
+- Web platform support was added for icon rendering and page display, including PWA metadata, dynamic document titles, and Vercel deployment configuration.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
