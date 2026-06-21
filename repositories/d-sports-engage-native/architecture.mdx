@@ -5,26 +5,52 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 ## App architecture
 
-The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
+The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules. Screen files are thin render shells (imports and JSX only) — all state, effects, and handlers live in dedicated hooks.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- **Routing:** `app/*` with grouped routes for `(tabs)`, `(auth)`, `(onboarding)`, and `settings/`.
+- **Feature logic:** extracted hooks in `hooks/use-<screen-name>.ts` (e.g., `use-wallet-screen.ts`, `use-shop-screen.ts`).
+- **Shared contexts:** user, collectibles, accessibility, navbar visibility, and create-action state.
+- **Components:** organized by domain in `components/<domain>/` with barrel `index.ts` re-exports.
+
+## Profile and achievements architecture
+
+The profile system uses a dedicated component domain in `components/profile/`:
+
+| Component | Purpose |
+| --------- | ------- |
+| `AchievementChip` | Compact badge chip for profile headers |
+| `AchievementsSection` | Grid layout displaying a user's achievements |
+| `ProfileAchievementsModal` | Full-screen modal to browse all achievements |
+| `CachedBadgeImage` | Native disk-cached badge artwork from Supabase |
+| `ProfileFollowersModal` / `ProfileFollowingModal` | Social follow list modals |
+| `ProfilePointsHistoryModal` | Points history timeline modal |
+
+### Badge system
+
+Badges are resolved through two layers:
+
+- **Role badges** — styled badges for staff roles (`superadmin`, `admin`, `dev`, `staff`, `moderator`) with per-role color schemes.
+- **Fan tier badges** — points-based tiers: Rookie (0–500), Rising Star (501–1000), All-Star (1001+).
+
+Achievement data uses a normalized model with `source` (`level`, `badge`, `fallback`), `rarityTier` (`common`, `rare`, `epic`, `legendary`, `mythic`), and visual `variant` options. Badge artwork loads from the Supabase `badge-assets` bucket and is disk-cached on native via `CachedBadgeImage`. The client renders server-provided badge metadata first and falls back to local mapping when unavailable.
 
 ## State and context boundaries
 
 - Local/ephemeral UI state lives near feature hooks and components.
 - Cross-screen state is managed with context providers and persisted storage where required.
 - User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+- Global state uses **Zustand** with MMKV persistence (`services/store.ts`).
 
 ## API client and retry behavior
 
 - All network calls route through `lib/api/*` modules.
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
+- Profile endpoints provide `badgeMetadata` and `levelBadge` fields for server-authoritative badge rendering.
 
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- Crypto send transactions (`lib/crypto/send-transaction.ts`) are native-only; web has a separate implementation.
