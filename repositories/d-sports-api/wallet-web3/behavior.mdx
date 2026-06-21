@@ -6,23 +6,30 @@ icon: "list-checks"
 
 ## Main non-admin routes
 
-- `GET /api/wallets`
-- `POST /api/pregen-wallet`
-- `POST /api/wallets/set-pin`
-- `POST /api/wallets/verify-pin`
-- `POST /api/wallets/private-key`
-- `GET /api/wallets/coin-prices`
-- `GET /api/crypto-prices`
-- `POST /api/thirdweb-link`
-- `POST /api/thirdweb-proxy`
+- `GET /api/wallets` — list wallets for the authenticated user
+- `POST /api/wallets` — create a wallet (address normalized to lowercase)
+- `DELETE /api/wallets` — remove a wallet by address (normalized to lowercase)
+- `POST /api/pregen-wallet` — admin-only pregeneration of Thirdweb in-app wallets
+- `POST /api/wallets/set-pin` — set a 6-digit PIN on a wallet
+- `POST /api/wallets/verify-pin` — verify a wallet PIN before sensitive operations
+- `POST /api/wallets/private-key` — retrieve encrypted private key (address normalized to lowercase)
+- `GET /api/wallets/coin-prices` — real-time crypto prices via CoinMarketCap
+- `GET /api/crypto-prices` — public crypto price endpoint
+- `POST /api/thirdweb-link` — create a Thirdweb session link for wallet binding
+- `GET /api/thirdweb-proxy` — proxy GET requests to allowed Thirdweb endpoints
+- `POST /api/thirdweb-proxy` — proxy POST requests to allowed Thirdweb endpoints
+
+## Wallet address normalization
+
+All wallet endpoints that accept an `address` field normalize it to **lowercase** before storage or lookup. This ensures consistent matching regardless of the checksum casing the client sends. The server also validates that the address matches the Ethereum hex format (`0x` followed by 40 hex characters) and rejects requests with a `400` error if the format is invalid.
 
 ## Runtime behavior highlights
 
 - Wallet routes return or provision user wallet context depending on prior state.
-- PIN routes establish and verify credential gates before private-key access.
+- PIN routes establish and verify credential gates before private-key access. PINs must be exactly 6 digits.
 - Private-key access route is guarded and requires prior validation path.
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.
-- Provider proxy/link routes bridge client flow to external web3 integrations.
+- Provider proxy/link routes bridge client flow to external web3 integrations. The proxy only allows requests to approved Thirdweb origins.
 
 ## Side effects and dependencies
 
@@ -33,6 +40,7 @@ icon: "list-checks"
 
 - External web3 provider behavior can introduce transient errors and retry requirements.
 - Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
+- The Thirdweb proxy restricts upstream URLs to a hardcoded allowlist (`137.rpc.thirdweb.com` and `embedded-wallet.thirdweb.com`).
 
 ## Exclusions
 
