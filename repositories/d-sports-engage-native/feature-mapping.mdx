@@ -9,18 +9,40 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Wallet and pack opening
 
-- Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
+- Wallet screens consume balances, token data, and secure key/PIN flows from backend APIs.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
+- Send/receive and crypto checkout use Thirdweb SDK with Arbitrum, Ethereum, and Polygon chains.
 
 ## Quest, rewards, and pass surfaces
 
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest center uses MMKV cache with TTL and invalidates cache after starting a quest or claiming a reward.
+
+## Profile and achievements
+
+- Profile displays milestone avatar rings with tier-colored SVG rings (Starter through Legend) based on `claimedRewardsCount` from `getUser`.
+- Achievement detail modal shows badge image, title, description, rarity styling, and earned date.
+- Points history modal loads `GET /api/user/points-history` to show game and quest awards.
+- Follow/unfollow updates `followingCount` from the API response.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- Per-team leaderboard routes (`/leaderboard/[teamSlug]`) load by team ID using `teamId` query param.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Followed teams sort first in the locker room carousel and All Teams view.
+
+## Locker room and games
+
+- Daily spin wheel and guess-the-player open as dedicated stack routes (`/locker-room/wheel-spin`, `/locker-room/player-guess`) instead of nested modals.
+- Feed section supports post creation, reactions, and user profile hover cards.
+- Explore teams and explore fans sections with search and modal views.
+
+## Authentication
+
+- Login supports Clerk Core 3 email + password, Apple sign-in, and Google OAuth.
+- Two-factor authentication (authenticator app, SMS, backup code) is handled inline on the login screen.
+- Bot protection via `clerk-captcha` mount point for custom sign-up flows.
