@@ -843,28 +843,88 @@
     "/api/wallets/set-pin": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Set PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "summary": "Set or reset wallet PIN",
+        "description": "Sets or resets the 6-digit PIN for a wallet. During PIN migration, this also clears the migration flag for all of the user's wallets and marks the user's wallet PIN migration as completed.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["walletId", "pin"],
+                "properties": {
+                  "walletId": { "type": "string", "description": "ID of the wallet to set the PIN on." },
+                  "pin": { "type": "string", "pattern": "^\\d{6}$", "description": "Exactly 6 digits." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { pinSet: true } }" },
+          "400": { "description": "Validation error (missing fields or PIN not 6 digits)." },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
+        }
       }
     },
     "/api/wallets/verify-pin": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Verify PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "summary": "Verify wallet PIN",
+        "description": "Verifies the 6-digit PIN for a wallet. Returns whether the PIN is correct and whether the user must reset their PIN (migration flow). If the wallet has no PIN hash at all, returns `verified: false` with `requiresPinReset: true`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["walletId", "pin"],
+                "properties": {
+                  "walletId": { "type": "string", "description": "ID of the wallet to verify." },
+                  "pin": { "type": "string", "pattern": "^\\d{6}$", "description": "Exactly 6 digits." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { verified: boolean, requiresPinReset?: boolean } }" },
+          "400": { "description": "Validation error (missing fields or PIN not 6 digits)." },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
+        }
       }
     },
     "/api/wallets/private-key": {
       "post": {
         "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Get private key",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "summary": "Get wallet private key",
+        "description": "Returns the encrypted private key for the wallet identified by its on-chain address. Only the wallet owner can access this endpoint.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Ethereum-style wallet address (0x-prefixed, 40 hex chars)." }
+                }
+              }
+            }
+          }
+        },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { privateKey: string } }" },
+          "400": { "description": "Validation error (missing or malformed address)." },
+          "401": { "description": "Unauthorized." },
+          "404": { "description": "Wallet not found or access denied." },
+          "500": { "description": "Internal server error." }
+        }
       }
     },
     "/api/wallets/coin-prices": {
