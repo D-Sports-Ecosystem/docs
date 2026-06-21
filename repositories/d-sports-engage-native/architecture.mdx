@@ -26,5 +26,21 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+
+### Web platform support
+
+The app builds for web via Metro bundler (`app.json` → `web.bundler: "metro"`, `web.output: "static"`). Key web-specific layers:
+
+- **`app/+html.tsx`** — root HTML shell with PWA meta tags, OneSignal web SDK, skip-to-content link, `focus-visible` keyboard outlines, and CSS media queries for `prefers-reduced-motion` and `prefers-contrast`.
+- **`components/layout/AppScreen.tsx`** — responsive container with safe-area insets. On desktop web the content is centered with a max-width constraint.
+- **`components/ui/WebHoverWrapper.tsx`** — `Pressable` wrapper that adds hover opacity/scale feedback on web; no-ops on native.
+- **`vercel.json`** — static deployment config with SPA rewrites, image-proxy rewrite to the API, and cache/CSP headers.
+
+### Accessibility context (cross-platform)
+
+`context/accessibility-context.tsx` provides a unified accessibility layer:
+
+- On **native**, it subscribes to `AccessibilityInfo` events (screen reader, reduce motion, bold text).
+- On **web**, it subscribes to `prefers-reduced-motion` and `prefers-contrast: more` media queries.
+- Derived values (`textScale`, effective `reduceMotion`, effective `highContrast`) combine in-app toggles with system preferences so the strongest preference always wins.
