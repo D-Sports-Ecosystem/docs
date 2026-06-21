@@ -9,13 +9,17 @@ Social APIs power locker room activity and user-to-user interactions.
 
 ## Endpoint map
 
-- Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
-- Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+- **Locker room feed:** `GET /api/locker-room`, `POST /api/locker-room`, `GET /api/locker-room/stream`
+- **Single post:** `GET /api/locker-room/{id}`, `PUT /api/locker-room/{id}` (owner edit), `DELETE /api/locker-room/{id}` (owner delete)
+- **Comments:** `GET /api/locker-room/{id}/comments`, `POST /api/locker-room/{id}/comments`, `PUT /api/locker-room/{id}/comments/{commentId}` (owner edit), `DELETE /api/locker-room/{id}/comments/{commentId}` (owner delete)
+- **Reactions:** `POST /api/locker-room/{id}/react`, `GET /api/locker-room/{id}/react`
+- **Social graph:** `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
 
 ## Integration notes
 
 - Read endpoints support pagination/query parameters; always pass explicit paging when available.
 - Mutations should handle auth failures and stale target IDs gracefully.
+- Owner `PUT`/`DELETE` routes enforce that the authenticated user matches the content author. Clients should gate edit/delete UI on local ownership checks before calling these routes.
 
 ## Deep-dive documentation
 

@@ -19,6 +19,13 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
 
+## Locker room social features
+
+- **Owner actions** — post and comment authors can edit or delete their own content. Ownership is determined by comparing `authorId` to the current user ID. Edit opens a pre-filled modal; delete requires a two-step confirmation. Backend routes: `PUT /api/locker-room/{postId}`, `DELETE /api/locker-room/{postId}`, `PUT /api/locker-room/{postId}/comments/{commentId}`, `DELETE /api/locker-room/{postId}/comments/{commentId}`.
+- **Sharing and permalinks** — each post and comment exposes a share action that generates a permalink in the format `https://app.d-sports.org/locker-room/post/{postId}` (or `.../comment/{commentId}`). On native, the OS share sheet opens with a formatted message. On web, the link is copied to the clipboard. The base URL is configured via `EXPO_PUBLIC_APP_WEB_URL`.
+- **Deep-link handling** — permalink URLs are resolved by Expo Router file-based routes (`app/locker-room/post/[postId].tsx` and `app/locker-room/post/[postId]/comment/[commentId].tsx`). These routes redirect to the locker room tab, fetch the target post if needed, open the comment thread, and highlight the linked comment for a few seconds.
+- **Content moderation** — non-owner users can report content (with type and reason) or block an author to filter their posts from the feed.
+
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.

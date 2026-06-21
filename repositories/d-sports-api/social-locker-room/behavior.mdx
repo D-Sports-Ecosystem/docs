@@ -7,8 +7,14 @@ icon: "list-checks"
 ## Main non-admin routes
 
 - `GET/POST /api/locker-room`
+- `GET /api/locker-room/[id]` — fetch a single post (used by deep-link resolution)
+- `PUT /api/locker-room/[id]` — edit a post (owner only)
+- `DELETE /api/locker-room/[id]` — delete a post (owner only)
 - `GET/POST /api/locker-room/[id]/comments`
+- `PUT /api/locker-room/[id]/comments/[commentId]` — edit a comment (owner only)
+- `DELETE /api/locker-room/[id]/comments/[commentId]` — delete a comment (owner only)
 - `POST /api/locker-room/[id]/react`
+- `GET /api/locker-room/[id]/react`
 - `GET /api/locker-room/stream`
 - `POST /api/user/follow`
 - `GET /api/user/followers`
@@ -18,8 +24,14 @@ icon: "list-checks"
 
 - Post creation updates feed-visible entities with author-linked identity.
 - Comment and reaction routes mutate child entities tied to post IDs.
+- **Owner edit/delete** — `PUT` and `DELETE` on posts and comments enforce that the requesting user matches the content `authorId`. Edits replace content in place; deletes remove the entity and adjust parent comment counts.
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - Recommendation and follower endpoints read from current social graph state.
+
+## Permalink and deep-link support
+
+- The native app generates shareable permalinks in the format `{APP_WEB_BASE_URL}/locker-room/post/{postId}` (and `.../comment/{commentId}` for comments).
+- `GET /api/locker-room/[id]` supports single-post fetch so deep-link targets can be resolved even when the post is not already in the client feed.
 
 ## Side effects and integration points
 
