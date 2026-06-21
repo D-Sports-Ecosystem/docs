@@ -7,6 +7,10 @@ icon: "list-checks"
 ## Main non-admin routes
 
 - `GET /api/wallets`
+- `POST /api/wallets` — accepts `address` plus either `encryptedPrivateKey` or `privateKey`, with optional `mnemonic` and `pin`
+- `DELETE /api/wallets`
+- `GET /api/wallets/link-challenge` — generates a one-time challenge for external wallet ownership proof
+- `POST /api/wallets/link-external` — verifies signature and links an external wallet (body: `challengeId`, `message`, `signature`, `address`, `provider`)
 - `POST /api/pregen-wallet`
 - `POST /api/wallets/set-pin`
 - `POST /api/wallets/verify-pin`
@@ -19,6 +23,7 @@ icon: "list-checks"
 ## Runtime behavior highlights
 
 - Wallet routes return or provision user wallet context depending on prior state.
+- The external wallet linking flow is a two-step process: request a challenge, then submit a signed message to prove ownership. Challenges expire after a short window.
 - PIN routes establish and verify credential gates before private-key access.
 - Private-key access route is guarded and requires prior validation path.
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.
@@ -33,6 +38,8 @@ icon: "list-checks"
 
 - External web3 provider behavior can introduce transient errors and retry requirements.
 - Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
+- Link challenges are single-use and time-limited; clients must complete the signing flow promptly.
+- A wallet address can only be linked to one user account.
 
 ## Exclusions
 

@@ -10,11 +10,13 @@ Wallet APIs manage user wallet registration, PIN validation, key retrieval flow,
 ## Endpoint map
 
 - Wallet lifecycle: `/api/wallets` (GET/POST/DELETE)
+- External wallet linking: `/api/wallets/link-challenge` (GET), `/api/wallets/link-external` (POST)
 - Security flows: `/api/wallets/set-pin`, `/api/wallets/verify-pin`, `/api/wallets/private-key`
 - Prices: `/api/wallets/coin-prices`, `/api/crypto-prices`
 
 ## Integration notes
 
+- To link an external wallet (e.g. MetaMask), first call `GET /api/wallets/link-challenge` to obtain a challenge, sign the message with the external wallet, then submit the signature to `POST /api/wallets/link-external`.
 - Treat all private-key and PIN operations as sensitive user actions.
 - Pair price lookup APIs with freshness indicators on the client side.
 

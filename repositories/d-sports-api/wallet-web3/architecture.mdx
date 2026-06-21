@@ -9,6 +9,8 @@ icon: "workflow"
 - `server/wallet-actions.ts`
 - `server/wallet-pin-actions.ts`
 - `app/api/wallets/route.ts`
+- `app/api/wallets/link-challenge/route.ts`
+- `app/api/wallets/link-external/route.ts`
 - `app/api/wallets/private-key/route.ts`
 - `app/api/wallets/set-pin/route.ts`
 - `app/api/wallets/verify-pin/route.ts`
@@ -32,10 +34,22 @@ flowchart LR
   keySecurity --> privateKeyGate[PrivateKeyAccessGate]
   walletProvision --> providerBridge[Web3ProviderBridge]
   providerBridge --> balancePriceRead[BalanceAndPriceReads]
+  walletRequest --> linkChallenge[LinkChallenge]
+  linkChallenge --> linkExternal[LinkExternalWallet]
 ```
+
+## External wallet linking
+
+Users can link wallets from third-party providers (e.g. MetaMask, WalletConnect) through a two-step challenge/verify flow:
+
+1. **Challenge** (`GET /api/wallets/link-challenge`) — generates a one-time SIWE-style message bound to the user session.
+2. **Link** (`POST /api/wallets/link-external`) — the client signs the challenge message with the external wallet, then submits the signature along with the `challengeId`, `address`, and `provider` identifier. The server verifies ownership and persists the linked wallet.
+
+Wallet provider assets (logos, icons) are stored in Supabase rather than bundled with the app.
 
 ## Architectural notes
 
 - Wallet secrets are protected via encryption and PIN-gated flows.
+- External wallets use SIWE-style signature verification instead of storing private keys.
 - Web3 provider proxy routes isolate external provider contracts from clients.
 - Checkout and token balance features consume wallet/web3 utilities as dependencies.
