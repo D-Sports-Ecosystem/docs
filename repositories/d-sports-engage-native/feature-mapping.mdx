@@ -7,6 +7,14 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Profile and milestone avatar rings
+
+- Profile photos display a tier-colored SVG ring based on the user's `claimedRewardsCount` from the backend (Starter through Legend tiers).
+- Users with fewer than two claimed rewards keep the default brand gold ring (`#F5C842`).
+- Milestone tier thresholds are defined in shared `REWARD_MILESTONES` data (`lib/reward-milestones.ts`) used by both the avatar ring and the quest center milestone list.
+- Tier preview dots under the avatar let you tap to preview a ring or long-press for tier details. Selection is persisted per user.
+- Badge artwork loads from the Supabase `badge-assets` bucket with native disk caching via `CachedBadgeImage`.
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
@@ -18,9 +26,11 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest center imports shared `REWARD_MILESTONES` to align milestone thresholds with the profile avatar.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- Per-team leaderboard stack routes (`/leaderboard/[teamSlug]`) load boards by team ID for consistency with quest and sync data.
+- Global leaderboard is derived from summed team leaderboard entries.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
