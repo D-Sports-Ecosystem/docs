@@ -997,15 +997,72 @@
       "get": {
         "tags": ["Products", "Commerce and purchases"],
         "summary": "List products",
+        "description": "Returns a unified feed of products and packs. Pack-type Product rows that duplicate a Pack record are automatically removed so each pack appears once. Pack items include explicit asset metadata keys for native and web clients.",
         "parameters": [
-          { "name": "type", "in": "query", "schema": { "type": "string" } },
-          { "name": "teamId", "in": "query", "schema": { "type": "string" } },
-          { "name": "rarity", "in": "query", "schema": { "type": "string" } },
-          { "name": "featured", "in": "query", "schema": { "type": "boolean" } },
-          { "name": "search", "in": "query", "schema": { "type": "string" } }
+          { "name": "type", "in": "query", "description": "Filter by product type (e.g. `Pack`). Alias: `category`.", "schema": { "type": "string" } },
+          { "name": "teamId", "in": "query", "description": "Filter by team ID.", "schema": { "type": "string" } },
+          { "name": "rarity", "in": "query", "description": "Filter by rarity tier.", "schema": { "type": "string" } },
+          { "name": "featured", "in": "query", "description": "When `true`, return only featured items.", "schema": { "type": "boolean" } },
+          { "name": "search", "in": "query", "description": "Case-insensitive search across name and description.", "schema": { "type": "string" } }
         ],
         "security": [],
-        "responses": { "200": { "description": "Products and packs" } }
+        "responses": {
+          "200": {
+            "description": "Unified product and pack catalog.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "products": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" },
+                              "slug": { "type": "string" },
+                              "type": { "type": "string", "description": "Product type, e.g. `Pack`." },
+                              "price": { "type": "number" },
+                              "currency": { "type": "string" },
+                              "image": { "type": "string" },
+                              "imageUrl": { "type": "string", "description": "Absolute URL for the product image." },
+                              "description": { "type": "string" },
+                              "rarity": { "type": "string" },
+                              "isNew": { "type": "boolean" },
+                              "isLimited": { "type": "boolean" },
+                              "player": { "type": "string" },
+                              "team": { "type": "string" },
+                              "inStock": { "type": "boolean" },
+                              "metadata": {
+                                "type": "object",
+                                "description": "Pack items include explicit launch-asset keys. Product items carry pass-through metadata from the Product record.",
+                                "properties": {
+                                  "maxReveal": { "type": "integer", "description": "Number of collectibles revealed when the pack is opened." },
+                                  "animationId": { "type": "string", "description": "Pack animation identifier." },
+                                  "modelUrl": { "type": "string", "description": "Backward-compatible 3-D model URL (same as `glbUrlWeb`)." },
+                                  "shopImageUrl": { "type": "string", "description": "Absolute URL for the shop tile image." },
+                                  "glbUrlWeb": { "type": "string", "description": "GLB model URL optimised for web clients." },
+                                  "glbUrlNative": { "type": "string", "description": "GLB model URL optimised for native clients." },
+                                  "assetVersion": { "type": "string", "description": "Asset bundle version tag, e.g. `v1`." },
+                                  "packTier": { "type": "string", "enum": ["free", "standard", "starter", "custom"], "description": "Computed tier derived from the pack name." }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/webhooks/revenuecat": {
