@@ -24,3 +24,5 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team logos are normalized for React Native using a shared `resolveTeamLogoSource` utility and `TeamLogoImage` component with `onError` fallback.
+- Carousel navigation uses bounds-clamped `scrollToIndex` with safe index handling to prevent crashes on leaderboard and featured-games surfaces.

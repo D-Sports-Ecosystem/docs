@@ -33,12 +33,13 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
-## What changed since last docs sync
+## What changed since last docs sync (v1.17.4)
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- **Tab bar reworked** — Bottom navigation now uses platform-specific treatments: glass/blur via `NativeTabs` on iOS, Material-style `PillTabBar` with `expo-blur` on Android, and an aligned look on web.
+- **Android package name** — The Android application ID is now `com.dsports.engage` (Play Store–aligned).
+- **Leaderboard and carousel polish** — Team logo handling improved, carousel `scrollToIndex` crashes fixed, arrow navigation bounds-clamped, and broader accessibility fixes applied.
+- **EAS build tooling** — Build profiles updated to Bun **1.3.11**.
+- **Store assets** — App Store screenshots and listing metadata now synced in-repo (`store.config.json`, `store/`).
 
 ## Backend integration surfaces
 
