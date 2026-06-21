@@ -3,20 +3,47 @@ title: "Errors and status codes"
 description: "Common status code semantics and error-handling expectations for non-admin API flows."
 ---
 
+## Error envelope
+
+All error responses use a consistent JSON envelope:
+
+```json
+{
+  "success": false,
+  "error": "Human-readable message",
+  "code": "MACHINE_READABLE_CODE"
+}
+```
+
+The `code` field is a stable, machine-readable identifier you can match on without parsing the message string.
+
 ## Common status code patterns
 
 - `200` / `201`: successful read or mutation.
-- `400`: invalid payload or missing required fields.
-- `401`: authentication missing or invalid.
-- `404`: resource not found.
-- `409`: state conflict (when route-specific logic enforces uniqueness/state).
-- `500`: unexpected server-side failure.
+- `400`: invalid payload or missing required fields (`VALIDATION_ERROR`).
+- `401`: authentication missing or invalid (`UNAUTHORIZED`).
+- `404`: resource not found (`NOT_FOUND`).
+- `409`: state conflict such as duplicate action or prerequisite not met (`CONFLICT`).
+- `500`: unexpected server-side failure (`INTERNAL_ERROR`).
+
+## Domain-specific error codes
+
+Quest and reward routes propagate typed errors from the server action layer. When the action throws a domain error, the route preserves the original HTTP status and error code instead of collapsing to a generic `500`. Common codes you may encounter:
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `VALIDATION_ERROR` | 400 | Missing or invalid request fields |
+| `UNAUTHORIZED` | 401 | No valid session token |
+| `NOT_FOUND` | 404 | Quest, step, or reward does not exist |
+| `CONFLICT` | 409 | Reward already redeemed or must be claimed first |
+| `QUEST_DAILY_VISIT_NOT_ELIGIBLE` | 400 | Daily visit already recorded or not eligible |
+| `INTERNAL_ERROR` | 500 | Unexpected failure |
 
 ## Error handling guidance
 
+- Match on the `code` field for programmatic error handling rather than parsing the `error` message.
 - Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
 - Surface response body messages in client logs for operational debugging.
-- Prefer route-specific error handling over global assumptions.
 
 ## Where to verify
 
