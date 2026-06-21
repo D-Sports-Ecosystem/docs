@@ -7,6 +7,12 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Settings and legal documents
+
+- The app renders **EULA**, **Terms of Service**, and **Privacy Policy** in-app via a structured `TextContentModal` component under **Settings > Legal**.
+- Legal content is defined in `constants/eula.ts`, `constants/terms-of-service.ts`, and `constants/privacy-policy.ts`. The modal parser splits each document into sections, bullets, effective date, and last-updated metadata.
+- Users can also open each document in an external browser. EULA acceptance state is tracked per version against the user profile (`ugcTermsAcceptedAt` / `ugcTermsVersion`).
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
