@@ -13,7 +13,21 @@ icon: "gift"
 ## Data model
 
 - `Reward`: reward catalog entries (`pointsRequired`, `itemType`, active state).
-- `UserReward`: claim/redeem state per user and reward.
+- `UserReward`: claim/redeem state per user and reward (includes `claimedAt` timestamp).
+
+Each `Reward` now carries badge presentation fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `badgeId` | `string?` | Optional external badge identifier. |
+| `iconKey` | `string` | Icon identifier for client rendering (defaults to `"trophy"`). |
+| `rarityTier` | `Rarity` | One of `COMMON`, `RARE`, `EPIC`, `LEGENDARY`, `MYTHIC`. |
+| `displayOrder` | `int` | Sort priority (lower values appear first). |
+| `variant` | `BadgeVariant` | Visual variant: `DEFAULT`, `SECONDARY`, `OUTLINE`, `DESTRUCTIVE`, `VERIFIED`, or `COUNT`. |
+
+### Badge metadata on user profile
+
+Claimed rewards are normalized into `BadgeMetadataItem` entries and included in the `badgeMetadata` array on the user profile response from `getUser`. Each reward badge has `sourceType: "reward"` and uses `claimedAt` as the `earnedAt` timestamp.
 
 ## Reward type taxonomy
 
