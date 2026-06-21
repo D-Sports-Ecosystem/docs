@@ -23,8 +23,29 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Tab bar architecture
+
+The tab bar implementation differs by platform:
+
+- **iOS** — `app/(tabs)/_layout.ios.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs` for the system tab bar with Liquid Glass dark material styling. The wallet tab shows a numeric badge for unopened packs.
+- **Android and web** — `app/(tabs)/_layout.tsx` renders a custom `PillTabBar` overlay with `expo-blur` (`BlurView`). The default tab bar is hidden.
+- **Shared config** — `components/navigation/tab-config.ts` defines tab order, SF Symbol pairs for iOS, and `getActiveTabIndex` logic so `/profile/[handle]` routes don't highlight the profile tab.
+
+<Warning>
+Bumping `expo-router` is high-risk for `NativeTabs`. Read Expo changelog and Router release notes, search for `NativeTabs` / `unstable-native-tabs`, and run `bun tsc --noEmit` before upgrading.
+</Warning>
+
+## Widgets
+
+The app includes home-screen widgets for iOS and Android:
+
+- **iOS** — `expo-widgets` with `RankOrPointsWidget` (systemSmall/systemMedium) and `LiveStatusActivity` (accessoryRectangular/accessoryInline).
+- **Android** — `react-native-android-widget` with `RankOrPointsWidget`. Widget data is fetched via `lib/widget-data.ts`.
+
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
+- iOS/Android platform differences are handled in native-specific layout files and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- Push notifications use OneSignal (`onesignal-expo-plugin`) with production mode and app group support.
+- Error tracking uses Sentry (`@sentry/react-native/expo`).
