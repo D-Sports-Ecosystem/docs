@@ -1089,6 +1089,32 @@
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Returns whether a given username (handle) is available. Case-insensitive check.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The username to check." }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { available } }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns the mapping of RevenueCat product IDs to entitlements and D-Sports Cash tiers. Used by the mobile app and RevenueCat integration.",
+        "security": [],
+        "responses": {
+          "200": { "description": "{ success, data: { mappings } }" }
+        }
+      }
     }
   },
   "components": {
