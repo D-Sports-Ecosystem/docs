@@ -7,6 +7,16 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 `d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
+## Authentication
+
+- The `/login` screen is the single entry point for both sign-in and sign-up. The `/sign-up` route redirects to `/login` so existing deep links continue to work.
+- You can sign in with **email and password** or **Continue with Apple / Google** (OAuth via Clerk SSO).
+- New email/password accounts go through an OTP email verification step before the session activates.
+- The `useEmailPasswordAuth` hook implements a combined sign-in-or-up flow using Clerk Core 3 `__internal_future` APIs on `SignIn` and `SignUp` resources.
+- If a user does not exist, the hook falls back to `signUp` creation and sends a verification email automatically.
+- Two-factor authentication prompts users to use social login or the Clerk account portal when 2FA is enabled.
+- CAPTCHA is mounted invisibly on the login form (`clerk-captcha` native ID) for bot protection.
+
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
