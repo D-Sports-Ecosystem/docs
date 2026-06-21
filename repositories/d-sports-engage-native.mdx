@@ -18,6 +18,7 @@ icon: "smartphone"
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
+| 3D viewer  | `@react-three/fiber`, `@react-three/drei`, `three` |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
@@ -28,6 +29,7 @@ icon: "smartphone"
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
+- **3D collectible viewer** — Interactive GLB model viewer on web (orbit controls, auto-fit); native platforms render a placeholder
 - **Leaderboard** — Rankings and filters
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
@@ -64,10 +66,71 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure environment variables">
+    Create a `.env` file with the following `EXPO_PUBLIC_*` keys (only these are available at runtime):
+
+    | Variable | Purpose |
+    | -------- | ------- |
+    | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+    | `EXPO_PUBLIC_API_URL` | Backend API base URL |
+    | `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID |
+    | `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+    | `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+    | `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+    | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+    | `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable (anon) key |
+  </Step>
+  <Step title="Start the development server">
+    ```bash
+    bunx expo start
+    ```
+    Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Build for devices (optional)">
+    ```bash
+    # Development build (EAS)
+    bun run build:dev
+
+    # Preview build
+    bun run build:preview
+
+    # Production build
+    bun run build:prod
+    ```
+  </Step>
+</Steps>
+
+## 3D GLB model viewer
+
+The shop uses a platform-split `WebGlbViewer` component to render interactive 3D collectible models:
+
+- **Web** (`WebGlbViewer.web.tsx`) — uses `@react-three/fiber` Canvas with orbit controls, ambient and directional lighting, and auto-fit bounds. Models load via `useGLTF` with an error boundary fallback.
+- **Native** (`WebGlbViewer.tsx`) — renders an empty placeholder since Three.js requires a WebGL context.
+
+The viewer accepts a `modelUrl` (remote `.glb` file), an optional `viewerKey` to force re-renders, and `onLoad`/`onError` callbacks.
+
+## CI/CD
+
+An **EAS Update** workflow (`.github/workflows/eas-update.yml`) runs on pushes to `master` and publishes over-the-air updates:
+
+- Installs dependencies with Bun, sets up Node 22 for EAS tooling, and authenticates via `EXPO_TOKEN`.
+- Publishes to the `develop` branch channel on `develop` pushes and the `main` branch channel on `main` pushes.
+
+## Web deployment
+
+The web build deploys to **Vercel** using the Expo web export:
+
+- **Build command:** `npx expo export --platform web`
+- **Output directory:** `dist`
+- **SPA routing** — all non-asset paths rewrite to `index.html`.
+- **Image proxy** — `/api/image-proxy` rewrites to the API backend for same-origin Clerk image loading.
+- **CSP headers** — allow `blob:`, `https:`, and `wss:` for Thirdweb, WalletConnect, and Clerk.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
