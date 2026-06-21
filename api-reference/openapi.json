@@ -337,7 +337,7 @@
       "post": {
         "tags": ["Packs"],
         "summary": "Start pack purchase",
-        "description": "Body: { paymentMethod: 'crypto' | 'dsports-cash' }.",
+        "description": "Body: { paymentMethod: 'crypto' | 'dsports-cash' }. Free packs are limited to 3 purchases per user per UTC day. The counter resets at 00:00 UTC.",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "requestBody": {
           "content": {
@@ -350,7 +350,10 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ purchaseId }" } }
+        "responses": {
+          "200": { "description": "{ purchaseId }" },
+          "400": { "description": "Validation error — invalid payment method, pack sold out, or free pack daily limit reached (max 3 per UTC day)." }
+        }
       },
       "put": {
         "tags": ["Packs"],
