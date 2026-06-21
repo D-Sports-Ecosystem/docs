@@ -1,18 +1,53 @@
 ---
-title: "Compliance and legal (pack odds)"
-description: "Native client compliance documentation for pack-odds disclosure, copy standards, and review evidence."
+title: "Compliance and legal"
+description: "Native client compliance documentation covering in-app legal policies, pack-odds disclosure, copy standards, and review evidence."
 icon: "scale"
 ---
 
 ## Scope
 
-This section documents client-facing pack-opening disclosure requirements and legal/compliance alignment for native app surfaces.
+This section documents client-facing compliance surfaces in the native app, including in-app legal policy presentation, pack-opening disclosure requirements, and app-review alignment.
 
 ## Included topics
 
+- In-app legal document presentation (Terms of Service, Privacy Policy, EULA)
+- Policy copy synchronization between native app and marketing site
 - Pack odds integration from backend payloads
 - Disclosure copy and accessibility constraints
 - App-review evidence requirements for release submissions
+
+## In-app legal policy documents
+
+The native app presents three legal documents in-app through the **Settings > Data & Privacy > Legal** section:
+
+| Document | Constant file | Effective date |
+| --- | --- | --- |
+| **Terms of Service** | `constants/terms-of-service.ts` | April 3, 2026 |
+| **Privacy Policy** | `constants/privacy-policy.ts` | April 3, 2026 |
+| **EULA** | `constants/eula.ts` | April 3, 2026 |
+
+### Presentation
+
+Legal documents are rendered using the `TextContentModal` component (`components/settings/modals/TextContentModal.tsx`). This modal parses plain-text policy content into a structured card layout with:
+
+- An effective-date info card
+- Numbered section cards with bullet support
+- A "last updated" footer
+
+The `DataSettings` tab (`components/settings/tabs/DataSettings.tsx`) wires each document into a `TextContentModal` instance and also provides "Open in Browser" links to the corresponding pages on the marketing site (`d-sports.org`).
+
+### Sync requirements
+
+In-app legal copy must stay in sync with the website versions hosted on `d-sports-site`:
+
+- **Website pages:** `/terms-of-service`, `/privacy-policy`, `/eula`
+- **Native constants:** `constants/terms-of-service.ts`, `constants/privacy-policy.ts`, `constants/eula.ts`
+
+When policy text is updated, you must update both the native constants and the website page content to keep them aligned. Each constant file includes a comment reminding contributors of this requirement.
+
+### EULA acceptance tracking
+
+The app tracks EULA acceptance via `user.ugcTermsAcceptedAt` and `user.ugcTermsVersion`. The `DataSettings` component compares the stored version against `EULA_VERSION` to display acceptance status.
 
 ## Public-safe boundary
 
@@ -30,5 +65,8 @@ This section documents client-facing pack-opening disclosure requirements and le
   </Card>
   <Card title="App review evidence log" icon="check-check" href="/repositories/d-sports-engage-native/compliance/app-store-review-evidence-log">
     Submission artifact checklist for native app review cycles.
+  </Card>
+  <Card title="Accessibility" icon="universal-access" href="/repositories/d-sports-engage-native/compliance/accessibility">
+    Apple Accessibility Nutrition Labels support matrix and implementation details.
   </Card>
 </CardGroup>
