@@ -31,6 +31,7 @@ icon: "list-checks"
 
 ## Known caveats
 
+- Wallet address lookups are **case-insensitive** — addresses like `0xAbC...` and `0xabc...` resolve to the same wallet. This applies to wallet creation, private-key retrieval, and PIN verification flows.
 - External web3 provider behavior can introduce transient errors and retry requirements.
 - Security-sensitive flows depend on strict client sequencing (PIN set/verify before key retrieval).
 
