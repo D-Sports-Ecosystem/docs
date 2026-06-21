@@ -10,6 +10,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
+- **Send and receive** — send on-chain transactions via `lib/crypto/send-transaction.ts`; receive modal shows wallet address with copy and QR code.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
@@ -18,9 +19,38 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Quest UI supports team-aware progression and pass-gated eligibility.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+- Quest center uses MMKV cache with TTL-based invalidation and refetches on tab focus.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- Leaderboard displays use per-team stack routes (`/leaderboard/[teamSlug]`) and team-scoped ranking views.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+- Team logos are resolved through `lib/team-logo-utils.ts` with protocol normalization and error fallbacks.
+
+## Locker room and mini-games
+
+- Social feed with post creation, comments, and user-generated content moderation (report, hide).
+- **Daily Spin Wheel** (`components/locker-room/DailySpinWheelGame.tsx`) — daily reward spin with segment/outcome alignment and claim flows.
+- **Guess the Player** (`components/locker-room/GuessThePlayerGame.tsx`) — player identification game.
+- **Daily Pick'em** (`components/locker-room/DailyPickEmGame.tsx`) — daily prediction game.
+- Featured games carousel with dedicated stack routes (`/locker-room/wheel-spin`, `/locker-room/player-guess`).
+- Explore teams and explore fans carousels with web drag support.
+
+## Profile and achievements
+
+- User profile with milestone avatar rings (tier-colored SVG ring based on reward milestones).
+- Achievement cards, chips, and detail modals with rarity styling.
+- Points history modal with chronological breakdown by kind (quest, game, onboarding, other).
+- Follower/following lists with follow/unfollow from public profiles.
+
+## Authentication
+
+- Clerk email and password sign-in with OTP email verification for new users.
+- Two-factor authentication support (authenticator app, SMS, backup code).
+- OAuth via Apple and Google.
+
+## Notifications
+
+- Push notifications via OneSignal with subscription management in `lib/onesignal-subscription.ts`.
+- In-app notification screen at `app/notifications.tsx`.
