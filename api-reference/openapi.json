@@ -997,15 +997,16 @@
       "get": {
         "tags": ["Products", "Commerce and purchases"],
         "summary": "List products",
+        "description": "Returns active products and packs for the shop catalog. Retired items (Frontline Pack, Frontline Pass) are automatically excluded from results regardless of their `isActive` flag. The `type` parameter accepts an alias `category`.",
         "parameters": [
-          { "name": "type", "in": "query", "schema": { "type": "string" } },
-          { "name": "teamId", "in": "query", "schema": { "type": "string" } },
-          { "name": "rarity", "in": "query", "schema": { "type": "string" } },
-          { "name": "featured", "in": "query", "schema": { "type": "boolean" } },
-          { "name": "search", "in": "query", "schema": { "type": "string" } }
+          { "name": "type", "in": "query", "description": "Filter by product type (e.g. `Pack`). Alias: `category`.", "schema": { "type": "string" } },
+          { "name": "teamId", "in": "query", "description": "Filter by team ID.", "schema": { "type": "string" } },
+          { "name": "rarity", "in": "query", "description": "Filter by rarity level.", "schema": { "type": "string" } },
+          { "name": "featured", "in": "query", "description": "When `true`, return only featured products.", "schema": { "type": "boolean" } },
+          { "name": "search", "in": "query", "description": "Case-insensitive search across product name and description.", "schema": { "type": "string" } }
         ],
         "security": [],
-        "responses": { "200": { "description": "Products and packs" } }
+        "responses": { "200": { "description": "{ products: ShopItem[] } — merged list of products and packs, sorted by new items first." } }
       }
     },
     "/api/webhooks/revenuecat": {
