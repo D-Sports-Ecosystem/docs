@@ -22,7 +22,7 @@ icon: "smartphone"
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
-| Package    | Bun                       |
+| Package    | Bun (`bun@1.3.9`)         |
 
 ## Features
 
@@ -62,11 +62,23 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Platform identifiers
+
+| Platform | Identifier |
+| -------- | ---------- |
+| Android  | `com.dsports.engage` |
+| iOS      | `com.dsports.wallet.beta` |
+
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+1. Clone the repository and run `bun install` (pinned to `bun@1.3.9` via `packageManager`).
+2. Copy `.env` and configure the required `EXPO_PUBLIC_*` variables:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk auth
+   - `EXPO_PUBLIC_API_URL` — API backend base URL
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` — RevenueCat key
+   - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` — Supabase client
+3. Run `bunx expo start`, then press **a** for Android or **i** for iOS.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
