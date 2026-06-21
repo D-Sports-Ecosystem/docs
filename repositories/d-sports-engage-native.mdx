@@ -6,9 +6,9 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, version **1.17.2**) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
-- **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
+- **Run:** `bunx expo start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
 ## Tech stack
 
@@ -33,8 +33,9 @@ icon: "smartphone"
 - **Profile** — User profile and settings
 - **Theme** — Dark/light mode (default dark)
 
-## What changed since last docs sync
+## Recent changes
 
+- **Milestone avatar fix** — Legendary milestone (tier 3) no longer resizes the avatar. The layout now uses a fixed `MAX_MILESTONE_RING_WIDTH` for SVG size and ring radius, with `tierStrokeWidth` only applied to the painted stroke.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
@@ -62,12 +63,50 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+The app reads `EXPO_PUBLIC_*` keys at runtime. You need the following in your `.env`:
+
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat API key |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env.example` to `.env` and fill in the values above.
 3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+4. Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
+
+## EAS build profiles
+
+The project uses EAS Build with the following profiles defined in `eas.json`:
+
+| Profile | Channel | Use case |
+| --- | --- | --- |
+| `development` | `development` | Dev client with simulator support |
+| `development-device` | `development` | Dev client on physical device |
+| `preview` | `preview` | Internal distribution (APK on Android) |
+| `staging` | `staging` | Auto-incrementing staging builds |
+| `production` | `production` | App Store / Play Store releases |
+
+```bash
+# Development build (all platforms)
+bun run build:dev
+
+# iOS-only preview
+bun run build:preview:ios
+
+# Production build
+bun run build:prod
+```
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 

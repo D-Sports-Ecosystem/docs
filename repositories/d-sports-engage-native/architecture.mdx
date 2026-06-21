@@ -23,6 +23,21 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Milestone avatar tier system
+
+The `MilestoneAvatar` component renders a gradient ring around the user's profile picture that reflects their reward milestone tier. Four tiers exist:
+
+| Tier | Key | Required claims | Ring style |
+| --- | --- | --- | --- |
+| Starter | `starter` | 2 | Static teal gradient |
+| Momentum | `momentum` | 4 | Animated blue gradient |
+| Elite | `elite` | 6 | Animated purple gradient with shimmer |
+| Legend | `legend` | 8 | Animated gold gradient with shimmer |
+
+Each tier has a different `ringWidth` (3–4 px), but the layout uses a fixed `MAX_MILESTONE_RING_WIDTH` constant for SVG sizing and ring radius. This ensures that switching between tiers — or unlocking a higher tier — never changes the avatar frame size. Only the painted stroke width varies per tier.
+
+Users can tap tier dots below the avatar to preview unlocked rings. Long-pressing a dot opens a detail modal with tier requirements.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
