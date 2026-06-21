@@ -707,6 +707,7 @@
       "post": {
         "tags": ["Quests"],
         "summary": "Start quest",
+        "description": "Starts a quest for the authenticated user. Idempotent — if the quest was already started the call still returns 200 with quest set to null.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -715,7 +716,13 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "responses": {
+          "200": { "description": "{ quest, message } — also returned when the quest was already started (quest will be null)" },
+          "400": { "description": "Quest ID is required" },
+          "401": { "description": "Authentication required" },
+          "403": { "description": "Quest team is not in favorite teams, or team paid pass required" },
+          "404": { "description": "Quest not found or not active" }
+        }
       }
     },
     "/api/quests/complete-step": {
