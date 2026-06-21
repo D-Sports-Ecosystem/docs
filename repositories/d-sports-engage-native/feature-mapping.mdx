@@ -22,5 +22,17 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
-- Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
+- **Per-team leaderboard routes** — `/leaderboard/[teamSlug]` and `/leaderboard/global` load boards by `teamId` (not a stale numeric `leaderboardId`), matching quest and sync data.
+- **MMKV cache separation** — Team detail "Top fans" and the full leaderboard use distinct cache shapes so opening a modal before the full screen no longer shows an empty board.
+- **Official team label** — Teams with `isOfficial: true` and no league show "Official" instead of "Other".
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Locker room games
+
+- **Dedicated game routes** — Prize Wheel (`/locker-room/wheel-spin`) and Guess the Player (`/locker-room/player-guess`) open as stack routes, eliminating z-order issues from nested modals.
+- Spin completion and equipment claim flows are hardened with segment/outcome alignment and proper `isSpinning` reset.
+
+## Points history
+
+- Profile surfaces consume `GET /api/user/points-history` so game awards (wheel, guess-the-player) appear alongside quest completions.
+- The response includes a derived `kind` field (quest, game, onboarding, other) for categorization.
