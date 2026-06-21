@@ -31,6 +31,10 @@ icon: "medal"
 - `getUserLeaderboards()` currently returns global board IDs only in current implementation.
 - Points writes should include board + season scope when context is available.
 
+## Native app behavior
+
+The **d-sports-engage-native** app defaults to team-scoped leaderboards. When you open the leaderboard tab, you see a list of teams grouped by league (OHL, Swiss, Community). Selecting a team opens its leaderboard via `?teamId=<id>` (or `?leaderboardId=<id>` when a numeric board ID is present). The native app does not display the global leaderboard directly.
+
 ## Notes
 
 - Stream/search/stats leaderboard routes are available for consumption use cases.
