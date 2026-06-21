@@ -125,7 +125,11 @@
         "summary": "List followed teams",
         "description": "Teams the authenticated user follows.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/api/teams/{id}/follow": {
@@ -134,7 +138,10 @@
         "summary": "Get follow status",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "500": { "description": "Internal server error" }
+        }
       },
       "post": {
         "tags": ["Teams"],
@@ -149,14 +156,23 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success }" },
+          "401": { "description": "Authentication required" },
+          "404": { "description": "Team not found" },
+          "500": { "description": "Internal server error" }
+        }
       },
       "delete": {
         "tags": ["Teams"],
         "summary": "Unfollow team",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success }" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/api/leaderboard": {
@@ -239,7 +255,11 @@
           { "name": "filter", "in": "query", "schema": { "type": "string", "enum": ["trending", "latest", "following"] } }
         ],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "401": { "description": "Authentication required (when using 'following' filter)" },
+          "500": { "description": "Internal server error" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
@@ -257,7 +277,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" }, "400": { "description": "Content is required" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "400": { "description": "Content is required" },
+          "401": { "description": "Authentication required" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/api/locker-room/stream": {
@@ -266,7 +291,10 @@
         "summary": "Locker room SSE stream",
         "parameters": [{ "name": "filter", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "SSE stream" } }
+        "responses": {
+          "200": { "description": "SSE stream" },
+          "401": { "description": "Unauthorized" }
+        }
       }
     },
     "/api/locker-room/{id}/comments": {
@@ -275,7 +303,10 @@
         "summary": "Get post comments",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "500": { "description": "Internal server error" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
@@ -290,7 +321,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "400": { "description": "Content is required" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/api/locker-room/{id}/react": {
@@ -299,7 +334,10 @@
         "summary": "Get reactions",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "500": { "description": "Internal server error" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
@@ -313,7 +351,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success, data }" },
+          "400": { "description": "Reaction type is required" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/api/packs": {
@@ -541,16 +583,26 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Toggle result" } }
+        "responses": {
+          "200": { "description": "{ starred: boolean }" },
+          "400": { "description": "Star receiver ID is required or cannot star yourself" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Failed to toggle star" }
+        }
       }
     },
     "/api/user/star-status": {
       "get": {
         "tags": ["User"],
         "summary": "Get star status",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
+        "parameters": [{ "name": "userId", "in": "query", "required": true, "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Star status" } }
+        "responses": {
+          "200": { "description": "{ starred: boolean }" },
+          "400": { "description": "User ID is required" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Failed to fetch star status" }
+        }
       }
     },
     "/api/user/isOnboarded": {
