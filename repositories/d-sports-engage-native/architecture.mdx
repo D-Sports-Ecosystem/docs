@@ -7,24 +7,43 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules.
 
-- Routing: `app/*` with grouped routes for tabs/auth/onboarding/settings.
-- Feature logic: extracted hooks for wallet, shop, locker room, and settings.
-- Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
+- **Routing:** `app/*` with grouped routes — `(tabs)` for main navigation, `(auth)` for login/signup, `(onboarding)` for new users, and `settings/` for configuration pages.
+- **Feature logic:** extracted hooks for wallet (`use-wallet-screen.ts`), shop (`use-shop-screen.ts`), feed (`use-feed-section.ts`), and settings (`use-user-settings.ts`).
+- **Shared contexts:** `UserContext` (auth/profile), `CollectiblesContext` (packs/items), `AccessibilityContext`, `NavBarVisibilityContext`, and `CreateActionContext`.
+
+## Screen pattern
+
+Screen files contain **only imports and JSX**. All state, effects, and handlers live in dedicated hooks:
+
+- `hooks/use-wallet-screen.ts` — wallet/token fetch, PIN verification, transaction handlers
+- `hooks/use-shop-screen.ts` — cart state, product queries, carousel auto-scroll, checkout logic
+- `hooks/use-feed-section.ts` — social feed data and interactions
+
+Sub-components are extracted into feature directories (`components/wallet/`, `components/shop/`, `components/locker-room/`, `components/profile/`) with barrel exports via `index.ts`.
 
 ## State and context boundaries
 
 - Local/ephemeral UI state lives near feature hooks and components.
-- Cross-screen state is managed with context providers and persisted storage where required.
-- User/session-sensitive state is coordinated with backend auth and profile sync endpoints.
+- Cross-screen state is managed with context providers — Zustand store (`services/store.ts`) persisted via MMKV (`services/storage.ts`).
+- User/session-sensitive state is coordinated with Clerk auth and backend profile sync endpoints.
 
 ## API client and retry behavior
 
-- All network calls route through `lib/api/*` modules.
-- Client wrappers handle auth token propagation, error normalization, and retry strategy.
-- Quest/reward/team flows should consume backend eligibility as source of truth.
+- All network calls route through `lib/api/*` domain modules (wallet, shop, user, quests, leaderboard, locker room, teams, collectibles, checkout, games).
+- `lib/api/client.ts` handles auth token injection and error normalization.
+- `lib/api/cache.ts` provides MMKV cache-first fetching via `fetchWithCache()`.
+- Quest/reward/team flows consume backend eligibility as source of truth.
+
+## Theme system
+
+- `theme/colors.ts` defines brand colors (Gold `#F5C842`, Royal Blue `#4169E1`) and dark/light palettes.
+- `components/theme-provider.tsx` provides `useTheme()` hook with `resolvedTheme`.
+- `expo-blur` is used for blur effects in UI overlays.
+- Default theme is dark mode with base background `#0a0e1a`.
 
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
-- Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
+- Web-target support exists with responsive `maxWidth: 480px` container (`components/layout/AppScreen.tsx`) and hover states (`components/ui/WebHoverWrapper.tsx`).
+- Haptics (`expo-haptics`), modal controls, and animations (React Native Reanimated) are implemented with platform-safe fallbacks.
+- Path alias `@/*` maps to the project root for clean imports.
