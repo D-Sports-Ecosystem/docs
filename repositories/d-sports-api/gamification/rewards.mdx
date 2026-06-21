@@ -1,6 +1,6 @@
 ---
 title: "Rewards"
-description: "Reward catalog, unlock checks, claim flow, and redeem flow."
+description: "Reward catalog, unlock checks, claim flow, redeem flow, badge metadata, and admin overrides."
 icon: "gift"
 ---
 
@@ -10,10 +10,31 @@ icon: "gift"
 - `POST /api/rewards/claim`: claim a reward when requirements are met.
 - `POST /api/rewards/redeem`: redeem a previously claimed reward.
 
+## Admin override surface
+
+- `POST /api/rewards/admin-override`: force-claim a reward for the authenticated superadmin, bypassing normal point requirements.
+- `DELETE /api/rewards/admin-override`: remove a previously claimed reward (superadmin only).
+
+Both operations require the `superadmin` role and accept `{ rewardId }` in the request body.
+
 ## Data model
 
-- `Reward`: reward catalog entries (`pointsRequired`, `itemType`, active state).
+- `Reward`: reward catalog entries with the following key fields:
+  - `pointsRequired` — points the user must accumulate before claiming.
+  - `itemType` — reward type enum (`BADGE`, `DISCOUNT`, `DIGITAL_CONTENT`, `PHYSICAL_ITEM`, `EXPERIENCE`, `CURRENCY`).
+  - `rarityTier` — rarity classification (`COMMON`, `RARE`, `EPIC`, `LEGENDARY`, `MYTHIC`). Defaults to `COMMON`.
+  - `badgeId` — optional reference linking the reward to a badge definition (e.g. `badge-exclusive-digital-content`).
+  - `variant` — badge display variant (`DEFAULT`, `SECONDARY`).
+  - `displayOrder` — controls sort order in the reward catalog (lower values appear first).
+  - `iconKey` / `iconName` — icon identifiers for client rendering.
+  - `isActive` — whether the reward is currently available.
 - `UserReward`: claim/redeem state per user and reward.
+
+## Badge metadata and asset resolution
+
+Rewards with a `badgeId` are linked to badge artwork stored in Supabase (`badge-assets` bucket). The `resolveBadgeAssetKey` function maps reward and badge identifiers to asset filenames for consistent image rendering across the API and client.
+
+Current seed data includes a **Legendary** exclusive digital content reward (`reward-exclusive-content`) that references the `badge-exclusive-digital-content` badge with `LEGENDARY` rarity and `SECONDARY` variant.
 
 ## Reward type taxonomy
 
