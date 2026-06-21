@@ -28,17 +28,19 @@ icon: "smartphone"
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
+- **Leaderboard** — Rankings, filters, and per-team quests with a tabbed leaderboard/quests view
 - **Locker room** — Social feed and engagement
 - **Profile** — User profile and settings
-- **Theme** — Dark/light mode (default dark)
+- **Theme** — Dark/light mode (default dark) with automatic accent-color contrast adjustment
 
 ## What changed since last docs sync
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- The team leaderboard screen now includes a **Leaderboard / Quests** tab switcher, letting you toggle between rankings and team-specific quests in a single view.
+- A new `TeamQuestSection` component renders per-team quests with active/completed sub-tabs, inline search, and step-based progress tracking.
+- Team cards and leaderboard headers display team-branded gradient backgrounds and logos sourced from API data (`gradientColors`, `gradientLocations`, `logo`, `color`).
+- A color-contrast utility (`lib/color-utils.ts`) automatically lightens dark team accent colors so they remain readable on the dark theme.
+- The `Teams` type now includes `slug`, `logo`, `color`, `gradientColors`, and `gradientLocations` fields mapped from the API response.
+- Various UI polish across leaderboard, locker room, wallet, and profile screens.
 
 ## Backend integration surfaces
 
@@ -49,6 +51,8 @@ icon: "smartphone"
 ## Quest and pass UX integration
 
 - Quest UI now reflects team-scoped eligibility and pass-gated progression where applicable.
+- The team leaderboard screen includes a dedicated **Quests** tab (`TeamQuestSection`) that lists active and completed quests for the selected team, with inline search and step progress indicators.
+- Quest actions route you to the relevant app section based on the next incomplete step (e.g., profile, locker room, or shop).
 - Reward presentation differentiates free/unpaid states and claimability.
 - Native progression state is expected to mirror backend eligibility and completion semantics.
 
@@ -56,6 +60,8 @@ icon: "smartphone"
 
 - Team discovery, favorite-team interactions, and leaderboard context are integrated across locker room and profile surfaces.
 - Team and league metadata is sourced from backend sync pipelines fed by the `leagues` repository.
+- Team cards now display branded gradient backgrounds and logos mapped directly from the API (`gradientColors`, `gradientLocations`, `themeColor`).
+- The `ensureContrast` utility in `lib/color-utils.ts` lightens team accent colors that are too dark for the app's dark theme, keeping text and icons legible.
 
 ## Compliance and legal: pack opening odds
 
