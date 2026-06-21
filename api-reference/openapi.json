@@ -28,6 +28,9 @@
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
+    { "name": "Admin", "description": "Admin panel endpoints (require admin or superadmin role)" },
+    { "name": "Leagues", "description": "League metadata" },
+    { "name": "Cron", "description": "Scheduled cron jobs" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
     { "name": "Gamification", "description": "Domain grouping for quests, leaderboards, points-facing outcomes, and rewards" },
@@ -1089,6 +1092,451 @@
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
       }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with team counts. Optional `country` filter (case-insensitive).",
+        "parameters": [{ "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Filter by country name" }],
+        "security": [],
+        "responses": { "200": { "description": "{ success, data: { leagues } }" } }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List all users",
+        "description": "Paginated list of onboarded community users with stats. Rate-limited to 30 req/min.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 }, "description": "Max users to return (1-100)" },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "Exclude users the caller already follows" }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check username availability",
+        "description": "Returns whether a handle/username is available (case-insensitive).",
+        "parameters": [{ "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ available: boolean }" },
+          "400": { "description": "Username is required" }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": ["Products", "Commerce and purchases"],
+        "summary": "Product entitlement mapping",
+        "description": "Returns entitlement mapping generated from D-Sports Cash tiers and the Frontline Pass product.",
+        "security": [],
+        "responses": { "200": { "description": "{ mappings }" } }
+      }
+    },
+    "/api/leaderboard/reset": {
+      "post": {
+        "tags": ["Leaderboard", "Admin"],
+        "summary": "Reset leaderboard season",
+        "description": "Admin-only. Archives top-3 winners, zeros points, marks season completed, creates next season.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message, ... }" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/api/rewards/admin-override": {
+      "post": {
+        "tags": ["Rewards", "Admin"],
+        "summary": "Force-claim reward",
+        "description": "Superadmin-only. Force-claims a reward for the current user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message, reward }" },
+          "403": { "description": "Superadmin only" }
+        }
+      },
+      "delete": {
+        "tags": ["Rewards", "Admin"],
+        "summary": "Remove reward claim",
+        "description": "Superadmin-only. Removes a claimed reward.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message }" },
+          "403": { "description": "Superadmin only" }
+        }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create Thirdweb link",
+        "description": "Creates a Thirdweb session link for the authenticated user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "payload": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ userId, email }" },
+          "400": { "description": "Payload is required" }
+        }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb GET proxy",
+        "description": "Proxies GET requests to allowed Thirdweb endpoints (RPC and embedded-wallet).",
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "Proxied response" }, "400": { "description": "Invalid or missing url" } }
+      },
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Thirdweb POST proxy",
+        "description": "Proxies POST requests to allowed Thirdweb endpoints.",
+        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": { "200": { "description": "Proxied response" }, "400": { "description": "Invalid or missing url" } }
+      }
+    },
+    "/api/pregen-wallet": {
+      "post": {
+        "tags": ["Wallets", "Admin", "Wallet and web3"],
+        "summary": "Pregenerate wallet",
+        "description": "Admin-only. Triggers Thirdweb in-app wallet pregeneration.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "userId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ message }" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/api/webhooks/leagues-sync": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Leagues sync webhook",
+        "description": "Triggered by GitHub Actions on push to the leagues repo. Requires x-webhook-secret header.",
+        "security": [{ "leaguesWebhookSecret": [] }],
+        "responses": {
+          "200": { "description": "Sync result" },
+          "401": { "description": "Invalid webhook secret" }
+        }
+      }
+    },
+    "/api/cron/leaderboard-reset": {
+      "get": {
+        "tags": ["Cron", "Platform and infrastructure"],
+        "summary": "Cron: leaderboard reset",
+        "description": "Annual cron job. Archives season winners and resets leaderboard points.",
+        "x-hidden": true,
+        "security": [],
+        "responses": { "200": { "description": "Reset result" } }
+      }
+    },
+    "/api/cron/sync-trends": {
+      "get": {
+        "tags": ["Cron", "Platform and infrastructure"],
+        "summary": "Cron: sync trends",
+        "description": "Daily cron job. Syncs leaderboard points, records position snapshots, cleans up old history.",
+        "x-hidden": true,
+        "security": [],
+        "responses": { "200": { "description": "Sync result" } }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Admin dashboard stats",
+        "description": "Returns real-time statistics: users, engagement, leaderboard, growth metrics.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Dashboard stats object" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/api/admin/collectibles": {
+      "get": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "List collectibles (admin)",
+        "description": "List collectibles for a team, optionally filtered by status.",
+        "parameters": [
+          { "name": "teamId", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ collectibles }" } }
+      },
+      "post": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Create collectible",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ collectible }" } }
+      }
+    },
+    "/api/admin/collectibles/{id}": {
+      "put": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Update collectible",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ collectible }" } }
+      },
+      "delete": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Delete collectible",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      },
+      "post": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Publish collectible",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ collectible }" } }
+      }
+    },
+    "/api/admin/packs": {
+      "get": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "List packs (admin)",
+        "description": "List packs for a team. Supports archived filter.",
+        "parameters": [
+          { "name": "teamId", "in": "query", "schema": { "type": "string" } },
+          { "name": "archived", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ packs }" } }
+      },
+      "post": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Create pack",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ pack }" } }
+      }
+    },
+    "/api/admin/packs/{id}": {
+      "put": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Update pack",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ pack }" } }
+      },
+      "delete": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Delete pack",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      },
+      "post": {
+        "tags": ["Admin", "Collectibles and packs"],
+        "summary": "Pack action",
+        "description": "Execute pack actions: publish, archive, restore, add/remove collectible.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "action": { "type": "string", "enum": ["publish", "archive", "restore", "addCollectible", "removeCollectible"] } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ pack }" } }
+      }
+    },
+    "/api/admin/teams": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List teams (admin)",
+        "description": "List all teams or current user's teams.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ teams }" } }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create team",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ team }" } }
+      }
+    },
+    "/api/admin/teams/{teamId}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get team (admin)",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ team }" } }
+      }
+    },
+    "/api/admin/teams/{teamId}/members": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List team members",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ members }" } }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Add team member",
+        "parameters": [{ "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ member }" } }
+      }
+    },
+    "/api/admin/teams/{teamId}/members/{userId}": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Update team member role",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ member }" } }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Remove team member",
+        "parameters": [
+          { "name": "teamId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List users (admin)",
+        "description": "Paginated user list with search and sorting.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "sort", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ users, total, page, totalPages }" } }
+      }
+    },
+    "/api/admin/users/{userId}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get user (admin)",
+        "parameters": [{ "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Detailed user object" } }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete user",
+        "description": "Deletes a user account and all associated data including Clerk identity.",
+        "parameters": [{ "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/admin/users/toggle-admin": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Toggle admin role",
+        "description": "Superadmin-only. Grant or revoke admin role for a target user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "targetUserId": { "type": "string" },
+                  "action": { "type": "string", "enum": ["grant", "revoke"] }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success }" },
+          "403": { "description": "Superadmin only" }
+        }
+      }
+    },
+    "/api/admin/fix-team-ownership": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Diagnose team ownership",
+        "description": "Diagnoses team-admin associations and identifies orphaned teams.",
+        "x-hidden": true,
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Diagnostic result" } }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Fix team ownership",
+        "description": "Adds current admin as owner to orphaned teams.",
+        "x-hidden": true,
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "{ success }" } }
+      }
+    },
+    "/api/admin/leagues/sync": {
+      "post": {
+        "tags": ["Admin", "Leagues"],
+        "summary": "Sync leagues",
+        "description": "Admin-only. Triggers manual league data synchronization.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Sync result" } }
+      }
     }
   },
   "components": {
@@ -1102,6 +1550,12 @@
         "type": "http",
         "scheme": "bearer",
         "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+      },
+      "leaguesWebhookSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-webhook-secret",
+        "description": "LEAGUES_WEBHOOK_SECRET for /api/webhooks/leagues-sync."
       }
     }
   }
