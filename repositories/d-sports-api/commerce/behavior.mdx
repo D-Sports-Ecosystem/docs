@@ -19,16 +19,38 @@ icon: "list-checks"
 - Product endpoints return active catalog entities suitable for client storefront rendering.
 - Checkout endpoints initialize and verify purchase attempts before final persistence.
 - Webhook path reconciles provider-side purchase state into app-side records.
-- dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
+- D-Sports Cash endpoints expose balance reads and purchase lifecycle behavior.
+
+### D-Sports Cash checkout flow
+
+`POST /api/checkout/dsports-cash` supports two modes:
+
+- **Single-item checkout** — pass `itemId`, `itemType` (`product` or `pack`), and optional `quantity` (defaults to 1).
+- **Cart checkout** — pass a `cartItems[]` array. When present, the single-item fields are ignored.
+
+The checkout runs inside a **Serializable** Prisma transaction with automatic retry (up to 3 attempts) on `P2034` serialization conflicts. Within the transaction the endpoint:
+
+1. Validates every item via `validateItemForPurchase`.
+2. Checks the user's D-Sports Cash balance.
+3. Atomically decrements the balance using a conditional update (`dsportsCash >= totalAmount`).
+4. Creates `ProductPurchase` or `PackPurchase` records per item and increments the `sold` counter.
+
+On success the response includes `paymentId`, `remainingBalance`, and `currency`.
+
+### D-Sports Cash balance
+
+`GET /api/dsports-cash` returns the authenticated user's balance. Admins can pass `?userId=` to impersonate another user; the endpoint verifies admin role before returning the target user's balance.
 
 ## Side effects and dependencies
 
-- Successful purchases update purchase models and can affect wallet/inventory-visible state.
+- Successful D-Sports Cash purchases decrement the user's `dsportsCash` balance and increment the item's `sold` count.
+- `ProductPurchase` and `PackPurchase` records are created with `paymentMethod: "dsports-cash"` and `status: "completed"`.
 - Entitlement mapping endpoints provide external integration interoperability.
 
 ## Known caveats
 
 - External provider latency can produce temporary states between initiation and final verification.
+- Serialization retries add small latency under high concurrency but prevent double-spend.
 - Reconciliation scripts may be used for historical purchase correction.
 
 ## Exclusions
