@@ -163,16 +163,17 @@
       "get": {
         "tags": ["Leaderboard", "Gamification"],
         "summary": "Get leaderboard",
-        "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global.",
+        "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global. Response is cached with `s-maxage=30, stale-while-revalidate=300`.",
         "parameters": [
           { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } },
           { "name": "teamId", "in": "query", "schema": { "type": "string" } }
         ],
         "security": [{ "bearerAuth": [] }],
         "responses": {
-          "200": { "description": "{ leaderboard, leaderboardEntries, currentUserId, season }" },
-          "401": { "description": "Authentication required" },
-          "404": { "description": "Leaderboard or user not found" }
+          "200": { "description": "{ success: true, data: { leaderboard, leaderboardEntries, currentUserId, season } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
         }
       }
     },
@@ -180,10 +181,10 @@
       "get": {
         "tags": ["Leaderboard"],
         "summary": "Leaderboard SSE stream",
-        "description": "Server-sent events stream. Query: leaderboardId.",
+        "description": "Server-sent events stream (`text/event-stream`). The standard `{ success, data }` JSON envelope does not apply to SSE payloads. Auth failures may return a plain 401 text response. Query: leaderboardId.",
         "parameters": [{ "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "SSE stream" } }
+        "responses": { "200": { "description": "SSE stream (text/event-stream)" } }
       }
     },
     "/api/leaderboard/search": {
@@ -191,13 +192,17 @@
         "tags": ["Leaderboard"],
         "summary": "Search leaderboard players",
         "parameters": [
-          { "name": "query", "in": "query", "schema": { "type": "string" } },
+          { "name": "query", "in": "query", "description": "Search term (alias: `q`).", "schema": { "type": "string" } },
+          { "name": "q", "in": "query", "description": "Alias for `query`.", "schema": { "type": "string" } },
           { "name": "page", "in": "query", "schema": { "type": "integer" } },
           { "name": "limit", "in": "query", "schema": { "type": "integer" } },
           { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }
         ],
         "security": [],
-        "responses": { "200": { "description": "{ players, total, page, limit, totalPages }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { players, total, page, limit, totalPages, leaderboardId } }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/leaderboard/seasons": {
@@ -205,7 +210,11 @@
         "tags": ["Leaderboard"],
         "summary": "List seasons",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ seasons, current }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { seasons, current } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/leaderboard/winners": {
@@ -217,7 +226,11 @@
           { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }
         ],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ winners }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { winners } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/leaderboard/stats": {
@@ -226,7 +239,24 @@
         "summary": "Leaderboard stats",
         "description": "Total users, total points, last winner.",
         "security": [],
-        "responses": { "200": { "description": "{ totalUsers, totalPoints, lastWinner }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { totalUsers, totalPoints, lastWinner } }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
+      }
+    },
+    "/api/leaderboard/reset": {
+      "post": {
+        "tags": ["Leaderboard"],
+        "summary": "Reset leaderboard season (admin)",
+        "description": "Ends the current season and resets the leaderboard. Requires admin role.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, ... } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error, code: 'FORBIDDEN' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/locker-room": {
@@ -239,7 +269,11 @@
           { "name": "filter", "in": "query", "schema": { "type": "string", "enum": ["trending", "latest", "following"] } }
         ],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <posts> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
@@ -257,7 +291,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" }, "400": { "description": "Content is required" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <post> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/locker-room/stream": {
@@ -275,7 +313,11 @@
         "summary": "Get post comments",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <comments> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
@@ -290,7 +332,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <comment> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/locker-room/{id}/react": {
@@ -299,11 +345,15 @@
         "summary": "Get reactions",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <reactions> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["Locker room"],
-        "summary": "Add reaction",
+        "summary": "Toggle reaction",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "requestBody": {
           "content": {
@@ -313,7 +363,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <reaction> }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/packs": {
@@ -430,7 +484,11 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { user } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       },
       "post": {
         "tags": ["User"],
@@ -438,7 +496,13 @@
         "description": "Onboarding payload.",
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user, ... }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { user, updatedProfile, leaderboardEntry } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "409": { "description": "{ success: false, error: 'Handle already taken', code: 'CONFLICT' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/onboarding": {
@@ -608,7 +672,11 @@
         "tags": ["User"],
         "summary": "Get user collectibles",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Collectibles data" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <collectibles> }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/completed-quests": {
@@ -682,7 +750,11 @@
         "tags": ["User"],
         "summary": "Get user packs",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { packs } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/user/packs/opened": {
@@ -690,7 +762,11 @@
         "tags": ["User"],
         "summary": "Get opened packs",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { packs } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests": {
@@ -700,7 +776,11 @@
         "description": "Query: category (optional) for QuestCategory; else active quests.",
         "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests, currentUserId }" }, "401": { "description": "Authentication required" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { quests, currentUserId } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/start": {
@@ -715,7 +795,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { quest, message } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/complete-step": {
@@ -736,7 +821,10 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, pointsAwarded, questCompleted }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, pointsAwarded, questCompleted } }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/daily-visit": {
@@ -767,7 +855,11 @@
         "tags": ["Rewards", "Gamification"],
         "summary": "List rewards",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ rewards, currentUserId }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { rewards, currentUserId } }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/rewards/claim": {
@@ -782,7 +874,12 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { reward, message } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/rewards/redeem": {
@@ -797,7 +894,48 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
+        "responses": { "200": { "description": "{ success: true, data: { reward, message } }" } }
+      }
+    },
+    "/api/rewards/admin-override": {
+      "post": {
+        "tags": ["Rewards"],
+        "summary": "Force-claim reward (superadmin)",
+        "description": "Bypass points requirement and force-claim a reward. Superadmin only.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["rewardId"], "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, reward } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error, code: 'FORBIDDEN' }" },
+          "404": { "description": "{ success: false, error, code: 'NOT_FOUND' }" }
+        }
+      },
+      "delete": {
+        "tags": ["Rewards"],
+        "summary": "Remove claimed reward (superadmin)",
+        "description": "Remove a previously claimed reward. Superadmin only.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["rewardId"], "properties": { "rewardId": { "type": "string" } } }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true, data: { message } }" },
+          "400": { "description": "{ success: false, error, code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error, code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error, code: 'FORBIDDEN' }" }
+        }
       }
     },
     "/api/wallets": {
@@ -1092,6 +1230,38 @@
     }
   },
   "components": {
+    "schemas": {
+      "ApiSuccess": {
+        "type": "object",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "enum": [true] },
+          "data": { "description": "Route-specific payload." }
+        },
+        "description": "Standard success envelope returned by all JSON endpoints (Phase 2+)."
+      },
+      "ApiError": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": { "type": "boolean", "enum": [false] },
+          "error": { "type": "string", "description": "Human-readable error message." },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code.",
+            "enum": [
+              "UNAUTHORIZED",
+              "NOT_FOUND",
+              "VALIDATION_ERROR",
+              "FORBIDDEN",
+              "CONFLICT",
+              "INTERNAL_ERROR"
+            ]
+          }
+        },
+        "description": "Standard error envelope returned by all JSON endpoints (Phase 2+)."
+      }
+    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
