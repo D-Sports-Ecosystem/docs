@@ -16,6 +16,7 @@ icon: "list-checks"
 
 - Unauthenticated requests are rejected at route boundaries.
 - Profile updates upsert user records and persist profile fields.
+- Username/handle input is normalized before storage: leading `@` characters are stripped so handles are stored without a prefix (see `normalizeHandleInput` in `lib/handle-utils.ts`).
 - Onboarding completion is idempotent and avoids duplicate onboarding reward entries.
 - Onboarding path can enroll users in global leaderboard and write initial points history.
 - Auth identity sync path updates app-side fields when identity provider data changes.
