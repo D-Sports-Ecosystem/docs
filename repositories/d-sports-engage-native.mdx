@@ -35,10 +35,11 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+- Comprehensive accessibility support added: VoiceOver, Voice Control, larger text, high contrast, reduced motion, and differentiate-without-color across all main screens.
+- iOS tab bar now uses `NativeTabs` (`expo-router/unstable-native-tabs`) with system tab bar; Android and web use a custom `PillTabBar` with blur overlay.
+- Modular architecture enforced: screen files are thin render shells, all styles extracted to `*.styles.ts` files, one component per file with barrel exports.
+- EAS build profiles formalized for development, preview, staging, and production with GitHub Actions OTA workflow.
+- Settings and account flows expanded, including in-app account deletion and richer support/data controls.
 
 ## Backend integration surfaces
 
@@ -62,14 +63,59 @@ icon: "smartphone"
 - Native odds disclosure behavior is documented with policy-aligned copy and evidence requirements.
 - Disclosure values must come from backend payloads and remain visible/accessible near open actions.
 
+## Environment variables
+
+All runtime variables use the `EXPO_PUBLIC_*` prefix so they are accessible in the Expo app. Create a `.env` file in the repo root:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication (publishable key) |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (e.g. `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for web3 features |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat SDK key for in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store app ID |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier (e.g. `premium`) |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL (client-side features only) |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable anon key |
+
+<Note>
+Only `EXPO_PUBLIC_*` keys are bundled into the app. Server-only secrets like `SENTRY_AUTH_TOKEN` are set in EAS build secrets or Xcode environment variables.
+</Note>
+
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
+2. Copy `.env` and fill in the required `EXPO_PUBLIC_*` values listed above.
+3. Run `bunx expo start` — press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. TypeScript check: `bun tsc --noEmit`.
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+
+## EAS build profiles
+
+Builds use [Expo Application Services (EAS)](https://expo.dev/eas) configured in `eas.json`:
+
+| Profile | Channel | Use case |
+| ------- | ------- | -------- |
+| `development` | `development` | Dev client with simulator support |
+| `development-device` | `development` | Dev client on physical device |
+| `preview` | `preview` | Internal distribution (APK on Android) |
+| `staging` | `staging` | Pre-production with auto-increment |
+| `production` | `production` | App Store / Play Store release |
+
+Common build commands:
+
+```bash
+bun run build:dev:ios        # development build for iOS simulator
+bun run build:preview:android # preview APK for Android
+bun run build:prod:ios       # production build for iOS
+bun run build:submit:ios     # production build + auto-submit to App Store
+```
+
+## CI/CD
+
+A GitHub Actions workflow (`.github/workflows/eas-update.yml`) publishes OTA updates via `eas update` on pushes to `develop` and `main` branches. The workflow uses Bun for dependency installation and the Expo GitHub Action for EAS CLI setup.
 
 ## Deep dives
 
