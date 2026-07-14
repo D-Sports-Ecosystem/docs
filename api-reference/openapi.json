@@ -27,6 +27,9 @@
     { "name": "Dashboard", "description": "Dashboard stats and balance" },
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
+    { "name": "Notifications", "description": "In-app notifications: list, read, archive" },
+    { "name": "Admin", "description": "Superadmin-only operations" },
+    { "name": "Cron", "description": "Scheduled cron jobs (server-to-server)" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
@@ -1080,6 +1083,113 @@
         "responses": { "200": { "description": "{ success }" } }
       }
     },
+    "/api/notifications": {
+      "get": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "List notifications",
+        "description": "Returns the authenticated user's notifications with pagination. Filter by status (UNREAD, READ, ARCHIVED) or omit for all.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25 }, "description": "Max 100." },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["all", "UNREAD", "READ", "ARCHIVED"], "default": "all" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ notifications, unreadCount, pagination: { page, limit, total, hasMore } }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/read": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Mark notification as read",
+        "description": "Marks a single notification as READ. If the notification is already ARCHIVED, the status stays ARCHIVED.",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated notification object" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}/archive": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Archive notification",
+        "description": "Archives a notification (sets status to ARCHIVED and records archivedAt). Also marks it as read if not already.",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated notification object" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Notification not found" }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "patch": {
+        "tags": ["Notifications", "Platform and infrastructure"],
+        "summary": "Mark all notifications as read",
+        "description": "Marks every UNREAD notification for the authenticated user as READ.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ updated, readAt }" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/admin/notifications/announce": {
+      "post": {
+        "tags": ["Admin", "Notifications"],
+        "summary": "Send system announcement",
+        "description": "Superadmin-only. Creates an in-app (and optionally push) notification for a list of users or all users.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "body"],
+                "properties": {
+                  "title": { "type": "string", "description": "Announcement title." },
+                  "body": { "type": "string", "description": "Announcement body text." },
+                  "userIds": { "type": "array", "items": { "type": "string" }, "description": "Target user IDs. Required when sendToAll is false." },
+                  "sendToAll": { "type": "boolean", "description": "When true, sends to every user (ignores userIds)." },
+                  "dedupeSuffix": { "type": "string", "description": "Optional deduplication suffix to prevent duplicate deliveries." },
+                  "channel": { "type": "string", "enum": ["IN_APP", "PUSH_AND_IN_APP"], "default": "PUSH_AND_IN_APP", "description": "Delivery channel." },
+                  "payload": { "type": "object", "description": "Arbitrary metadata attached to the notification." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "{ totalUsers, createdCount, pushSentCount }" },
+          "400": { "description": "Validation error (missing title/body or userIds)" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden – caller is not a superadmin" }
+        }
+      }
+    },
+    "/api/cron/notify-daily-quest": {
+      "get": {
+        "tags": ["Cron", "Gamification"],
+        "summary": "Daily quest reactivation cron",
+        "description": "Server-to-server cron endpoint. Finds users whose daily-visit quest step completed more than 24 hours ago, creates a reactivation notification, and optionally sends a push. Requires CRON_SECRET bearer token.",
+        "parameters": [
+          { "name": "dryRun", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "When 'true', returns candidates without creating notifications." },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 250 }, "description": "Batch size (max 1000)." }
+        ],
+        "security": [{ "cronSecret": [] }],
+        "responses": {
+          "200": { "description": "{ dryRun, candidates, createdCount, dedupedCount, pushSentCount, errorCount, durationMs }" },
+          "401": { "description": "Invalid or missing CRON_SECRET" }
+        }
+      }
+    },
     "/api/sync-quest-points": {
       "post": {
         "tags": ["Misc", "Platform and infrastructure"],
@@ -1102,6 +1212,11 @@
         "type": "http",
         "scheme": "bearer",
         "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+      },
+      "cronSecret": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "CRON_SECRET token for server-to-server cron endpoints."
       }
     }
   }
