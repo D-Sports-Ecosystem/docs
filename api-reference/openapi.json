@@ -392,6 +392,79 @@
         "responses": { "200": { "description": "{ collectibles }" } }
       }
     },
+    "/api/packs/{id}/odds": {
+      "get": {
+        "tags": ["Packs", "Collectibles and packs"],
+        "summary": "Get pack odds disclosure",
+        "description": "Returns the canonical odds disclosure payload for a pack, including per-rarity drop rates, expected outcomes over ten packs, guarantee info, and openability status. Used for app-store compliance (Apple 3.1.1, Google Play) and in-app odds display.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Pack odds disclosure payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "packId": { "type": "string" },
+                        "packName": { "type": "string" },
+                        "packTier": { "type": "string", "enum": ["free", "starter", "standard", "custom"] },
+                        "maxReveal": { "type": "integer", "description": "Number of cards revealed per opening" },
+                        "dropRates": {
+                          "type": "object",
+                          "description": "Per-rarity drop probability as a percentage",
+                          "properties": {
+                            "common": { "type": "number" },
+                            "rare": { "type": "number" },
+                            "epic": { "type": "number" },
+                            "legendary": { "type": "number" },
+                            "mythic": { "type": "number" }
+                          }
+                        },
+                        "expectedOutcomes": {
+                          "type": "object",
+                          "properties": {
+                            "perPackCards": { "type": "integer" },
+                            "expectedInTenPacks": {
+                              "type": "object",
+                              "description": "Expected card count per rarity over 10 pack openings",
+                              "properties": {
+                                "common": { "type": "number" },
+                                "rare": { "type": "number" },
+                                "epic": { "type": "number" },
+                                "legendary": { "type": "number" },
+                                "mythic": { "type": "number" }
+                              }
+                            }
+                          }
+                        },
+                        "guarantee": {
+                          "type": "object",
+                          "properties": {
+                            "label": { "type": "string" },
+                            "description": { "type": "string" }
+                          }
+                        },
+                        "isOpenable": { "type": "boolean" },
+                        "openabilityReason": { "type": "string", "nullable": true },
+                        "generatedAt": { "type": "string", "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Pack not found" },
+          "500": { "description": "Internal error loading pack odds" }
+        }
+      }
+    },
     "/api/user": {
       "get": {
         "tags": ["User"],

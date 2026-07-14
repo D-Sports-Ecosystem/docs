@@ -10,12 +10,14 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, and 
 ## Endpoint map
 
 - Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`
+- Odds disclosure: `/api/packs/{id}/odds`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
 
 ## Integration notes
 
 - Pack purchase and open are separate phases; preserve returned identifiers between calls.
 - Inventory endpoints should be refreshed after successful open/purchase mutations.
+- Call `/api/packs/{id}/odds` before displaying a purchase option to satisfy app-store odds disclosure requirements (Apple `3.1.1`, Google Play).
 
 ## Deep-dive documentation
 
