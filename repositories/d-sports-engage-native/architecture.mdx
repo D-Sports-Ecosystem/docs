@@ -23,6 +23,18 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Profile and achievements component structure
+
+- Profile achievement components live in `components/profile/` with a barrel export via `index.ts`.
+- Key components: `AchievementCard`, `AchievementChip`, `AchievementDetailModal`, `AchievementsSection`, `ProfileAchievementsModal`.
+- `CachedBadgeImage` downloads badge artwork from a Supabase storage bucket and caches it to `Paths.cache` on native (tracked via MMKV); on web it uses `expo-image` prefetch with AsyncStorage bookkeeping.
+- Badge resolution flows through `lib/resolve-badge-image-uri.ts` → `lib/badge-utils.ts` → `lib/badge-asset-map.ts`, falling back through server metadata, Supabase public URLs, and local asset keys.
+
+## CI/CD
+
+- **EAS Update** — `.github/workflows/eas-update.yml` publishes OTA updates via `eas update` on push to `develop` or `main`.
+- The workflow uses Bun for dependency install and the `expo/expo-github-action` for EAS/Expo CLI setup.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
