@@ -697,36 +697,54 @@
       "get": {
         "tags": ["Quests", "Gamification"],
         "summary": "Get quests",
-        "description": "Query: category (optional) for QuestCategory; else active quests.",
-        "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
+        "description": "Returns active quests or quests filtered by category. All responses use the normalized `{ success, data }` envelope.",
+        "parameters": [{ "name": "category", "in": "query", "description": "Optional QuestCategory value to filter quests.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests, currentUserId }" }, "401": { "description": "Authentication required" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { quests, currentUserId } }" },
+          "401": { "description": "{ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/start": {
       "post": {
         "tags": ["Quests"],
         "summary": "Start quest",
+        "description": "Starts a quest for the authenticated user. Returns the quest object on success.",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questId": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "required": ["questId"],
+                "properties": { "questId": { "type": "string", "description": "The ID of the quest to start." } }
+              }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { quest, message } }" },
+          "400": { "description": "{ success: false, error: 'Quest ID is required', code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/complete-step": {
       "post": {
         "tags": ["Quests"],
         "summary": "Complete quest step",
+        "description": "Marks a quest step as completed, awards points, and propagates points to all leaderboards the user participates in.",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["questId", "stepId"],
                 "properties": {
                   "questId": { "type": "string" },
                   "stepId": { "type": "string" }
@@ -736,30 +754,61 @@
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, pointsAwarded, questCompleted }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, pointsAwarded, questCompleted } }" },
+          "400": { "description": "{ error: 'Quest ID and Step ID are required' }" },
+          "401": { "description": "{ error: 'Authentication required' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/daily-visit": {
       "post": {
         "tags": ["Quests"],
         "summary": "Daily visit",
+        "description": "Records a daily dashboard visit for the authenticated user. Awards points if eligible. Response includes both `pointsAwarded` and `pointsEarned` (compatibility alias) fields.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Daily visit result" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, pointsAwarded, pointsEarned } }" },
+          "400": { "description": "{ success: false, error, code: 'QUEST_DAILY_VISIT_NOT_ELIGIBLE' }" },
+          "401": { "description": "{ success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/quests/check-progress": {
       "post": {
         "tags": ["Quests"],
         "summary": "Check quest progress",
+        "description": "Triggers a quest progress check for the authenticated user. Accepts `questType` (preferred) or `questId` (legacy alias). The value is validated against a known set of quest progress actions (e.g. FOLLOW_USER, UPLOAD_PROFILE_PICTURE). Returns a rich status snapshot with completion state.",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questType": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questType": {
+                    "type": "string",
+                    "description": "Quest progress action to check. Accepts SCREAMING_SNAKE or snake_case.",
+                    "enum": ["FOLLOW_USER", "UPLOAD_PROFILE_PICTURE", "CHOOSE_TEAM", "COMPLETE_PROFILE", "GET_FOLLOWER", "JOIN_LEADERBOARD", "EARN_POINTS", "UPDATE_LEADERBOARD_POSITION"]
+                  },
+                  "questId": {
+                    "type": "string",
+                    "description": "Legacy alias for questType. Use questType instead."
+                  }
+                }
+              }
             }
           }
         },
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { message, status, actionStatus } }" },
+          "400": { "description": "{ success: false, error: 'A valid questType is required', code: 'VALIDATION_ERROR' }" },
+          "401": { "description": "{ success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error, code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/rewards": {
@@ -958,39 +1007,65 @@
       "get": {
         "tags": ["Dashboard"],
         "summary": "Dashboard (public)",
+        "description": "Health-check endpoint. No authentication required.",
         "security": [],
-        "responses": { "200": { "description": "{ message }" } }
+        "responses": { "200": { "description": "{ success: true, data: { message: 'Dashboard API is working' } }" } }
       },
       "post": {
         "tags": ["Dashboard"],
         "summary": "Dashboard (auth check)",
+        "description": "Returns the caller's authentication status using the normalized response envelope.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ userId, isAuthenticated }" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { userId, isAuthenticated: true } }" },
+          "401": { "description": "{ success: false, error: 'Not authenticated', code: 'UNAUTHORIZED' }" },
+          "500": { "description": "{ success: false, error: 'Internal server error', code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/dashboard/stats": {
       "get": {
         "tags": ["Dashboard"],
         "summary": "Dashboard stats",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
+        "description": "Returns enriched dashboard statistics for the authenticated user. Admins can pass a `userId` query parameter to view another user's stats (impersonation).",
+        "parameters": [{ "name": "userId", "in": "query", "description": "Target user ID for admin impersonation. Omit for the authenticated user's own stats.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Dashboard stats" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: <stats object> }" },
+          "401": { "description": "{ success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error: 'Forbidden', code: 'FORBIDDEN' } — non-admin attempted impersonation" },
+          "500": { "description": "{ success: false, error: 'Failed to fetch user stats', code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/dashboard/balance": {
       "get": {
         "tags": ["Dashboard"],
         "summary": "Dashboard balance",
+        "description": "Returns the authenticated user's balance. Admins can pass a `userId` query parameter to view another user's balance.",
+        "parameters": [{ "name": "userId", "in": "query", "description": "Target user ID for admin impersonation. Omit for the authenticated user's own balance.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Balance" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { balance } }" },
+          "401": { "description": "{ success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error: 'Forbidden', code: 'FORBIDDEN' } — non-admin attempted impersonation" },
+          "500": { "description": "{ success: false, error: 'Failed to fetch user balance', code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/dashboard/quests": {
       "get": {
         "tags": ["Dashboard"],
         "summary": "Dashboard quests",
+        "description": "Returns aggregated quest progress for the dashboard. Includes completed/total step counts, earned/max points, and a steps array. Admins can pass a `userId` query parameter for impersonation.",
+        "parameters": [{ "name": "userId", "in": "query", "description": "Target user ID for admin impersonation. Omit for the authenticated user's own quest progress.", "schema": { "type": "string" } }],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Quests" } }
+        "responses": {
+          "200": { "description": "{ success: true, data: { completed, total, currentPoints, maxPoints, steps: [{ id, title, completed, icon, questTitle }] } }" },
+          "401": { "description": "{ success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' }" },
+          "403": { "description": "{ success: false, error: 'Forbidden', code: 'FORBIDDEN' } — non-admin attempted impersonation" },
+          "500": { "description": "{ success: false, error: 'Failed to fetch quest progress', code: 'INTERNAL_ERROR' }" }
+        }
       }
     },
     "/api/products": {
