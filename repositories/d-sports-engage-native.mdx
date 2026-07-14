@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native 0.83, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -14,14 +14,17 @@ icon: "smartphone"
 
 | Category   | Technology                |
 | ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
+| Framework  | Expo 55, React Native 0.83, React 19.2 |
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
 | State      | Zustand                   |
 | Storage    | MMKV                      |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router (file-based, typed routes) |
+| Widgets    | `expo-widgets` (iOS), `react-native-android-widget` (Android) |
+| Monitoring | Sentry                    |
+| Push       | OneSignal                 |
 | Package    | Bun                       |
 
 ## Features
@@ -29,16 +32,38 @@ icon: "smartphone"
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
 - **Shop** — Collectibles, cart, coin bundles, checkout
 - **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Locker room** — Social feed, daily games (Pick 'Em, Spin Wheel, Guess the Player)
+- **Profile** — User profile, achievements, milestone avatars, and settings
+- **Widgets** — Cross-platform home-screen widgets showing rank or wallet points (iOS and Android)
+- **Live Activities** — iOS Live Activity for real-time score and status updates
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
 
+- **Expo SDK 55 migration** — upgraded from Expo 54 / React Native 0.81 to Expo 55 / React Native 0.83 / React 19.2.
+- **Cross-platform widgets** — added iOS home-screen widget (`RankOrPointsWidget`) via `expo-widgets`, iOS Live Activity (`LiveStatusActivity`), and Android widget via `react-native-android-widget`.
+- **iOS native tab bar** — iOS now uses `NativeTabs` from `expo-router/unstable-native-tabs` with Liquid Glass dark material and gold accent. Android and web use a custom `PillTabBar` overlay with blur.
+- **Router features** — adopted Apple zoom transitions for leaderboard card navigation and `NativeTabs` screen listeners for selection haptics.
+- **EAS Update and CI** — added GitHub Actions workflow for OTA updates via `eas-cli update`.
 - Team-aware experiences were expanded to align with backend team/favorites behavior.
 - Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
 - Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
 - Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
+
+## Environment variables
+
+The app uses `EXPO_PUBLIC_*` environment variables at runtime:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (`https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_APPSTORE_ID` | RevenueCat App Store identifier |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement name |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase client URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase publishable key |
 
 ## Backend integration surfaces
 
@@ -65,9 +90,10 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
+2. Copy `.env` and configure environment variables (Clerk, RevenueCat, Thirdweb, API base URL, Supabase).
 3. Run `bunx expo start`.
 4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+5. For OTA updates: `bun run update` (production) or `bun run update:preview` (preview channel).
 
 The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
 
