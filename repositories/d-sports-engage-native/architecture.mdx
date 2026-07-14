@@ -11,6 +11,38 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Feature logic: extracted hooks for wallet, shop, locker room, and settings.
 - Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
 
+## Tab bar navigation
+
+The tab bar uses a platform-specific implementation so each platform gets a native-feeling experience. All three variants share `app/(tabs)/tab-config.ts` for tab order, labels, and SF Symbol pairs.
+
+| Platform | File | Rendering approach |
+| -------- | ---- | ------------------ |
+| iOS | `app/(tabs)/_layout.ios.tsx` | `NativeTabs` from `expo-router/unstable-native-tabs` — system UIKit tab bar with SF Symbols and `blurEffect` (Apple Liquid Glass style) |
+| Android | `app/(tabs)/_layout.tsx` + `PillTabBar` | Custom JS `Tabs` with hidden default bar and a floating pill overlay using `expo-blur` (`BlurView`) for a Material 3-style frosted surface |
+| Web | `app/(tabs)/_layout.tsx` + `PillTabBar` | Same pill overlay as Android but with a solid fill instead of blur |
+
+<Note>
+  The five tabs are **LockerRoom**, **Shop**, **Wallet**, **Leaderboard**, and **Profile**. The Wallet tab displays a badge with the count of unopened packs on all platforms.
+</Note>
+
+### Shared tab config
+
+`app/(tabs)/tab-config.ts` exports:
+
+- `TAB_CONFIG` — tab order, Lucide icon names, and SF Symbol pairs (default/selected) for iOS.
+- `getColors(isDark)` — gold accent, pill background, and blur tint values used by the pill bar.
+- `getActiveTabIndex(pathname)` — resolves the active tab from the current route so `/profile/[handle]` stack routes do not highlight the Profile tab.
+
+### iOS native tabs
+
+`_layout.ios.tsx` renders `NativeTabs` with system blur (`systemChromeMaterialDark`), gold tint, and a red badge on the Wallet tab. VoiceOver follows standard UIKit tab-item and badge semantics.
+
+### Android and web pill bar
+
+`PillTabBar` is a floating animated pill positioned above safe-area insets. It uses Reanimated spring animations for an indicator that slides between tabs with a subtle "giggle" effect on switch. On Android, an `expo-blur` `BlurView` sits behind the pill for a frosted-glass look; on web, the pill uses a solid `rgba` background.
+
+The pill bar hides/shows on scroll via `NavBarVisibilityContext` — the iOS system tab bar is not affected by this context.
+
 ## State and context boundaries
 
 - Local/ephemeral UI state lives near feature hooks and components.
@@ -25,6 +57,6 @@ The native app is structured around Expo Router screens, feature-oriented compon
 
 ## Platform-specific behavior
 
-- iOS/Android platform differences are handled in native-specific components and runtime checks.
+- iOS/Android platform differences are handled in native-specific layout files (e.g. `_layout.ios.tsx`) and runtime checks.
 - Web-target support exists but mobile behavior is primary for interaction and performance design.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.
