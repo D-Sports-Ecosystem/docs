@@ -1,15 +1,13 @@
 ---
-title: "Accessibility Compliance"
-description: "Apple Accessibility Nutrition Labels support matrix and implementation details for D-Sports Engage Native."
+title: "Accessibility compliance"
+description: "Apple Accessibility Nutrition Labels support matrix and implementation details for D-Sports Engage Native (v1.15.0)."
 sidebarTitle: "Accessibility"
 icon: "universal-access"
 ---
 
-# Accessibility Compliance
+D-Sports Engage (v1.15.0) fully supports 7 of 9 Apple Accessibility Nutrition Label categories for iPhone and iPad. The remaining 2 (Captions, Audio Descriptions) are planned for when video content is introduced. This page details the implementation status and technical approach for each feature.
 
-D-Sports Engage supports all 9 Apple Accessibility Nutrition Label categories for iPhone and iPad. This document details the implementation status and technical approach for each feature.
-
-## Feature Support Matrix
+## Feature support matrix
 
 | Feature | Status | Details |
 |---------|--------|---------|
@@ -74,6 +72,16 @@ Added to `app/_layout.tsx` at the root level:
 
 This globally tells `react-native-reanimated` to skip animations when the iOS "Reduce Motion" setting is enabled.
 
+### AccessibilitySettingsSync
+
+`components/AccessibilitySettingsSync.tsx` bridges server-backed user settings with the local `AccessibilityProvider`. When a signed-in user's settings load from the API, accessibility preferences (reduce motion, larger text, high contrast, screen reader support, haptic feedback) are mirrored into local context so they persist across devices.
+
+```tsx
+<AccessibilitySettingsSync />
+```
+
+This component renders nothing visually — it runs a one-time sync effect keyed on `settings.updatedAt` to avoid redundant writes.
+
 ### High Contrast Colors
 
 `theme/colors.ts` exports `darkHighContrast` and `lightHighContrast` variants with boosted alpha values:
@@ -86,7 +94,7 @@ This globally tells `react-native-reanimated` to skip animations when the iOS "R
 
 Use `getColors(isDark, highContrast)` to get theme-aware colors with optional contrast boost.
 
-## Files Modified
+## Files modified
 
 ### Phase 1: VoiceOver & Voice Control
 - `app/(tabs)/_layout.tsx` — Tab bar: `accessibilityRole="tab"`, labels, hints, states
@@ -114,18 +122,19 @@ Use `getColors(isDark, highContrast)` to get theme-aware colors with optional co
 - `components/wallet/TokenRow.tsx` — ▲/▼ arrows on price changes
 - `components/wallet/HoldingRow.tsx` — ▲/▼ arrows on price changes
 
-### Phase 6: Info Screens
+### Phase 6: Info screens and settings sync
 - `app/settings/accessibility-info.tsx` — In-app feature support matrix screen
+- `app/settings/accessibility.tsx` — Accessibility settings screen with in-app toggles
 - `constants/accessibility-features-data.ts` — Feature data constant
+- `components/AccessibilitySettingsSync.tsx` — Server-to-local accessibility settings bridge
 - `d-sports-site/app/accessibility/page.tsx` — Marketing site page
 - `d-sports-site/components/footer.tsx` — Footer link
-- `docs/repositories/d-sports-engage-native/compliance/accessibility.mdx` — This page
 
 ## App Store Connect
 
-After submitting the next app update:
+After submitting v1.15.0 (or later):
 
-1. Go to **App Store Connect → App → General → App Information**
-2. Under **Accessibility**, check all supported features for iPhone and iPad
-3. Set **Accessibility URL** to `https://d-sports.org/accessibility`
-4. Submit with the update
+1. Go to **App Store Connect → App → General → App Information**.
+2. Under **Accessibility**, check all 7 supported features for iPhone and iPad.
+3. Set **Accessibility URL** to `https://d-sports.org/accessibility`.
+4. Submit with the update.
