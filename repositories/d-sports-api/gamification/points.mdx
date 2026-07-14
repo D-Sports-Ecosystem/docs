@@ -33,6 +33,11 @@ Key fields in `PointsHistory`:
 - Completed quest history endpoint derives quest-oriented history from points records.
 - Leaderboard APIs aggregate from points history with season/board scoping logic.
 
+## Team board propagation
+
+- Quest completions now write points to **all** boards returned by `getUserLeaderboards()`, which includes the global board and any team boards matching the user's favorite teams.
+- On login, `syncMissingQuestPointsToLeaderboards()` reconciles the global aggregate from team-board totals so the global leaderboard stays accurate even if a prior write only targeted a team board.
+
 ## Migration-era behavior
 
 - Legacy Season 0 rows may have null `leaderboardId` and `seasonId`.
