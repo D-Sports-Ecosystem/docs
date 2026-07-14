@@ -35,9 +35,53 @@
     { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
     { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
     { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" },
+    { "name": "Accessibility", "description": "Accessibility feature support matrix" }
   ],
   "paths": {
+    "/api/accessibility": {
+      "get": {
+        "tags": ["Accessibility", "Platform and infrastructure"],
+        "summary": "Get accessibility features",
+        "description": "Public endpoint returning the current accessibility feature support matrix. Used by the native app's accessibility info screen and the marketing site.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Accessibility feature list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "version": { "type": "string", "example": "1.15.0" },
+                        "lastUpdated": { "type": "string", "example": "2025-01-01" },
+                        "accessibilityUrl": { "type": "string", "example": "https://d-sports.org/accessibility" },
+                        "features": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "example": "voiceover" },
+                              "name": { "type": "string", "example": "VoiceOver" },
+                              "support": { "type": "string", "enum": ["full", "partial", "planned"], "example": "full" },
+                              "description": { "type": "string", "example": "Screen reader support for blind and low-vision users" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/native-token": {
       "post": {
         "tags": ["Auth"],
