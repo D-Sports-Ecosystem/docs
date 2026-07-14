@@ -1,6 +1,6 @@
 ---
 title: "d-sports-engage-native"
-description: "Native iOS and Android app for D-Sports Engage. Expo 54, React Native, Clerk, RevenueCat, Thirdweb."
+description: "Native iOS and Android app for D-Sports Engage. Expo 55, React Native 0.83, Clerk, RevenueCat, Thirdweb."
 icon: "smartphone"
 ---
 
@@ -14,37 +14,35 @@ icon: "smartphone"
 
 | Category   | Technology                |
 | ---------- | ------------------------- |
-| Framework  | Expo 54, React Native 0.81, React 19 |
+| Framework  | Expo 55, React Native 0.83, React 19.2 |
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
+| State      | Zustand 5                 |
+| Storage    | MMKV 4                    |
+| Animations | Reanimated 4              |
 | UI         | Lucide React Native       |
 | Navigation | Expo Router               |
+| Monitoring | Sentry                    |
+| Push       | OneSignal                 |
 | Package    | Bun                       |
 
 ## Features
 
 - **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Shop** — Collectibles, cart, coin bundles, crypto and fiat checkout
+- **Leaderboard** — Rankings, team-scoped filters, and quest hero icons
+- **Locker room** — Social feed, daily games (pick-em, spin wheel, guess-the-player), and team exploration
+- **Profile** — User profile, achievement badges, milestone avatars, and follow lists
+- **Settings** — Account management, accessibility, appearance, notifications, in-app support, and account deletion
+- **Widgets** — iOS live activities and Android home-screen widgets for rank and points
 - **Theme** — Dark/light mode (default dark)
-
-## What changed since last docs sync
-
-- Team-aware experiences were expanded to align with backend team/favorites behavior.
-- Quest and rewards surfaces were updated to support per-team progression and pass-aware eligibility.
-- Pack opening and odds disclosure UX were upgraded with safer interactions and clearer status/error handling.
-- Settings and account flows were expanded, including in-app account deletion and richer support/data controls.
 
 ## Backend integration surfaces
 
 - Primary API source: `d-sports-api` under `/api/*`.
 - Native app consumes team, league, quest, reward, wallet, commerce, and social endpoints.
-- Retry/caching logic and auth token injection are centralized in app API client modules.
+- Retry/caching logic and auth token injection are centralized in `lib/api/client.ts` with MMKV cache fallback in `lib/api/cache.ts`.
 
 ## Quest and pass UX integration
 
@@ -65,11 +63,49 @@ icon: "smartphone"
 ## Getting started
 
 1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+2. Create a `.env` file with the required `EXPO_PUBLIC_*` variables:
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk authentication
+   - `EXPO_PUBLIC_API_URL` — API backend base URL
+   - `EXPO_PUBLIC_TW_CLIENT_ID` — Thirdweb client ID
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` — RevenueCat API key
+   - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` — Supabase client
+3. Run `bunx expo start` and press `a` for Android, `i` for iOS, or scan the QR code.
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+### EAS builds
+
+The project uses EAS Build for native builds. Profiles are defined in `eas.json`:
+
+| Profile         | Use case                          |
+| --------------- | --------------------------------- |
+| `development`   | Dev client with simulator support |
+| `preview`       | Internal distribution (APK on Android) |
+| `staging`       | Auto-incrementing staging builds  |
+| `production`    | Production builds with auto-submit |
+
+```bash
+# Development build
+bun run build:dev
+
+# Preview build
+bun run build:preview
+
+# Production build + submit to stores
+bun run build:submit:all
+```
+
+### OTA updates
+
+Use EAS Update for over-the-air JavaScript updates:
+
+```bash
+# Production update
+bun run update
+
+# Preview branch update
+bun run update:preview
+```
+
+The app targets both native and web (responsive) and uses the same backend (`d-sports-api`) as the PWA for API and checkout flows.
 
 ## Deep dives
 
