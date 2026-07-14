@@ -6,7 +6,7 @@ icon: "smartphone"
 
 ## Overview
 
-**d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
+**d-sports-engage-native** (package name: `engage-native`, v1.10.0) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, and profile.
 
 - **Run:** `bunx expo start` or `bun run start` — then press `a` for Android or `i` for iOS, or scan the QR code with Expo Go.
 
@@ -18,19 +18,20 @@ icon: "smartphone"
 | Auth       | Clerk (Expo)              |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
-| State      | Zustand                   |
-| Storage    | MMKV                      |
+| State      | Zustand 5 + MMKV          |
 | UI         | Lucide React Native       |
-| Navigation | Expo Router               |
+| Navigation | Expo Router 6             |
+| Animations | React Native Reanimated 4 |
+| Backend    | Supabase (client SDK)     |
 | Package    | Bun                       |
 
 ## Features
 
-- **Wallet** — Tokens, holdings, pack opening, crypto checkout (via PWA backend)
-- **Shop** — Collectibles, cart, coin bundles, checkout
-- **Leaderboard** — Rankings and filters
-- **Locker room** — Social feed and engagement
-- **Profile** — User profile and settings
+- **Wallet** — BIP39 wallet generation, token balances, live crypto prices, holdings, pack opening, PIN-protected seed phrase reveal, and crypto checkout (via the d-sports-api backend)
+- **Shop** — Collectibles, cart, coin bundles, fiat checkout (RevenueCat), and crypto checkout (Thirdweb)
+- **Leaderboard** — Rankings, filters, and team logo fallback chain
+- **Locker room** — Social feed, daily games (Pick'Em, Spin Wheel, Guess the Player), quests, and fan/team exploration
+- **Profile** — User profile, settings, and connected accounts
 - **Theme** — Dark/light mode (default dark)
 
 ## What changed since last docs sync
@@ -64,12 +65,121 @@ icon: "smartphone"
 
 ## Getting started
 
-1. Clone the repository and run `bun install`.
-2. Configure environment (Clerk, RevenueCat, Thirdweb, API base URL) per repo README.
-3. Run `bunx expo start`.
-4. For development builds: `bun run build:dev` (EAS) or run with Expo dev client.
+<Steps>
+  <Step title="Install dependencies">
+    Clone the repository and run `bun install`.
+  </Step>
+  <Step title="Configure environment">
+    Copy `.env` and set the required variables (see [environment variables](#environment-variables) below).
+  </Step>
+  <Step title="Start the dev server">
+    Run `bunx expo start`, then press **a** for Android, **i** for iOS, or scan the QR code with Expo Go.
+  </Step>
+  <Step title="Build for device (optional)">
+    For development builds use `bun run build:dev` (EAS). For production use `bun run build:prod`.
+  </Step>
+</Steps>
 
-The app targets both native and web (responsive) and uses the same backend (d-sports-api) as the PWA for API and checkout flows.
+The app targets native and web (responsive PWA) and uses the same backend ([d-sports-api](/repositories/d-sports-api)) for all API and checkout flows.
+
+## Environment variables
+
+All runtime variables must be prefixed with `EXPO_PUBLIC_`.
+
+| Variable | Purpose |
+| -------- | ------- |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication |
+| `EXPO_PUBLIC_API_URL` | Backend API base URL (defaults to `https://api.d-sports.org`) |
+| `EXPO_PUBLIC_TW_CLIENT_ID` | Thirdweb client ID for Web3 |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat in-app purchases |
+| `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT` | RevenueCat entitlement identifier |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_KEY` | Supabase anon (publishable) key |
+
+## Project structure
+
+```text
+app/
+├── (auth)/              # Login, signup, SSO callback
+├── (onboarding)/        # New-user onboarding flow
+├── (tabs)/              # Main tab navigation (wallet, shop, leaderboard, locker room, profile)
+├── settings/            # Settings pages with nested modals and tabs
+└── _layout.tsx          # Root layout — providers + auth protection
+
+components/
+├── wallet/              # 9 wallet sub-components (TokenRow, CardDetailModal, PackOpeningModal, …)
+├── shop/                # 7 shop sub-components (CartModal, CryptoCheckoutModal, …)
+├── locker-room/         # Locker room games, feed, quests, team/fan exploration
+├── leaderboard/         # Leaderboard table and modal
+├── settings/            # Settings items, sections, modals, tabs
+├── ui/                  # Reusable primitives (Button, TextField, TutorialOverlay, …)
+├── Icon/                # Lucide icon wrapper + icon map
+└── theme-provider.tsx   # Dark/light theme context
+
+hooks/
+├── use-wallet-screen.ts # All wallet state, effects, and handlers
+├── use-shop-screen.ts   # All shop state, effects, and handlers
+├── use-feed-section.ts  # Locker room feed logic
+└── use-carousel-scroll.ts
+
+lib/api/                 # API client layer (see below)
+lib/revenuecat/          # RevenueCat provider for fiat payments
+lib/crypto/              # On-chain transaction helpers (Thirdweb)
+
+context/                 # React Context providers (user, collectibles, navbar, actions)
+services/                # Zustand store, MMKV storage, types
+types/                   # Shared TypeScript types (wallet, shop, checkout, API)
+constants/               # Shared constants (tokens, bundles, locker room)
+theme/                   # Colors, spacing, typography tokens
+```
+
+## API client architecture
+
+The app communicates with d-sports-api through a typed client layer in `lib/api/`.
+
+- **`client.ts`** — base HTTP client that injects Clerk Bearer tokens automatically. Handles empty bodies, JSON parse errors, and Android emulator localhost rewriting.
+- **`index.ts`** — exposes a `useApi()` hook returning all domain modules: `user`, `wallet`, `quests`, `leaderboard`, `lockerRoom`, `teams`, `collectibles`, `shop`, and `checkout`.
+- **`cache.ts`** — MMKV cache-first fetching with TTL for offline resilience.
+
+```typescript
+import { useApi } from "@/lib/api";
+
+function MyComponent() {
+  const api = useApi();
+
+  const load = async () => {
+    const result = await api.wallet.getCoinPrices();
+    if (result.success) {
+      console.log(result.data.prices);
+    }
+  };
+}
+```
+
+### Normalized response envelope
+
+All backend responses follow a standard envelope (Phase 2 normalization):
+
+```typescript
+// Success
+{ success: true, data: T }
+
+// Error
+{ success: false, error: string, code?: string }
+```
+
+The API client in `client.ts` automatically wraps legacy responses that lack a `success` field when the HTTP status is 2xx.
+
+## Architecture patterns
+
+- **Modular screen architecture** — screen files contain only JSX; all state, effects, and handlers live in dedicated hooks (`use-wallet-screen.ts`, `use-shop-screen.ts`).
+- **Extracted sub-components** — wallet and shop screens are decomposed into `components/wallet/` and `components/shop/` with barrel exports.
+- **File-based routing** — Expo Router with route groups `(tabs)`, `(auth)`, `(onboarding)`.
+- **Zustand + MMKV** — global state with synchronous persistence.
+- **React Context** — auth (`UserContext`), collectibles, navbar visibility.
+- **Crypto checkout** — Thirdweb SDK calls the PWA backend for on-chain payments on Arbitrum, Ethereum, or Polygon.
+- **PWA-ready** — `display: standalone`, responsive desktop layout (`maxWidth: 480px`), web hover states.
+- **Path alias** — `@/*` maps to the project root.
 
 ## Deep dives
 
