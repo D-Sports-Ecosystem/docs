@@ -5,16 +5,36 @@ description: "Non-admin endpoint guide for user-facing reporting and moderation-
 
 ## Scope
 
-Current public, non-admin moderation-adjacent routes are primarily user report submission endpoints.
+Public, non-admin moderation routes cover user-generated content (UGC) report submission and feedback intake.
 
 ## Endpoint map
 
-- Feedback and reports: `/api/feedback/bug-report`, `/api/feedback/native-crash`
+- **Moderation reports**: `POST /api/moderation/reports` — submit a report against a user, post, or comment
+- **Feedback and crash reports**: `POST /api/feedback/bug-report`, `POST /api/feedback/native-crash`
+
+## Report types
+
+When you call `POST /api/moderation/reports`, set `type` to one of:
+
+| Type | When to use |
+|---|---|
+| `INAPPROPRIATE_NAME` | Offensive display name or handle |
+| `INAPPROPRIATE_CONTENT` | Offensive post or comment text, images |
+| `SPAM` | Repeated or irrelevant promotional content |
+| `HARASSMENT` | Targeted abuse toward another user |
+| `OTHER` | Anything not covered above |
+
+You must include at least one target (`targetUserId`, `targetPostId`, or `targetCommentId`).
+
+## Reporter outcome notifications
+
+When a moderator resolves or dismisses your report, you receive an in-app and push notification with the outcome. The notification type is `MODERATION_REPORT_UPDATE`.
 
 ## Integration notes
 
-- These endpoints are write-oriented and should be called with validated, structured payloads.
-- For internal moderation tooling routes, refer to admin/private documentation (not public API reference).
+- All moderation report endpoints require Clerk Bearer authentication.
+- Feedback and crash report endpoints are unauthenticated.
+- For internal moderation tooling routes (escalation, resolution, content deletion), refer to admin/private documentation.
 
 ## Deep-dive documentation
 

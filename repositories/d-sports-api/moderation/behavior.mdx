@@ -6,19 +6,34 @@ icon: "list-checks"
 
 ## Main non-admin routes
 
-- `POST /api/feedback/bug-report`
-- `POST /api/feedback/native-crash`
+- `POST /api/moderation/reports` — submit a moderation report (authenticated)
+- `POST /api/feedback/bug-report` — submit a bug report (unauthenticated)
+- `POST /api/feedback/native-crash` — submit a native crash report (unauthenticated)
+
+## `POST /api/moderation/reports`
+
+### Request validation
+
+1. The caller must be authenticated via Clerk Bearer token.
+2. `type` must be one of `INAPPROPRIATE_NAME`, `INAPPROPRIATE_CONTENT`, `SPAM`, `HARASSMENT`, or `OTHER`.
+3. `reason` is required and must be a non-empty string.
+4. At least one target is required: `targetUserId`, `targetPostId`, or `targetCommentId`.
+
+### Response
+
+On success, the endpoint returns **201** with the report `id` and `status` (`PENDING`).
+
+### Side effects
+
+- A `ModerationReport` row is created with the reporter's user ID.
+- The report enters the moderator review queue.
+- When the report is later resolved or dismissed, the reporter receives a `MODERATION_REPORT_UPDATE` notification (both in-app and push).
 
 ## Runtime behavior highlights
 
-- User-facing feedback routes validate and persist report payloads.
-- Report metadata includes type/status fields for downstream moderation workflows.
+- The `createReport` server action runs inside `executeAuthenticated`, which validates the Clerk session and injects the caller's `userId` as `reporterId`.
+- Report metadata includes type and status fields for downstream moderation workflows.
 - Client-facing success responses indicate intake success, not final moderation outcome.
-
-## Side effects and dependencies
-
-- Reports become inputs to internal review/escalation systems.
-- Social and user features may generate reportable targets that feed these routes.
 
 ## Known caveats
 
@@ -27,4 +42,4 @@ icon: "list-checks"
 
 ## Exclusions
 
-- Admin/superadmin moderation actions, escalations, and enforcement controls are excluded.
+- Admin/superadmin moderation actions (escalation, resolution, content deletion) are excluded from public documentation.
