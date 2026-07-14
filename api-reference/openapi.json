@@ -28,6 +28,9 @@
     { "name": "Products", "description": "Products and packs catalog" },
     { "name": "Webhooks", "description": "RevenueCat webhook" },
     { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
+    { "name": "Games", "description": "Interactive games and daily rewards" },
+    { "name": "Leagues", "description": "League metadata and team groupings" },
+    { "name": "Support", "description": "Support tickets and messages" },
     { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
     { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
     { "name": "Gamification", "description": "Domain grouping for quests, leaderboards, points-facing outcomes, and rewards" },
@@ -1088,6 +1091,399 @@
         "x-hidden": true,
         "security": [{ "bearerAuth": [] }],
         "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/user/settings": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Get user settings",
+        "description": "Returns the authenticated user's settings (privacy, notifications, accessibility, appearance). Creates default settings if none exist.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User settings object including privateProfile, showOnlineStatus, allowDirectMessages, notification preferences, accessibility flags, and appearanceTheme." },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "User not found" }
+        }
+      },
+      "patch": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Update user settings",
+        "description": "Partially updates the authenticated user's settings. Only provided boolean fields are changed; omitted fields stay unchanged. Also syncs `privateProfile` to the user record.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "privateProfile": { "type": "boolean" },
+                  "showOnlineStatus": { "type": "boolean" },
+                  "allowDirectMessages": { "type": "boolean" },
+                  "appearanceTheme": { "type": "string", "description": "e.g. 'dark', 'light', 'system'" },
+                  "reduceMotion": { "type": "boolean" },
+                  "largerText": { "type": "boolean" },
+                  "highContrast": { "type": "boolean" },
+                  "screenReaderSupport": { "type": "boolean" },
+                  "hapticFeedback": { "type": "boolean" },
+                  "pushEnabled": { "type": "boolean" },
+                  "notifyMentions": { "type": "boolean" },
+                  "notifyLikes": { "type": "boolean" },
+                  "notifyComments": { "type": "boolean" },
+                  "notifyFollows": { "type": "boolean" },
+                  "notifyRoomInvites": { "type": "boolean" },
+                  "dataSaverMode": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Updated settings object" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/blocks": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List blocked users",
+        "description": "Returns all users blocked by the authenticated user, newest first.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of { id, createdAt, user: { id, name, handle, profileUrl, bio } }" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "Block a user",
+        "description": "Blocks the specified user. Idempotent — blocking an already-blocked user returns the existing record.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["blockedUserId"],
+                "properties": { "blockedUserId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Block record" },
+          "400": { "description": "Missing blockedUserId or self-block attempt" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Target user not found" }
+        }
+      },
+      "delete": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "Unblock a user",
+        "description": "Removes the block on the specified user. Accepts blockedUserId via query string or JSON body.",
+        "parameters": [
+          { "name": "blockedUserId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "Missing blockedUserId" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/check-username": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Check username availability",
+        "description": "Returns whether a handle/username is available (case-insensitive). No authentication required.",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ available: boolean }" },
+          "400": { "description": "Username query param is required" }
+        }
+      }
+    },
+    "/api/user/data-export": {
+      "get": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "List data export requests",
+        "description": "Returns the authenticated user's data-export request history (up to 50, newest first).",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of data export request records" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Auth and onboarding"],
+        "summary": "Request data export",
+        "description": "Creates a new data-export request for the authenticated user. Optionally include a reason.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": { "type": "string", "description": "Optional reason for the export request" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Created data export request record" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/push-subscriptions": {
+      "get": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "List push subscriptions",
+        "description": "Returns all push notification subscriptions for the authenticated user.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of push subscription records" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Register or update push subscription",
+        "description": "Upserts a push notification subscription keyed by userId + platform.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["platform"],
+                "properties": {
+                  "platform": { "type": "string", "description": "e.g. 'ios', 'android', 'web'" },
+                  "provider": { "type": "string", "description": "Push provider, defaults to 'onesignal'" },
+                  "externalSubscriptionId": { "type": "string" },
+                  "pushToken": { "type": "string" },
+                  "isEnabled": { "type": "boolean" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Push subscription record" },
+          "400": { "description": "platform is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["User", "Platform and infrastructure"],
+        "summary": "Remove push subscription",
+        "description": "Deletes the push subscription for a given platform.",
+        "parameters": [
+          { "name": "platform", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ success: true }" },
+          "400": { "description": "platform is required" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/user/support/tickets": {
+      "get": {
+        "tags": ["User", "Support"],
+        "summary": "List support tickets",
+        "description": "Returns all support tickets for the authenticated user, newest first, with message counts.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of support ticket objects with _count.messages" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Support"],
+        "summary": "Create support ticket",
+        "description": "Opens a new support ticket and sends a notification email to the support team.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["subject", "message"],
+                "properties": {
+                  "subject": { "type": "string" },
+                  "message": { "type": "string" },
+                  "category": { "type": "string", "enum": ["support", "bug", "report", "account", "billing", "other"], "default": "support" },
+                  "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"], "default": "MEDIUM" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Created ticket with first message" },
+          "400": { "description": "subject and message are required" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/api/user/support/tickets/{id}/messages": {
+      "get": {
+        "tags": ["User", "Support"],
+        "summary": "List ticket messages",
+        "description": "Returns all messages for a given support ticket (oldest first). Only the ticket owner can access.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Support ticket ID" }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Array of message objects" },
+          "400": { "description": "Invalid ticket ID" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Ticket not found" }
+        }
+      },
+      "post": {
+        "tags": ["User", "Support"],
+        "summary": "Reply to support ticket",
+        "description": "Adds a message to an existing support ticket. Re-opens the ticket if it was closed.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Support ticket ID" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message"],
+                "properties": { "message": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Created message" },
+          "400": { "description": "Invalid ticket ID or missing message" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Ticket not found" }
+        }
+      }
+    },
+    "/api/user/all": {
+      "get": {
+        "tags": ["User", "Social and locker room"],
+        "summary": "List community users",
+        "description": "Paginated list of all onboarded users with stats (follower count, total points). Rate limited to 30 requests per minute.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 } },
+          { "name": "excludeFollowing", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "When 'true', excludes users the caller already follows" }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ users, total }" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/leagues": {
+      "get": {
+        "tags": ["Leagues", "Teams"],
+        "summary": "List leagues",
+        "description": "Returns all leagues with metadata and team counts. Optionally filter by country.",
+        "parameters": [
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "Filter by country (case-insensitive)" }
+        ],
+        "security": [],
+        "responses": {
+          "200": { "description": "{ leagues: [...] } with slug, name, fullName, country, logo, colors, team count" }
+        }
+      }
+    },
+    "/api/wallets/link-challenge": {
+      "get": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Create wallet link challenge",
+        "description": "Generates a one-time SIWE-style message for proving ownership of an external wallet before linking it.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Challenge object with message to sign" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/wallets/link-external": {
+      "post": {
+        "tags": ["Wallets", "Wallet and web3"],
+        "summary": "Link external wallet",
+        "description": "Verifies the signed challenge and links a non-custodial external wallet to the user's account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["challengeId", "message", "signature", "address", "provider"],
+                "properties": {
+                  "challengeId": { "type": "string" },
+                  "message": { "type": "string" },
+                  "signature": { "type": "string" },
+                  "address": { "type": "string" },
+                  "provider": { "type": "string", "description": "e.g. 'metamask', 'walletconnect'" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "{ wallet }" },
+          "400": { "description": "Missing fields, expired challenge, or signature mismatch" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "tags": ["Games", "Gamification"],
+        "summary": "Claim daily spin reward",
+        "description": "Awards points for a daily-spin result. Supports 'coin' (150 pts, max 5/day) and 'weekly_set' (500 pts bonus, once per week). Updates all relevant leaderboards.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rewardType"],
+                "properties": {
+                  "rewardType": { "type": "string", "enum": ["coin", "weekly_set"] },
+                  "weekStartDate": { "type": "string", "description": "Required for weekly_set. Format: YYYY-MM-DD" },
+                  "landedSegmentId": { "type": "string", "description": "Optional segment identifier for analytics" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "{ pointsAwarded, rewardType, alreadyAwarded, leaderboardUpdates }" },
+          "400": { "description": "Invalid payload or missing weekStartDate for weekly_set" },
+          "401": { "description": "Authentication required" }
+        }
       }
     }
   },
