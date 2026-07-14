@@ -5,7 +5,10 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Auth/session contracts
 
-- Native auth uses backend-compatible token/session validation flows.
+- Native auth uses **Clerk** for session management and token validation.
+- The sign-in flow supports email/password with automatic MFA challenge when the user has second-factor authentication enabled.
+- Supported MFA strategies: **TOTP** (authenticator app), **SMS phone code**, and **backup codes**. The client reads `supportedSecondFactors` from the Clerk `SignIn` resource to determine which options to present.
+- MFA enrollment (adding TOTP, phone, or backup codes) is managed through Clerk's hosted account portal, not in-app screens.
 - Protected feature calls require authenticated user context and must handle session expiry gracefully.
 
 ## Quest and reward API contracts
