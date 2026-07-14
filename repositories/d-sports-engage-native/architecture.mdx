@@ -23,6 +23,16 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest/reward/team flows should consume backend eligibility as source of truth.
 
+## Client-side UGC hiding
+
+When you report a post, comment, or profile, the app prompts you to hide that content locally. Hidden IDs are persisted to MMKV under the `user_hidden_ugc_v1` storage key and exposed to components via `useHiddenUgc` (a `useSyncExternalStore`-based hook). This gives instant visual feedback without waiting for backend moderation to resolve the report.
+
+Key modules:
+
+- `lib/user-hidden-ugc.ts` — read/write hidden-ID lists and pub/sub notification.
+- `lib/prompt-hide-after-report.ts` — toast prompt shown after a successful report submission.
+- `hooks/use-hidden-ugc.ts` — React hook that re-renders components when hidden state changes.
+
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
