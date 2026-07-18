@@ -20,6 +20,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
+## Games catalog contract
+
+- `GET /api/games/catalog?teamId=...` (or `?teamSlug=...`) is public and returns the team's enabled mini-games grouped by cadence: `{ daily: Game[], weekly: Game[] }`.
+- Each game entry carries `id`, `key`, `title`, `description`, `icon`, and `badge`; `key` is the stable slug the client maps to a playable game route (for example `daily-spin`).
+- The catalog is admin-managed and team-selected server-side; the client must render only the games returned and must not assume a fixed set.
+- Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`); short-lived staleness after a team changes its selection is expected.
+- Unknown teams return `404`; a missing `teamId`/`teamSlug` returns `400`.
+
 ## User interests contract
 
 - `User.interests` is a `string[]` of slug IDs stored on the `User` row in Postgres (via Prisma).
