@@ -25,6 +25,8 @@ Route documentation status uses:
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts. |
 | `/api/feedback/*` | Publish | User-facing reporting channels. |
+| `/api/games/catalog` | Publish | Public per-team mini-game catalog consumed by native clients. |
+| `/api/admin/games*`, `/api/admin/teams/[teamId]/games` | Publish with redaction | Catalogue management and team game selection contracts; redact ops internals. |
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
 | `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
 | `/api/admin/stats` | Publish with redaction | High-level contract only, no privileged internals. |
