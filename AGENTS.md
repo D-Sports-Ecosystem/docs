@@ -201,3 +201,10 @@ When the source repo changes, the docs need to keep up. The `d-sports-api` repo 
 ## Optional: Mintlify MCP
 
 For live docs search inside an agent, see the [Mintlify MCP server](https://mintlify.com/docs/mcp). The workspace `d-sports-engage-native` already wires it into `.cursor/mcp.json` as `Mintlify Docs`.
+
+## Cursor Cloud specific instructions
+
+The dependency-refresh step (`bun install`) runs automatically on VM startup. `bun` and the `mint` CLI are pre-installed in the environment snapshot (both on `PATH` via `/usr/local/bin`); you do not need to install them.
+
+- **Run the site with `mint dev`, not `bun run dev`, in the cloud VM.** `bun run dev` first runs the `predev` hook (`bun run sync-openapi`, see [`scripts/sync-openapi.ts`](./scripts/sync-openapi.ts)), which copies `openapi.json` from the sibling `../d-sports-api` repo. That repo is not checked out here, so the script exits with code 1 and aborts `bun run dev`. The generated [`api-reference/openapi.json`](./api-reference/openapi.json) is already committed, so `mint dev` renders the full site (including the API reference) without the sync. It serves on `http://localhost:3000`.
+- **Lint/validate commands both run but exit non-zero for pre-existing, non-environment reasons** (see the Build & Run Commands and Development sections). `mint broken-links` reports the four `../<sibling-repo>/` links in this file (`AGENTS.md` is agent guidance, not a published page). `mint validate` emits one warning because Mintlify tries to validate `docs.json` as an OpenAPI file. Neither indicates a broken setup.
