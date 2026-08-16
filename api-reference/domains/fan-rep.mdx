@@ -1,6 +1,6 @@
 ---
 title: "Fan Rep API"
-description: "Ledger-backed Fan, Club, and Player Rep totals, breakdown, and client-safe earns."
+description: "Ledger-backed Fan, Club, Player, and D-Sports Direct Rep totals, breakdown, and client-safe earns."
 ---
 
 ## Scope
@@ -12,6 +12,7 @@ Fan Rep is an append-only ledger (`RepLedgerEntry`) separate from quest points a
 - `GET /v1/engage/rep/breakdown` — totals by source plus per-team Club Rep subtotals
 - `GET /v1/engage/rep/ledger` — keyset-paginated ledger
 - `POST /v1/engage/rep/earn` — client-safe earn (`reaction`, `message`, `pollVote`, `share` only)
+- `POST /api/admin/users/{userId}/rep` — platform-admin D-Sports Direct grant (redacted internals)
 
 Related routes that write Rep themselves (do not also call `/earn`):
 
@@ -28,7 +29,7 @@ Related routes that write Rep themselves (do not also call `/earn`):
 | `fanAmpRep` | `repType = Fan` |
 | `clubRep` | `repType = Club` |
 | `playerAmpRep` | `repType = Player` |
-| `dsportsDirectRep` | Always `0` until a producer exists |
+| `dsportsDirectRep` | `repType = Direct` (admin grants today) |
 | `clubRepByTeam` | Club totals that resolve to a real `Team` id |
 
 Amount and `repType` are server-authoritative. Clients must not invent source splits.
@@ -36,14 +37,24 @@ Amount and `repType` are server-authoritative. Clients must not invent source sp
 ## Ledger contract
 
 - Keyset pagination on `(createdAt DESC, id DESC)`.
-- `source` is `fanAmp` | `club` | `playerAmp`. `dsportsDirect` never appears.
+- `source` is `fanAmp` | `club` | `playerAmp` | `dsportsDirect`.
 - `playerChallenge` maps to `source=playerAmp`.
+- Direct grants map to `source=dsportsDirect`. Ledger rows may include an optional stored `reason`.
 
 ## Earn contract
 
 - `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`.
+- Direct kinds (`adminGrant`, `referralBonus`, `eventReward`) on `/earn` return `403`.
 - Arena check-in and daily-quest Rep use their dedicated routes.
 - Unauthorized requests return `401`.
+
+## D-Sports Direct grants
+
+- The live producer is `POST /api/admin/users/{userId}/rep` (`isAdmin` only).
+- Body: `{ amount: integer 1–100000, reason?: string max 200 }`.
+- Each POST is a new grant. The server generates the idempotency key.
+- `referralBonus` and `eventReward` are reserved Direct kinds with no writer yet.
+- Native admin Coins UI for this grant is follow-up work, not the contract.
 
 ## Deep-dive documentation
 

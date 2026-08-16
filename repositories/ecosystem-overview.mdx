@@ -33,7 +33,7 @@ Secrets for API and native local runs go through **Infisical** (`infisical run -
 
 - Backend gamification supports **per-team quests** and pass-aware eligibility.
 - Daily quests also expose a `/v1/engage/quests/*` session API (start, submit, forfeit, arena check-in, daily summary).
-- **Fan Rep** is a separate ledger (`RepLedgerEntry`) with Fan, Club, and Player sources. Read it from `/v1/engage/rep/*`.
+- **Fan Rep** is a separate ledger (`RepLedgerEntry`) with Fan, Club, Player, and Direct sources. Read it from `/v1/engage/rep/*`. D-Sports Direct grants use `POST /api/admin/users/{userId}/rep`.
 - Pass gating includes **global pass** and **event pass** semantics.
 - Reward flows include explicit handling for **free rewards** and **unpaid rewards** states.
 - Native clients render eligibility and progression from backend response truth.
