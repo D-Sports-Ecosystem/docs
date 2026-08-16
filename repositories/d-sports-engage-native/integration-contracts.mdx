@@ -48,6 +48,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 ## Wallet contracts
 
 - Custodial create: `POST /api/wallets` with `{ pin, legalTermsVersion }` only.
+- Import/link: same route with `pin`, `address`, and `encryptedPrivateKey` or `privateKey`. `pin` is required on every create path.
 - Custodial send: PIN gate, then `POST /api/wallets/{address}/sign-transaction`.
 - Seed reveal: PIN-gated `POST /api/wallets/{address}/export`.
 - Do not call deprecated `POST /api/wallets/private-key` for new work.

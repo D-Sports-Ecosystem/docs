@@ -2311,11 +2311,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "pin"
+                ],
                 "properties": {
                   "pin": {
                     "type": "string",
                     "pattern": "^\\d{6}$",
-                    "description": "Required for custodial create"
+                    "description": "Required for custodial create and import/link. Exactly 6 digits."
                   },
                   "legalTermsVersion": {
                     "type": "string",
@@ -2349,7 +2352,7 @@
             "description": "{ wallet }"
           }
         },
-        "description": "Custodial create: `{ pin, legalTermsVersion }` only \u2014 server generates secrets. Import/link: `address` plus `encryptedPrivateKey` or `privateKey` (optional `mnemonic`)."
+        "description": "PIN is required for every create path. Custodial create: `{ pin, legalTermsVersion }` only \u2014 server generates secrets. Import/link: `pin` plus `address` plus `encryptedPrivateKey` or `privateKey` (optional `mnemonic`)."
       },
       "delete": {
         "tags": [
