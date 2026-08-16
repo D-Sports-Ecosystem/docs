@@ -34,9 +34,34 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Team and league API contracts
 
-- Team lists and team metadata come from `/api/teams`.
+- Team lists and team metadata come from `/api/teams`. Use `?slug=` for a single team.
+- `GET /api/teams/search` accepts `q`, `sport`, `league`, `cursor`, `limit`, and `sort` (`rank` | `name` | `fans`).
+- Sports chips come from public `GET /api/config/sports`. On `500`, fall back to a local cache. Do not hardcode a second catalog.
+- Team `sport` and `leagueInfo.sport` are never null. Unknown values are `"other"`.
+- `POST /api/teams/{id}/follow` is social only (`TeamFollow`).
+- `POST/DELETE /api/teams/{id}/join` is leaderboard membership only. Both are idempotent.
+- `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
+
+## Binder PIN contract
+
+- Binder PIN is not the wallet PIN and not `POST /api/v1/user/verify-pin`.
+- `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`.
+- Send `token` as `x-binder-pin-token` on `GET /api/binders/{id}`.
+- Missing or expired proof on a PIN binder returns `403 PIN_REQUIRED` with metadata only (no shelves).
+
+## Locker room authoring
+
+- `teamId` on `POST /api/locker-room` is the about-tag.
+- `authorTeamId` / `postAsTeamId` is who the post is authored as. Unauthorized callers get `403`.
+
+## Marketplace contracts
+
+- Prefer `GET /v1/marketplace/me/listings`. `listings/mine` is a native alias for the same handler.
+- Listing a `processing` pack returns `409 PACK_NOT_LISTABLE`.
+- `GET /api/v1/cards/{id}/provenance` is public ownership / sale / mint history.
+- Treat `GET /api/user/packs` status as the per-purchase source of truth.
 
 ## Games catalog contract
 

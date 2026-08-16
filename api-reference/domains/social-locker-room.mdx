@@ -18,6 +18,14 @@ Social APIs power locker room activity and user-to-user interactions.
 - `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
 - `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).
 
+## Authoring as a team
+
+- `POST /api/locker-room` accepts `teamId` as the about-tag (`LockerRoomPost.teamId`).
+- `authorTeamId` (native alias `postAsTeamId`) is who the post is authored as. It is distinct from `teamId`.
+- If `authorTeamId` is set, the caller must be allowed to manage that team or be a super-admin. Otherwise the route returns `403`.
+- An unknown `authorTeamId` returns `400`.
+- `TeamFollow` stays social-only. Following a team does not grant post-as-team.
+
 ## Integration notes
 
 - Read endpoints support pagination/query parameters; always pass explicit paging when available.

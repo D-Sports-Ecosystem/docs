@@ -14,15 +14,21 @@ icon: "list-checks"
 - `GET /api/user/packs/opened`
 - `GET /api/user/collectibles`
 - `GET/PUT /api/user/featured-collectibles`
+- `GET/POST /api/binders`, `GET/PATCH/DELETE /api/binders/[id]`
+- `POST /api/binders/[id]/verify-pin`
+- `GET /api/v1/cards/[id]/provenance`
 
 ## Runtime behavior highlights
 
 - Pack browse routes expose currently available packs and pack metadata.
 - Purchase route records pack purchase state for the user.
 - Open route resolves collectible outcomes and updates user ownership/inventory state.
+- `GET /api/user/packs` status is authoritative (`pending` | `processing` | `opened` | `completed`). Template `isOpenable` is not per-purchase state.
 - User collectible and pack routes expose owned content for client rendering.
 - Featured collectibles expose a public showcase; authenticated replace is capped at 12 slots.
 - Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload helpers are not.
+- PIN binders require `x-binder-pin-token` from verify-pin. Without it, `GET /api/binders/[id]` returns `403 PIN_REQUIRED` and metadata only.
+- `GET /api/v1/cards/[id]/provenance` is public and returns `{ card, currentOwners, transfers, mints }`.
 
 ## Side effects and dependencies
 

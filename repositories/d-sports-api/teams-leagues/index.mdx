@@ -23,9 +23,12 @@ Core runtime objects:
 
 ## Route surface
 
-- Public reads: `/api/teams`, `/api/leagues`
+- Public reads: `/api/teams`, `/api/teams?slug=`, `/api/teams/search`, `/api/leagues`, `/api/config/sports`
+- Authenticated membership: `/api/user/teams`, `/api/teams/{id}/join`, `/api/teams/{id}/follow`
 - Admin sync triggers: `/api/admin/teams/sync`, `/api/admin/leagues/sync`
 - Webhook sync trigger: `/api/webhooks/leagues-sync`
+
+Search, join, user-teams, and the sports catalog are shipped. They are not in the generated OpenAPI yet.
 
 ## Deep dives
 

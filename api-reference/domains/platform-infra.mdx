@@ -10,9 +10,12 @@ Platform APIs include utility routes that support app infrastructure or cross-do
 ## Endpoint map
 
 - Utility and media: `/api/image-proxy`, `/api/upload/banner`
+- Public sports catalog: `GET /api/config/sports` (OpenAPI pending; see [Teams and leagues](/api-reference/domains/teams-leagues))
 - Platform status/data surfaces: `/api/dashboard`, `/api/dashboard/stats`, `/api/dashboard/balance`, `/api/dashboard/quests`
 - Maintenance utility: `/api/sync-quest-points`
 - Integration sync references: `/api/webhooks/leagues-sync` (behavior reference), admin sync triggers documented in domain guides
+
+Unknown `/api/*` paths return JSON `404` with code `NOT_FOUND`. They do not fall through to the HTML app 404.
 
 ## Integration notes
 

@@ -13,7 +13,15 @@ Commerce APIs cover checkout initiation/verification, catalog reads, and balance
 - Cash balance: `/api/dsports-cash`
 - Catalog: `/api/products`
 - Revenue webhooks (platform integration): `/api/webhooks/revenuecat`
+- Card provenance: `GET /api/v1/cards/{id}/provenance` (public; in OpenAPI)
 - Marketplace: `/v1/marketplace/*` exists and is consumed by native `app/market`, but it is not in the generated OpenAPI yet
+
+## Marketplace notes
+
+- Native `listings/mine` aliases to `me/listings`. Prefer `GET /v1/marketplace/me/listings` for new work.
+- Listing a pack that is still `processing` returns `409` with code `PACK_NOT_LISTABLE`.
+- An already-opened pack returns `409` with code `PACK_ALREADY_OPENED`.
+- Pack-instance status on `GET /api/user/packs` is authoritative. Do not use template `isOpenable` as a substitute.
 
 ## Integration notes
 

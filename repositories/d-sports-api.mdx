@@ -45,12 +45,16 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI grew from 73 to 102 paths. New public contracts: mobile session exchange, locker-room post CRUD, featured collectibles, games catalog + daily-spin/guess-player/live-active, binders, custodial `sign-transaction`/`export`, `/v1/engage` daily quests, Fan Rep reads/earns, and D-Sports Direct grants.
+- OpenAPI is 103 paths. The newest generated path is public `GET /api/v1/cards/{id}/provenance`.
+- Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
+- Sports catalog, team search, slug lookup, and leaderboard join/leave are shipped. They are not in OpenAPI yet. `TeamFollow` stays social-only.
+- `POST /api/locker-room` `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
+- Marketplace pack listing rejects `processing` purchases with `409 PACK_NOT_LISTABLE`. Native `listings/mine` aliases `me/listings`.
+- Unknown `/api/*` paths return JSON `404`, not the HTML app 404.
 - Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.
 - Prisma is **7.9** (the repo README badge may still say 6 — trust `package.json`).
 - Custodial wallets sign on the server. `POST /api/wallets/private-key` is deprecated and PIN-gated.
-- Fan Rep is a first-class ledger, not a client-computed score. `dsportsDirectRep` sums `repType = Direct` rows from admin grants.
-- Marketplace catch-all, KYC, and some remaining game play routes exist in `app/api` but are **not** in the public OpenAPI yet.
+- Fan Rep is a first-class ledger. `dsportsDirectRep` sums `repType = Direct` rows from admin grants.
 
 ## Getting started
 

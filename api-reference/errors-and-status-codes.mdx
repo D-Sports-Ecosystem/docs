@@ -8,14 +8,15 @@ description: "Common status code semantics and error-handling expectations for n
 - `200` / `201`: successful read or mutation.
 - `400`: invalid payload or missing required fields.
 - `401`: authentication missing or invalid.
-- `404`: resource not found.
-- `409`: state conflict (when route-specific logic enforces uniqueness/state).
+- `403`: authenticated but not allowed. Binder PIN-protected reads use `PIN_REQUIRED`. Post-as-team uses a generic forbidden when `authorTeamId` is unauthorized.
+- `404`: resource not found. Unknown `/api/*` paths return JSON `{ success: false, error, code: NOT_FOUND }`, not the HTML app 404.
+- `409`: state conflict (when route-specific logic enforces uniqueness/state). Marketplace pack listing uses `PACK_NOT_LISTABLE` and `PACK_ALREADY_OPENED`.
 - `500`: unexpected server-side failure.
 
 ## Error handling guidance
 
 - Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
-- Surface response body messages in client logs for operational debugging.
+- Surface response body messages and `code` values in client logs for operational debugging.
 - Prefer route-specific error handling over global assumptions.
 
 ## Where to verify

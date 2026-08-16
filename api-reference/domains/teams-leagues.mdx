@@ -1,17 +1,31 @@
 ---
 title: "Teams and leagues API"
-description: "Endpoint guide for team/league reads and sync-related integration surfaces."
+description: "Endpoint guide for team/league reads, sports catalog, join vs follow, and sync-related integration surfaces."
 ---
 
 ## Scope
 
-Teams/leagues APIs provide team metadata, league metadata, and sync-connected behavior used by web and native clients.
+Teams/leagues APIs provide team metadata, league metadata, sports catalog, join vs follow, and sync-connected behavior used by web and native clients.
 
 ## Teams endpoints
 
-- `GET /api/teams`
+- `GET /api/teams` — list, or `?slug=` for a single team
+- `GET /api/teams/search` — `q`, `sport`, `league`, `cursor`, `limit` (1–50), `sort` (`rank` | `name` | `fans`)
 - `GET /api/teams/followed`
-- `POST /api/teams/{id}/follow`
+- `POST /api/teams/{id}/follow` — social follow (`TeamFollow` only)
+- `POST/DELETE /api/teams/{id}/join` — leaderboard membership only (idempotent)
+- `GET /api/user/teams` — `{ joinedTeamIds, followedTeamIds }`
+
+Search, join, and `GET /api/user/teams` are shipped and consumed by native clients. They are not in the generated OpenAPI yet.
+
+## Sports catalog
+
+- `GET /api/config/sports` is public. Auth is optional.
+- Payload is `{ sports: [{ id, label, order, leagues: [{ id, label, order }] }] }` derived from `League.sport`.
+- There is no second hardcoded sports list. Native may fall back to a local cache on `500`.
+- Team payloads expose never-null `sport` and `leagueInfo.sport`. Unknown or empty values are `"other"`.
+
+This catalog route is shipped and OpenAPI-pending.
 
 ## Leagues endpoints
 
@@ -23,9 +37,17 @@ Teams/leagues APIs provide team metadata, league metadata, and sync-connected be
 - `POST /api/admin/leagues/sync` (admin only, documented with redaction)
 - `POST /api/webhooks/leagues-sync` (integration reference only; secret details redacted)
 
+## Join vs follow
+
+- `POST /api/teams/{id}/follow` writes `TeamFollow`. It does not create a leaderboard entry.
+- `POST /api/teams/{id}/join` upserts a `LeaderboardEntry` on the team board. It does not write `TeamFollow`.
+- `DELETE /api/teams/{id}/join` removes only the leaderboard entry. Social follow stays in place.
+- Both join and leave are idempotent and return the same `{ joinedTeamIds, followedTeamIds }` shape as `GET /api/user/teams`.
+
 ## Client integration notes
 
-- `/api/teams` payload includes enriched team context (ranking/count and league-link metadata where available).
+- `/api/teams` payload includes enriched team context (ranking/count, league-link metadata, and never-null `sport`).
+- `GET /api/teams?slug=` is the single-team lookup. Archived-team slug checks are case-insensitive.
 - `/api/leagues` payloads include branding/color metadata used in client visual theming.
 - After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.
 
