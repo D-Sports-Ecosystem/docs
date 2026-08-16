@@ -1,19 +1,23 @@
 ---
 title: "Introduction"
-description: "API reference for the D-Sports platform. The main backend and API surface is d-sports-api."
+description: "API reference for the D-Sports platform. The live backend and API surface is d-sports-api."
 ---
 
 ## D-Sports API
 
-The primary API and backend for the D-Sports platform is **[d-sports-api](/repositories/d-sports-api)** (the PWA). It serves the web app, the native app (d-sports-engage-native), and is used by the marketing site (d-sports-site) where needed. Authentication, quests, leaderboards, collectibles, shop, and wallet flows all go through this API.
+The primary API and backend for the D-Sports platform is **[d-sports-api](/repositories/d-sports-api)** (the PWA). It serves the web app, the native app (d-sports-engage-native), and is used by the marketing site (d-sports-site) where needed.
+
+Authentication, quests, Fan Rep, leaderboards, collectibles, shop, wallet, and games catalog flows all go through this API.
 
 **Mic'd Up** ([d-sports-mic-d-up](/repositories/d-sports-mic-d-up)) has its own backend (Express + PostgreSQL) for live audio rooms and does not use the d-sports-api backend.
+
+**d-sports-backend** ([Rust rewrite](/repositories/d-sports-backend)) is a parity/shim project. It is not the production API and is not the source of this OpenAPI spec.
 
 ## How this reference is built
 
 This API Reference uses a hybrid model:
 
-- **OpenAPI endpoints** for broad, generated route coverage.
+- **OpenAPI endpoints** for broad, generated route coverage (99 paths in the current spec).
 - **Domain API guides** for workflow notes, caveats, and implementation context by backend domain.
 - **Coverage matrix** for explicit publish/redact/exclude boundaries.
 
@@ -24,6 +28,7 @@ Use the **API Fundamentals** section for authentication and error handling guida
 - Public contributor docs prioritize integration-critical routes.
 - Sensitive admin internals, debug/dev-only, and cron/ops endpoints are intentionally excluded.
 - Selected admin/team-management routes are documented with redaction where contributor context is needed.
+- Some shipped routes (marketplace catch-all, KYC, remaining live/pick-em play paths) exist in `d-sports-api` but are not yet in the generated OpenAPI. See the [route coverage matrix](/api-reference/domains/route-coverage-matrix).
 
 ## Exclusion policy
 
@@ -44,6 +49,8 @@ By default, the following categories are excluded from public endpoint docs:
 - [Auth and onboarding](/api-reference/domains/auth-onboarding)
 - [Social and locker room](/api-reference/domains/social-locker-room)
 - [Gamification](/api-reference/domains/gamification)
+- [Fan Rep](/api-reference/domains/fan-rep)
+- [Games](/api-reference/domains/games)
 - [Commerce and purchases](/api-reference/domains/commerce)
 - [Collectibles and packs](/api-reference/domains/collectibles)
 - [Wallet and web3](/api-reference/domains/wallet-web3)
@@ -55,7 +62,7 @@ By default, the following categories are excluded from public endpoint docs:
 
 ## Authentication
 
-d-sports-api uses **Clerk** for authentication. API requests that require a user typically use Bearer tokens or session-based auth as configured in the app. Exact auth scheme (e.g. `bearerAuth`) is defined in the OpenAPI spec when one is published.
+d-sports-api uses **Clerk** for authentication. Most protected routes expect `Authorization: Bearer <token>`. Native OAuth can also redeem a one-time `MobileSession` hex token at `POST /api/mobile/exchange` for a Clerk sign-in ticket. Exact per-route security is defined in the OpenAPI spec.
 
 <Card title="d-sports-api" icon="server" href="/repositories/d-sports-api">
   Backend and PWA: stack, features, and how to run it.

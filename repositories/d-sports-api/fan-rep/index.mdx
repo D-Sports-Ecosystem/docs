@@ -1,0 +1,27 @@
+---
+title: "Fan Rep"
+description: "Overview of ledger-backed Fan, Club, and Player Rep in d-sports-api."
+icon: "chart-line"
+---
+
+## Scope
+
+Fan Rep is an append-only reputation ledger. It is not quest points and it is not a leaderboard score. Clients read aggregates and a paginated history. The server decides amounts and `repType`.
+
+Sources:
+
+- **Fan** (`fanAmp`) — social actions such as reaction, message, poll vote, share
+- **Club** — team-scoped earns, including arena check-in and some daily-quest completions
+- **Player** (`playerAmp`) — player-challenge and related player-scoped earns
+- **D-Sports Direct** — reserved. `dsportsDirectRep` is always `0` until a producer exists
+
+## Subsections
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="workflow" href="/repositories/d-sports-api/fan-rep/architecture">
+    Models, source mapping, and service boundaries.
+  </Card>
+  <Card title="Behavior" icon="list-checks" href="/repositories/d-sports-api/fan-rep/behavior">
+    Route contracts, pagination, and earn rules.
+  </Card>
+</CardGroup>

@@ -9,7 +9,9 @@ icon: "workflow"
 - `server/wallet-actions.ts`
 - `server/wallet-pin-actions.ts`
 - `app/api/wallets/route.ts`
-- `app/api/wallets/private-key/route.ts`
+- `app/api/wallets/private-key/route.ts` (deprecated)
+- `app/api/wallets/[address]/sign-transaction/route.ts`
+- `app/api/wallets/[address]/export/route.ts`
 - `app/api/wallets/set-pin/route.ts`
 - `app/api/wallets/verify-pin/route.ts`
 - `app/api/wallets/coin-prices/route.ts`
@@ -29,7 +31,8 @@ icon: "workflow"
 flowchart LR
   walletRequest[WalletRequest] --> walletProvision[ProvisionOrLookupWallet]
   walletProvision --> keySecurity[PinAndEncryptionFlow]
-  keySecurity --> privateKeyGate[PrivateKeyAccessGate]
+  keySecurity --> signTx[ServerSideSignTransaction]
+  keySecurity --> privateKeyGate[DeprecatedPrivateKeyGate]
   walletProvision --> providerBridge[Web3ProviderBridge]
   providerBridge --> balancePriceRead[BalanceAndPriceReads]
 ```
@@ -37,5 +40,6 @@ flowchart LR
 ## Architectural notes
 
 - Wallet secrets are protected via encryption and PIN-gated flows.
+- Custodial sends sign on the server. Clients must not export keys just to send.
 - Web3 provider proxy routes isolate external provider contracts from clients.
 - Checkout and token balance features consume wallet/web3 utilities as dependencies.

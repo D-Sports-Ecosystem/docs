@@ -8,11 +8,14 @@ This is the **public documentation site for the entire D-Sports ecosystem**, bui
 
 - The **D-Sports API** (full OpenAPI reference + per-domain narrative docs)
 - The **D-Sports Engage native** mobile app (architecture, integration contracts, compliance evidence)
+- The **`d-sports-backend`** Rust rewrite (parity/shim only — not the production API)
 - The **`leagues`** data repo (league assets, sync workflows, canonical team data)
 - The **`d-sports-site`** marketing site
 - Cross-cutting topics: ecosystem overview, AI tooling integration (Cursor, Claude Code, Windsurf), authentication, errors, rate limits
 
 Pages are MDX files with YAML frontmatter. Configuration lives in `docs.json`. Run `mint dev` to preview locally.
+
+To refresh the site from latest source `main` branches, run **`/update-docs`**. That command loads [`.cursor/skills/update-docs/SKILL.md`](./.cursor/skills/update-docs/SKILL.md): pull `d-sports-api`, `d-sports-engage-native`, and `d-sports-backend`, diff OpenAPI/routes, update the spec in the API repo first if needed, sync it here, then rewrite narrative pages and nav.
 
 ## Build & Run Commands
 
@@ -43,6 +46,8 @@ docs/
 │   └── domains/                      # Per-domain narrative docs
 │       ├── auth-onboarding.mdx
 │       ├── gamification.mdx
+│       ├── fan-rep.mdx
+│       ├── games.mdx
 │       ├── wallet-web3.mdx
 │       ├── commerce.mdx
 │       ├── collectibles.mdx
@@ -56,11 +61,12 @@ docs/
 ├── repositories/                     # Per-repo deep dives
 │   ├── ecosystem-overview.mdx
 │   ├── d-sports-api.mdx              # Index page for the API repo
-│   ├── d-sports-api/                 # Domain folders mirroring api-reference/domains/
+│   ├── d-sports-api/                 # Domain folders (auth, gamification, fan-rep, games, …)
 │   │   ├── <domain>/index.mdx
 │   │   ├── <domain>/architecture.mdx
 │   │   ├── <domain>/behavior.mdx
 │   │   └── ...
+│   ├── d-sports-backend.mdx           # Rust rewrite — not production
 │   ├── d-sports-engage-native.mdx
 │   ├── d-sports-engage-native/
 │   │   ├── architecture.mdx
@@ -180,12 +186,13 @@ Mintlify supports MDX 3: adjacent block JSX/expressions without extra newlines, 
 
 ## Sibling Workspaces
 
-This documentation site sits alongside the four code repos it documents:
+This documentation site sits alongside the code repos it documents:
 
 | Workspace | What this site documents about it |
 |---|---|
 | [`d-sports-api`](../d-sports-api/) | OpenAPI reference (auto-synced) + per-domain narrative + architecture deep dives |
 | [`d-sports-engage-native`](../d-sports-engage-native/) | Architecture, integration contracts, compliance evidence |
+| [`d-sports-backend`](../d-sports-backend/) | Rust rewrite status, crate map, and production-vs-parity warning |
 | [`d-sports-site`](../d-sports-site/) | Brief overview only — the marketing site is largely self-documenting |
 | [`leagues`](../leagues/) | Data model, sync workflow, canonical team data |
 

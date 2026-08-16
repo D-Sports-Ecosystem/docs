@@ -1,0 +1,86 @@
+---
+title: "d-sports-backend"
+description: "Rust rewrite of the D-Sports API. Axum workspace with a legacy /api/* parity shim. Not the production API."
+icon: "cog"
+---
+
+## Overview
+
+**d-sports-backend** is a Rust rewrite of the D-Sports API. It ships as a Cargo workspace compiled to Axum binaries (`api`, `dsports-cron`, plus migration helpers).
+
+This service is **not** the production API. Live clients call [d-sports-api](/repositories/d-sports-api) (Next.js). Treat this repo as a parity and cutover project.
+
+- **Default port:** 8080
+- **Run:** `infisical login` once, then `make dev`
+
+## Status
+
+On the `parity` branch the priority is **legacy API compatibility**: a Strangler Fig shim on `/api/*` so `d-sports-engage-native` can eventually call this service instead of `d-sports-api`, while new domain APIs evolve on `/v1/*`.
+
+| Piece | Location |
+| --- | --- |
+| Shim router | `crates/engage/src/legacy_compat/` |
+| Contract source of truth | `docs/parity/audits/legacy-api-contract.yaml` |
+| Envelope + error codes | `crates/core` |
+| Auth | Clerk JWT via `ClerkVerifier` in `crates/auth` |
+| Strangler proxy | `LEGACY__API_BASE_URL` → live TypeScript API when a route is not native yet |
+
+Without `LEGACY__API_BASE_URL`, most proxied routes return `501`. `POST /api/auth/validate` can run natively against Clerk + `user_id_map`.
+
+<Warning>
+  Do not point production Engage clients at this service. New product routes (binders, Fan Rep, pack uploads, marketplace) land on `d-sports-api` first. Rust parity for those surfaces is a tracked backlog, not a live contract.
+</Warning>
+
+## Tech stack
+
+| Concern | Choice |
+| --- | --- |
+| Language | Rust (stable) |
+| Web framework | Axum 0.8 |
+| Database | Diesel 2.2 (PostgreSQL) |
+| Async runtime | Tokio |
+| Cache | Redis (deadpool) |
+| Auth | Clerk RS256 JWT (`PrivyVerifier` is scaffolded only) |
+| Secrets | Infisical |
+
+## Workspace crates
+
+| Crate | Role |
+| --- | --- |
+| `api` | Axum server — `/health`, `/v1/*`, and `/api/*` shim |
+| `core` | Config, errors, legacy envelope types |
+| `db` | Diesel pool, migrations, schema |
+| `auth` | Verifier trait, Clerk + Privy, Axum extractors |
+| `engage` | Fan hub + `legacy_compat` shims (primary parity work) |
+| `collectibles` | Packs, cards, vault (`/v1` roadmap) |
+| `oracle` | Event pipeline, Redis fan-out |
+| `marketplace` | P2P listings (roadmap) |
+| `campaigns` | Brand drops (roadmap) |
+| `fantasy` | Game hooks (roadmap) |
+| `chain` | Pluggable `ChainProvider` (Noop unless configured) |
+
+## Getting started
+
+Prerequisites: Rust (rustup), Docker, `make`, Infisical CLI.
+
+```bash
+./dev-setup.sh          # or .\dev-setup.ps1 on Windows
+infisical login
+docker compose up -d    # Postgres and Redis
+make migrate-local
+make check
+make dev                # API with Infisical secrets + auto-reload
+```
+
+Health check: `GET /health` returns `{"status":"ok"}`. Point a local native build at the listen URL only when you are testing the shim.
+
+## What this site documents
+
+- Ecosystem placement and the production-vs-parity warning
+- Crate map and how the `/api/*` shim relates to `d-sports-api`
+
+Internal cutover checklists, gap registers, and unpublished ADRs stay in the backend repo. Do not copy them here.
+
+<Card title="d-sports-api (production)" icon="server" href="/repositories/d-sports-api">
+  The live TypeScript API that clients actually call.
+</Card>

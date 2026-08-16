@@ -1,6 +1,6 @@
 ---
 title: "Auth and onboarding API"
-description: "Non-admin endpoint guide for auth, profile, and onboarding workflows."
+description: "Non-admin endpoint guide for auth, mobile session exchange, profile, and onboarding workflows."
 ---
 
 ## Scope
@@ -9,10 +9,18 @@ This guide covers authentication and onboarding-related API routes for user-faci
 
 ## Endpoint map
 
-- Auth: `/api/auth/native-token`, `/api/auth/validate`, `/api/logout`, `/api/mobile/*`
-- User profile/onboarding: `/api/user/profile`, `/api/user/onboarding`, `/api/user/sync-clerk`
+- Auth: `/api/auth/native-token`, `/api/auth/validate`, `/api/logout`
+- Mobile auth: `/api/mobile/start`, `/api/mobile/callback`, `/api/mobile/exchange`, `/api/mobile/verify`
+- User profile/onboarding: `/api/user`, `/api/user/profile`, `/api/user/onboarding`, `/api/user/sync-clerk`, `/api/user/isOnboarded`
 
 See generated endpoint pages in the Endpoints section for full request/response schemas.
+
+## Mobile exchange contract
+
+- `POST /api/mobile/exchange` is public. Body `{ token }` or `Authorization: Bearer <token>`.
+- Token must be a 128-character hex string (`/^[0-9a-f]{128}$/i`).
+- Success returns `{ ticket, expiresAt }`. Native creates a Clerk session from the ticket.
+- Errors: `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `500 INTERNAL_ERROR`.
 
 ## Deep-dive documentation
 

@@ -6,243 +6,699 @@
     "version": "1.0.0"
   },
   "servers": [
-    { "url": "https://app.d-sports.org", "description": "Production" },
-    { "url": "http://localhost:3004", "description": "Local development" }
+    {
+      "url": "https://app.d-sports.org",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:3004",
+      "description": "Local development"
+    }
   ],
-  "security": [{ "bearerAuth": [] }],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "tags": [
-    { "name": "Auth", "description": "Authentication and token exchange" },
-    { "name": "Logout", "description": "Session logout" },
-    { "name": "Mobile auth", "description": "OAuth flow for native apps" },
-    { "name": "Teams", "description": "Teams list and follow/unfollow" },
-    { "name": "Leaderboard", "description": "Leaderboards, seasons, winners, stats" },
-    { "name": "Locker room", "description": "Social feed posts, comments, reactions" },
-    { "name": "Packs", "description": "Packs list, purchase, open" },
-    { "name": "User", "description": "Profile, onboarding, follow, search, privacy" },
-    { "name": "Quests", "description": "Quests and progress" },
-    { "name": "Rewards", "description": "Rewards claim and redeem" },
-    { "name": "Wallets", "description": "Wallets and coin prices" },
-    { "name": "Checkout", "description": "Crypto and D-Sports Cash checkout" },
-    { "name": "D-Sports Cash", "description": "D-Sports Cash balance" },
-    { "name": "Dashboard", "description": "Dashboard stats and balance" },
-    { "name": "Products", "description": "Products and packs catalog" },
-    { "name": "Webhooks", "description": "RevenueCat webhook" },
-    { "name": "Misc", "description": "Image proxy, crypto prices, upload, feedback" },
-    { "name": "Auth and onboarding", "description": "Domain grouping for auth, profile, onboarding, and identity flows" },
-    { "name": "Social and locker room", "description": "Domain grouping for social feed, follows, and community interactions" },
-    { "name": "Gamification", "description": "Domain grouping for quests, leaderboards, points-facing outcomes, and rewards" },
-    { "name": "Commerce and purchases", "description": "Domain grouping for checkout, cash balance, webhooks, and store purchase flows" },
-    { "name": "Collectibles and packs", "description": "Domain grouping for pack lifecycle and collectible inventory" },
-    { "name": "Wallet and web3", "description": "Domain grouping for wallet and crypto-support operations" },
-    { "name": "Moderation and reporting", "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints" },
-    { "name": "Platform and infrastructure", "description": "Domain grouping for utility, infrastructure, and platform support endpoints" }
+    {
+      "name": "Auth",
+      "description": "Authentication and token exchange"
+    },
+    {
+      "name": "Logout",
+      "description": "Session logout"
+    },
+    {
+      "name": "Mobile auth",
+      "description": "OAuth flow for native apps"
+    },
+    {
+      "name": "Teams",
+      "description": "Teams list and follow/unfollow"
+    },
+    {
+      "name": "Leaderboard",
+      "description": "Leaderboards, seasons, winners, stats"
+    },
+    {
+      "name": "Locker room",
+      "description": "Social feed posts, comments, reactions"
+    },
+    {
+      "name": "Packs",
+      "description": "Packs list, purchase, open"
+    },
+    {
+      "name": "User",
+      "description": "Profile, onboarding, follow, search, privacy"
+    },
+    {
+      "name": "Quests",
+      "description": "Quests and progress"
+    },
+    {
+      "name": "Rewards",
+      "description": "Rewards claim and redeem"
+    },
+    {
+      "name": "Wallets",
+      "description": "Wallets and coin prices"
+    },
+    {
+      "name": "Checkout",
+      "description": "Crypto and D-Sports Cash checkout"
+    },
+    {
+      "name": "D-Sports Cash",
+      "description": "D-Sports Cash balance"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard stats and balance"
+    },
+    {
+      "name": "Products",
+      "description": "Products and packs catalog"
+    },
+    {
+      "name": "Webhooks",
+      "description": "RevenueCat webhook"
+    },
+    {
+      "name": "Misc",
+      "description": "Image proxy, crypto prices, upload, feedback"
+    },
+    {
+      "name": "Auth and onboarding",
+      "description": "Domain grouping for auth, profile, onboarding, and identity flows"
+    },
+    {
+      "name": "Social and locker room",
+      "description": "Domain grouping for social feed, follows, and community interactions"
+    },
+    {
+      "name": "Gamification",
+      "description": "Domain grouping for quests, leaderboards, points-facing outcomes, and rewards"
+    },
+    {
+      "name": "Commerce and purchases",
+      "description": "Domain grouping for checkout, cash balance, webhooks, and store purchase flows"
+    },
+    {
+      "name": "Collectibles and packs",
+      "description": "Domain grouping for pack lifecycle and collectible inventory"
+    },
+    {
+      "name": "Wallet and web3",
+      "description": "Domain grouping for wallet and crypto-support operations"
+    },
+    {
+      "name": "Moderation and reporting",
+      "description": "Domain grouping for user-facing report submission and moderation-adjacent endpoints"
+    },
+    {
+      "name": "Platform and infrastructure",
+      "description": "Domain grouping for utility, infrastructure, and platform support endpoints"
+    },
+    {
+      "name": "Binders",
+      "description": "Digital binder inventory, PIN, and card transfer"
+    },
+    {
+      "name": "Games",
+      "description": "Team mini-game catalog and play routes"
+    }
   ],
   "paths": {
     "/api/auth/native-token": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Get native sign-in token",
         "description": "Generates a sign-in token for the authenticated user. Used by native app: pass Bearer token, get ticket for WebView sign-in.",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "{ ticket, expiresAt }" },
-          "401": { "description": "No authorization token provided" }
+          "200": {
+            "description": "{ ticket, expiresAt }"
+          },
+          "401": {
+            "description": "No authorization token provided"
+          }
         }
       }
     },
     "/api/auth/validate": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Validate token",
         "description": "Validates the Bearer token.",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "{ valid, ... }" },
-          "401": { "description": "Invalid or missing token" }
+          "200": {
+            "description": "{ valid, ... }"
+          },
+          "401": {
+            "description": "Invalid or missing token"
+          }
         }
       }
     },
     "/api/logout": {
       "get": {
-        "tags": ["Logout"],
+        "tags": [
+          "Logout"
+        ],
         "summary": "Logout (redirect)",
         "description": "Redirects to login.",
         "security": [],
-        "responses": { "302": { "description": "Redirect to /login" } }
+        "responses": {
+          "302": {
+            "description": "Redirect to /login"
+          }
+        }
       },
       "post": {
-        "tags": ["Logout"],
+        "tags": [
+          "Logout"
+        ],
         "summary": "Logout",
         "description": "Signs out the user.",
         "security": [],
-        "responses": { "200": { "description": "{ success: true }" } }
+        "responses": {
+          "200": {
+            "description": "{ success: true }"
+          }
+        }
       }
     },
     "/api/mobile/start": {
       "get": {
-        "tags": ["Mobile auth"],
+        "tags": [
+          "Mobile auth"
+        ],
         "summary": "Start mobile OAuth",
         "description": "Redirects to mobile auth. Query: provider, redirect_uri.",
         "parameters": [
-          { "name": "provider", "in": "query", "schema": { "type": "string" } },
-          { "name": "redirect_uri", "in": "query", "schema": { "type": "string" } }
+          {
+            "name": "provider",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "security": [],
-        "responses": { "302": { "description": "Redirect to /mobile-auth" } }
+        "responses": {
+          "302": {
+            "description": "Redirect to /mobile-auth"
+          }
+        }
       }
     },
     "/api/mobile/callback": {
       "get": {
-        "tags": ["Mobile auth"],
+        "tags": [
+          "Mobile auth"
+        ],
         "summary": "Mobile OAuth callback",
         "description": "Callback with redirect_uri. Returns token or error in redirect.",
-        "parameters": [{ "name": "redirect_uri", "in": "query", "schema": { "type": "string" } }],
+        "parameters": [
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [],
-        "responses": { "302": { "description": "Redirect with token or error" } }
+        "responses": {
+          "302": {
+            "description": "Redirect with token or error"
+          }
+        }
       }
     },
     "/api/mobile/verify": {
       "get": {
-        "tags": ["Mobile auth"],
+        "tags": [
+          "Mobile auth"
+        ],
         "summary": "Verify mobile token",
         "description": "Verifies Bearer token from native app.",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, user }"
+          }
+        }
+      }
+    },
+    "/api/mobile/exchange": {
+      "post": {
+        "tags": [
+          "Mobile auth"
+        ],
+        "summary": "Exchange mobile session token for Clerk ticket",
+        "description": "One-time redeem of a Prisma MobileSession hex token (body `{ token }` or Authorization Bearer) for a Clerk sign-in ticket. No Clerk session required. Consumes the mobile session.",
+        "security": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{128}$",
+                    "description": "64-byte mobile session token as 128 hex chars"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: { ticket, expiresAt } }"
+          },
+          "400": {
+            "description": "{ success: false, code: VALIDATION_ERROR }"
+          },
+          "401": {
+            "description": "{ success: false, code: UNAUTHORIZED }"
+          },
+          "500": {
+            "description": "{ success: false, code: INTERNAL_ERROR }"
+          }
+        }
       }
     },
     "/api/teams": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "List teams",
         "description": "List all teams with enriched stats: fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId (per-team board when provisioned), leagueInfo, leagueColors, plus _count { packs, collectibles }.",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data: { teams, season } }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { teams, season } }"
+          }
+        }
       }
     },
     "/api/teams/followed": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "List followed teams",
         "description": "Teams the authenticated user follows.",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
       }
     },
     "/api/teams/{id}/follow": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Get follow status",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
       },
       "post": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Follow team",
         "description": "Body optional: { type?: 'followed' | 'fan' }.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "type": { "type": "string", "enum": ["followed", "fan"] } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "followed",
+                      "fan"
+                    ]
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       },
       "delete": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Unfollow team",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/leaderboard": {
       "get": {
-        "tags": ["Leaderboard", "Gamification"],
+        "tags": [
+          "Leaderboard",
+          "Gamification"
+        ],
         "summary": "Get leaderboard",
         "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global.",
         "parameters": [
-          { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } },
-          { "name": "teamId", "in": "query", "schema": { "type": "string" } }
+          {
+            "name": "leaderboardId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "{ leaderboard, leaderboardEntries, currentUserId, season }" },
-          "401": { "description": "Authentication required" },
-          "404": { "description": "Leaderboard or user not found" }
+          "200": {
+            "description": "{ leaderboard, leaderboardEntries, currentUserId, season }"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Leaderboard or user not found"
+          }
         }
       }
     },
     "/api/leaderboard/stream": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": [
+          "Leaderboard"
+        ],
         "summary": "Leaderboard SSE stream",
         "description": "Server-sent events stream. Query: leaderboardId.",
-        "parameters": [{ "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "SSE stream" } }
+        "parameters": [
+          {
+            "name": "leaderboardId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream"
+          }
+        }
       }
     },
     "/api/leaderboard/search": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": [
+          "Leaderboard"
+        ],
         "summary": "Search leaderboard players",
         "parameters": [
-          { "name": "query", "in": "query", "schema": { "type": "string" } },
-          { "name": "page", "in": "query", "schema": { "type": "integer" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
-          { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "leaderboardId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
         "security": [],
-        "responses": { "200": { "description": "{ players, total, page, limit, totalPages }" } }
+        "responses": {
+          "200": {
+            "description": "{ players, total, page, limit, totalPages }"
+          }
+        }
       }
     },
     "/api/leaderboard/seasons": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": [
+          "Leaderboard"
+        ],
         "summary": "List seasons",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ seasons, current }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ seasons, current }"
+          }
+        }
       }
     },
     "/api/leaderboard/winners": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": [
+          "Leaderboard"
+        ],
         "summary": "Get winners",
         "parameters": [
-          { "name": "seasonId", "in": "query", "schema": { "type": "string" } },
-          { "name": "leaderboardId", "in": "query", "schema": { "type": "integer" } }
+          {
+            "name": "seasonId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaderboardId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ winners }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ winners }"
+          }
+        }
       }
     },
     "/api/leaderboard/stats": {
       "get": {
-        "tags": ["Leaderboard"],
+        "tags": [
+          "Leaderboard"
+        ],
         "summary": "Leaderboard stats",
         "description": "Total users, total points, last winner.",
         "security": [],
-        "responses": { "200": { "description": "{ totalUsers, totalPoints, lastWinner }" } }
+        "responses": {
+          "200": {
+            "description": "{ totalUsers, totalPoints, lastWinner }"
+          }
+        }
       }
     },
     "/api/locker-room": {
       "get": {
-        "tags": ["Locker room"],
+        "tags": [
+          "Locker room"
+        ],
         "summary": "Get locker room posts",
         "parameters": [
-          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
-          { "name": "filter", "in": "query", "schema": { "type": "string", "enum": ["trending", "latest", "following"] } }
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "trending",
+                "latest",
+                "following"
+              ]
+            }
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "authorId",
+            "in": "query",
+            "description": "When set, only return posts by this author",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
       },
       "post": {
-        "tags": ["Locker room"],
+        "tags": [
+          "Locker room"
+        ],
         "summary": "Create locker room post",
         "requestBody": {
           "required": true,
@@ -250,379 +706,1215 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["content"],
-                "properties": { "content": { "type": "string" }, "imageUrl": { "type": "string" } }
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  },
+                  "imageUrl": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" }, "400": { "description": "Content is required" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Content is required"
+          }
+        }
       }
     },
-    "/api/locker-room/stream": {
+    "/api/locker-room/{id}": {
       "get": {
-        "tags": ["Locker room"],
-        "summary": "Locker room SSE stream",
-        "parameters": [{ "name": "filter", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "SSE stream" } }
-      }
-    },
-    "/api/locker-room/{id}/comments": {
-      "get": {
-        "tags": ["Locker room"],
-        "summary": "Get post comments",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Get a single locker room post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
       },
-      "post": {
-        "tags": ["Locker room"],
-        "summary": "Add comment",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+      "put": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Update locker room post content",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "required": ["content"], "properties": { "content": { "type": "string" } } }
-            }
-          }
-        },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
-      }
-    },
-    "/api/locker-room/{id}/react": {
-      "get": {
-        "tags": ["Locker room"],
-        "summary": "Get reactions",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "security": [],
-        "responses": { "200": { "description": "{ success, data }" } }
-      },
-      "post": {
-        "tags": ["Locker room"],
-        "summary": "Add reaction",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "type": "object", "properties": { "type": { "type": "string" } } }
-            }
-          }
-        },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
-      }
-    },
-    "/api/packs": {
-      "get": {
-        "tags": ["Packs"],
-        "summary": "List active packs",
-        "security": [],
-        "responses": { "200": { "description": "{ packs }" } }
-      }
-    },
-    "/api/packs/{id}": {
-      "get": {
-        "tags": ["Packs"],
-        "summary": "Get pack by ID",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "security": [],
-        "responses": { "200": { "description": "Pack object" } }
-      }
-    },
-    "/api/packs/{id}/purchase": {
-      "post": {
-        "tags": ["Packs"],
-        "summary": "Start pack purchase",
-        "description": "Body: { paymentMethod: 'crypto' | 'dsports-cash' }.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "requestBody": {
-          "content": {
-            "application/json": {
               "schema": {
                 "type": "object",
-                "properties": { "paymentMethod": { "type": "string", "enum": ["crypto", "dsports-cash"] } }
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ purchaseId }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { id, content, updatedAt } }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
       },
-      "put": {
-        "tags": ["Packs"],
-        "summary": "Complete pack purchase",
-        "description": "Body: { purchaseId, paymentIntentId?, transactionHash? }.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+      "delete": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Delete locker room post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { ok: true } }"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/locker-room/stream": {
+      "get": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Locker room SSE stream",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream"
+          }
+        }
+      }
+    },
+    "/api/locker-room/{id}/comments": {
+      "get": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Get post comments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Add comment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/locker-room/{id}/react": {
+      "get": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Get reactions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Add reaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "purchaseId": { "type": "string" },
-                  "paymentIntentId": { "type": "string" },
-                  "transactionHash": { "type": "string" }
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/packs": {
+      "get": {
+        "tags": [
+          "Packs"
+        ],
+        "summary": "List active packs",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ packs }"
+          }
+        }
+      }
+    },
+    "/api/packs/{id}": {
+      "get": {
+        "tags": [
+          "Packs"
+        ],
+        "summary": "Get pack by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Pack object"
+          }
+        }
+      }
+    },
+    "/api/packs/{id}/purchase": {
+      "post": {
+        "tags": [
+          "Packs"
+        ],
+        "summary": "Start pack purchase",
+        "description": "Body: { paymentMethod: 'crypto' | 'dsports-cash' }.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "paymentMethod": {
+                    "type": "string",
+                    "enum": [
+                      "crypto",
+                      "dsports-cash"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ purchaseId }"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Packs"
+        ],
+        "summary": "Complete pack purchase",
+        "description": "Body: { purchaseId, paymentIntentId?, transactionHash? }.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "purchaseId": {
+                    "type": "string"
+                  },
+                  "paymentIntentId": {
+                    "type": "string"
+                  },
+                  "transactionHash": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
         "security": [],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/packs/{id}/open": {
       "post": {
-        "tags": ["Packs"],
+        "tags": [
+          "Packs"
+        ],
         "summary": "Open pack",
         "description": "Body: { purchaseId }.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "purchaseId": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "purchaseId": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ collectibles }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ collectibles }"
+          }
+        }
       }
     },
     "/api/user": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get user or suggestions",
         "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile.",
         "parameters": [
-          { "name": "suggest", "in": "query", "schema": { "type": "string" } },
-          { "name": "id", "in": "query", "schema": { "type": "string" } },
-          { "name": "handle", "in": "query", "schema": { "type": "string" } }
+          {
+            "name": "suggest",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "handle",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "User object or suggestions array" }, "401": { "description": "Unauthorized" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User object or suggestions array"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       },
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update user",
         "description": "Body: user fields to update.",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Updated user" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated user"
+          }
+        }
       }
     },
     "/api/user/profile": {
-      "get": { "tags": ["User"], "summary": "Get profile", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Profile" } } },
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile"
+          }
+        }
+      },
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update profile",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "properties": { "bannerUrl": { "type": "string" }, "profileUrl": { "type": "string" }, "userTheme": { "type": "string" } }
+                "properties": {
+                  "bannerUrl": {
+                    "type": "string"
+                  },
+                  "profileUrl": {
+                    "type": "string"
+                  },
+                  "userTheme": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, user }"
+          }
+        }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Create/onboard profile",
         "description": "Onboarding payload.",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user, ... }" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, user, ... }"
+          }
+        }
       }
     },
     "/api/user/onboarding": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get onboarding status",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data: { isComplete } }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { isComplete } }"
+          }
+        }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Complete onboarding",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data: { completed } }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { completed } }"
+          }
+        }
       }
     },
     "/api/user/follow": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Check follow status",
-        "parameters": [{ "name": "targetUserId", "in": "query", "required": true, "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ isFollowing }" } }
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ isFollowing }"
+          }
+        }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Follow user",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "required": ["targetUserId"], "properties": { "targetUserId": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "required": [
+                  "targetUserId"
+                ],
+                "properties": {
+                  "targetUserId": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, follow, counts }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, follow, counts }"
+          }
+        }
       },
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Unfollow user",
-        "parameters": [{ "name": "targetUserId", "in": "query", "required": true, "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, counts }" } }
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, counts }"
+          }
+        }
       }
     },
     "/api/user/followers": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "List followers/following",
         "parameters": [
-          { "name": "userId", "in": "query", "schema": { "type": "string" } },
-          { "name": "type", "in": "query", "schema": { "type": "string" } },
-          { "name": "page", "in": "query", "schema": { "type": "integer" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total, page, totalPages }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ users, total, page, totalPages }"
+          }
+        }
       }
     },
     "/api/user/search": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Search users",
         "parameters": [
-          { "name": "q", "in": "query", "schema": { "type": "string" } },
-          { "name": "page", "in": "query", "schema": { "type": "integer" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total, page, totalPages, query }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ users, total, page, totalPages, query }"
+          }
+        }
       }
     },
     "/api/user/top-users": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Top users",
-        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, data }" } }
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
       }
     },
     "/api/user/recommended": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Recommended users",
-        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ users, total }" } }
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ users, total }"
+          }
+        }
       }
     },
     "/api/user/toggle-star": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Toggle star",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "starReceiverId": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "starReceiverId": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Toggle result" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Toggle result"
+          }
+        }
       }
     },
     "/api/user/star-status": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get star status",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Star status" } }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Star status"
+          }
+        }
       }
     },
     "/api/user/isOnboarded": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Check onboarded",
-        "parameters": [{ "name": "id", "in": "query", "schema": { "type": "string" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [],
-        "responses": { "200": { "description": "true or false" } }
+        "responses": {
+          "200": {
+            "description": "true or false"
+          }
+        }
       }
     },
     "/api/user/privacy": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get privacy setting",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ isPrivate }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ isPrivate }"
+          }
+        }
       },
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update privacy",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "isPrivate": { "type": "boolean" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isPrivate": {
+                    "type": "boolean"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, isPrivate }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, isPrivate }"
+          }
+        }
       }
     },
     "/api/user/dev-card-settings": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get dev card settings",
         "description": "Internal/debug card settings endpoint.",
         "x-hidden": true,
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, isDev, user, settings }" } }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, isDev, user, settings }"
+          }
+        }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Update dev card settings",
         "description": "Internal/debug card settings mutation endpoint.",
         "x-hidden": true,
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/user/collectibles": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get user collectibles",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Collectibles data" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collectibles data"
+          }
+        }
+      }
+    },
+    "/api/user/featured-collectibles": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get featured collectibles for a profile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "handle",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { collectibles } }"
+          },
+          "401": {
+            "description": "Auth required when neither userId nor handle is provided"
+          },
+          "404": {
+            "description": "User not found for handle"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Replace authenticated user's featured collectibles (max 12)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "collectibleIds"
+                ],
+                "properties": {
+                  "collectibleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 12
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { ok: true } }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
     "/api/user/completed-quests": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get completed quests",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests }" } }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ quests }"
+          }
+        }
       }
     },
     "/api/user/delete": {
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Delete account",
         "requestBody": {
           "content": {
@@ -639,88 +1931,194 @@
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "{ success, data: { message } }" },
-          "401": { "description": "Authentication or re-authentication required" }
+          "200": {
+            "description": "{ success, data: { message } }"
+          },
+          "401": {
+            "description": "Authentication or re-authentication required"
+          }
         }
       }
     },
     "/api/user/delete/dry-run": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Dry-run account deletion",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Dry-run summary" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dry-run summary"
+          }
+        }
       }
     },
     "/api/user/verify-password": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Verify password",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "password": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/user/sync-clerk": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Sync Clerk user",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, user }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, user }"
+          }
+        }
       }
     },
     "/api/user/packs": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get user packs",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ packs }"
+          }
+        }
       }
     },
     "/api/user/packs/opened": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "summary": "Get opened packs",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ packs }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ packs }"
+          }
+        }
       }
     },
     "/api/quests": {
       "get": {
-        "tags": ["Quests", "Gamification"],
+        "tags": [
+          "Quests",
+          "Gamification"
+        ],
         "summary": "Get quests",
         "description": "Query: category (optional) for QuestCategory; else active quests.",
-        "parameters": [{ "name": "category", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quests, currentUserId }" }, "401": { "description": "Authentication required" } }
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ quests, currentUserId }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
       }
     },
     "/api/quests/start": {
       "post": {
-        "tags": ["Quests"],
+        "tags": [
+          "Quests"
+        ],
         "summary": "Start quest",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "questId": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questId": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ quest, success }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ quest, success }"
+          }
+        }
       }
     },
     "/api/quests/complete-step": {
       "post": {
-        "tags": ["Quests"],
+        "tags": [
+          "Quests"
+        ],
         "summary": "Complete quest step",
         "requestBody": {
           "content": {
@@ -728,156 +2126,374 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "questId": { "type": "string" },
-                  "stepId": { "type": "string" }
+                  "questId": {
+                    "type": "string"
+                  },
+                  "stepId": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success, pointsAwarded, questCompleted }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, pointsAwarded, questCompleted }"
+          }
+        }
       }
     },
     "/api/quests/daily-visit": {
       "post": {
-        "tags": ["Quests"],
+        "tags": [
+          "Quests"
+        ],
         "summary": "Daily visit",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Daily visit result" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily visit result"
+          }
+        }
       }
     },
     "/api/quests/check-progress": {
       "post": {
-        "tags": ["Quests"],
+        "tags": [
+          "Quests"
+        ],
         "summary": "Check quest progress",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "type": "object", "properties": { "questType": { "type": "string" } } }
-            }
-          }
-        },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ success }" } }
-      }
-    },
-    "/api/rewards": {
-      "get": {
-        "tags": ["Rewards", "Gamification"],
-        "summary": "List rewards",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ rewards, currentUserId }" } }
-      }
-    },
-    "/api/rewards/claim": {
-      "post": {
-        "tags": ["Rewards"],
-        "summary": "Claim reward",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "type": "object", "properties": { "rewardId": { "type": "string" } } }
-            }
-          }
-        },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
-      }
-    },
-    "/api/rewards/redeem": {
-      "post": {
-        "tags": ["Rewards"],
-        "summary": "Redeem reward",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "type": "object", "properties": { "rewardId": { "type": "string" } } }
-            }
-          }
-        },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ reward, success }" } }
-      }
-    },
-    "/api/wallets": {
-      "get": {
-        "tags": ["Wallets", "Wallet and web3"],
-        "summary": "List wallets",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ wallets }" } }
-      },
-      "post": {
-        "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Add wallet",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "address": { "type": "string" },
-                  "encryptedPrivateKey": { "type": "string" }
+                  "questType": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ wallet }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
+      }
+    },
+    "/api/rewards": {
+      "get": {
+        "tags": [
+          "Rewards",
+          "Gamification"
+        ],
+        "summary": "List rewards",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ rewards, currentUserId }"
+          }
+        }
+      }
+    },
+    "/api/rewards/claim": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Claim reward",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rewardId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ reward, success }"
+          }
+        }
+      }
+    },
+    "/api/rewards/redeem": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Redeem reward",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rewardId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ reward, success }"
+          }
+        }
+      }
+    },
+    "/api/wallets": {
+      "get": {
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
+        "summary": "List wallets",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ wallets }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
+        "summary": "Create or import wallet",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pin": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$",
+                    "description": "Required for custodial create"
+                  },
+                  "legalTermsVersion": {
+                    "type": "string",
+                    "description": "Required for custodial create"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Required for import/link"
+                  },
+                  "encryptedPrivateKey": {
+                    "type": "string"
+                  },
+                  "privateKey": {
+                    "type": "string"
+                  },
+                  "mnemonic": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ wallet }"
+          }
+        },
+        "description": "Custodial create: `{ pin, legalTermsVersion }` only \u2014 server generates secrets. Import/link: `address` plus `encryptedPrivateKey` or `privateKey` (optional `mnemonic`)."
       },
       "delete": {
-        "tags": ["Wallets", "Wallet and web3"],
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
         "summary": "Remove wallet",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "properties": { "address": { "type": "string" } } }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ message }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ message }"
+          }
+        }
       }
     },
     "/api/wallets/set-pin": {
       "post": {
-        "tags": ["Wallets", "Wallet and web3"],
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
         "summary": "Set PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/wallets/verify-pin": {
       "post": {
-        "tags": ["Wallets", "Wallet and web3"],
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
         "summary": "Verify PIN",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/wallets/private-key": {
       "post": {
-        "tags": ["Wallets", "Wallet and web3"],
-        "summary": "Get private key",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
+        "summary": "Deprecated: fetch private key (PIN-gated)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "deprecated": true,
+        "description": "Deprecated. Use POST /api/wallets/{address}/sign-transaction for sends and POST /api/wallets/{address}/export for seed reveal."
       }
     },
     "/api/wallets/coin-prices": {
       "get": {
-        "tags": ["Wallets", "Wallet and web3"],
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
         "summary": "Get coin prices",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Coin prices" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coin prices"
+          }
+        }
       }
     },
     "/api/checkout/crypto": {
       "post": {
-        "tags": ["Checkout", "Commerce and purchases"],
+        "tags": [
+          "Checkout",
+          "Commerce and purchases"
+        ],
         "summary": "Create crypto checkout",
         "requestBody": {
           "content": {
@@ -885,23 +2501,44 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "itemId": { "type": "string" },
-                  "itemType": { "type": "string" },
-                  "quantity": { "type": "integer" },
-                  "chain": { "type": "string" },
-                  "useNativeToken": { "type": "boolean" }
+                  "itemId": {
+                    "type": "string"
+                  },
+                  "itemType": {
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "type": "integer"
+                  },
+                  "chain": {
+                    "type": "string"
+                  },
+                  "useNativeToken": {
+                    "type": "boolean"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ paymentId, recipientAddress, amount, ... }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ paymentId, recipientAddress, amount, ... }"
+          }
+        }
       }
     },
     "/api/checkout/crypto/verify": {
       "post": {
-        "tags": ["Checkout", "Commerce and purchases"],
+        "tags": [
+          "Checkout",
+          "Commerce and purchases"
+        ],
         "summary": "Verify crypto payment",
         "requestBody": {
           "content": {
@@ -909,21 +2546,38 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "paymentId": { "type": "string" },
-                  "transactionHash": { "type": "string" },
-                  "chain": { "type": "string" }
+                  "paymentId": {
+                    "type": "string"
+                  },
+                  "transactionHash": {
+                    "type": "string"
+                  },
+                  "chain": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ verified, status }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ verified, status }"
+          }
+        }
       }
     },
     "/api/checkout/dsports-cash": {
       "post": {
-        "tags": ["Checkout", "Commerce and purchases"],
+        "tags": [
+          "Checkout",
+          "Commerce and purchases"
+        ],
         "summary": "Checkout with D-Sports Cash",
         "requestBody": {
           "content": {
@@ -931,89 +2585,222 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "itemId": { "type": "string" },
-                  "itemType": { "type": "string" },
-                  "quantity": { "type": "integer" },
-                  "cartItems": { "type": "array" }
+                  "itemId": {
+                    "type": "string"
+                  },
+                  "itemType": {
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "type": "integer"
+                  },
+                  "cartItems": {
+                    "type": "array"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ paymentId, remainingBalance }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ paymentId, remainingBalance }"
+          }
+        }
       }
     },
     "/api/dsports-cash": {
       "get": {
-        "tags": ["D-Sports Cash", "Commerce and purchases"],
+        "tags": [
+          "D-Sports Cash",
+          "Commerce and purchases"
+        ],
         "summary": "Get D-Sports Cash balance",
         "description": "Query: userId (admin impersonation).",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ dsportsCash }" } }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ dsportsCash }"
+          }
+        }
       }
     },
     "/api/dashboard": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Dashboard (public)",
         "security": [],
-        "responses": { "200": { "description": "{ message }" } }
+        "responses": {
+          "200": {
+            "description": "{ message }"
+          }
+        }
       },
       "post": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Dashboard (auth check)",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "{ userId, isAuthenticated }" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ userId, isAuthenticated }"
+          }
+        }
       }
     },
     "/api/dashboard/stats": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Dashboard stats",
-        "parameters": [{ "name": "userId", "in": "query", "schema": { "type": "string" } }],
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Dashboard stats" } }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard stats"
+          }
+        }
       }
     },
     "/api/dashboard/balance": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Dashboard balance",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Balance" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance"
+          }
+        }
       }
     },
     "/api/dashboard/quests": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Dashboard quests",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Quests" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quests"
+          }
+        }
       }
     },
     "/api/products": {
       "get": {
-        "tags": ["Products", "Commerce and purchases"],
+        "tags": [
+          "Products",
+          "Commerce and purchases"
+        ],
         "summary": "List products",
         "parameters": [
-          { "name": "type", "in": "query", "schema": { "type": "string" } },
-          { "name": "teamId", "in": "query", "schema": { "type": "string" } },
-          { "name": "rarity", "in": "query", "schema": { "type": "string" } },
-          { "name": "featured", "in": "query", "schema": { "type": "boolean" } },
-          { "name": "search", "in": "query", "schema": { "type": "string" } }
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rarity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "security": [],
-        "responses": { "200": { "description": "Products and packs" } }
+        "responses": {
+          "200": {
+            "description": "Products and packs"
+          }
+        }
       }
     },
     "/api/webhooks/revenuecat": {
       "post": {
-        "tags": ["Webhooks", "Commerce and purchases"],
+        "tags": [
+          "Webhooks",
+          "Commerce and purchases"
+        ],
         "summary": "RevenueCat webhook",
         "description": "Handles RevenueCat purchase events. Use Authorization: Bearer with REVENUECAT_WEBHOOK_SECRET.",
-        "security": [{ "webhookSecret": [] }],
+        "security": [
+          {
+            "webhookSecret": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1023,9 +2810,15 @@
                   "event": {
                     "type": "object",
                     "properties": {
-                      "type": { "type": "string" },
-                      "app_user_id": { "type": "string" },
-                      "product_id": { "type": "string" }
+                      "type": {
+                        "type": "string"
+                      },
+                      "app_user_id": {
+                        "type": "string"
+                      },
+                      "product_id": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -1033,61 +2826,1155 @@
             }
           }
         },
-        "responses": { "200": { "description": "{ received: true }" } }
+        "responses": {
+          "200": {
+            "description": "{ received: true }"
+          }
+        }
       }
     },
     "/api/image-proxy": {
       "get": {
-        "tags": ["Misc", "Platform and infrastructure"],
+        "tags": [
+          "Misc",
+          "Platform and infrastructure"
+        ],
         "summary": "Image proxy",
-        "parameters": [{ "name": "url", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [],
-        "responses": { "200": { "description": "Proxied image" } }
+        "responses": {
+          "200": {
+            "description": "Proxied image"
+          }
+        }
       }
     },
     "/api/crypto-prices": {
       "get": {
-        "tags": ["Misc", "Wallet and web3"],
+        "tags": [
+          "Misc",
+          "Wallet and web3"
+        ],
         "summary": "Crypto prices",
         "security": [],
-        "responses": { "200": { "description": "Crypto prices" } }
+        "responses": {
+          "200": {
+            "description": "Crypto prices"
+          }
+        }
       }
     },
     "/api/upload/banner": {
       "post": {
-        "tags": ["Misc", "Platform and infrastructure"],
+        "tags": [
+          "Misc",
+          "Platform and infrastructure"
+        ],
         "summary": "Upload banner",
-        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object" } } } },
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Banner URL" } }
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner URL"
+          }
+        }
       }
     },
     "/api/feedback/bug-report": {
       "post": {
-        "tags": ["Misc", "Moderation and reporting"],
+        "tags": [
+          "Misc",
+          "Moderation and reporting"
+        ],
         "summary": "Submit bug report",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
         "security": [],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/feedback/native-crash": {
       "post": {
-        "tags": ["Misc", "Moderation and reporting"],
+        "tags": [
+          "Misc",
+          "Moderation and reporting"
+        ],
         "summary": "Submit native crash report",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
         "security": [],
-        "responses": { "200": { "description": "{ success }" } }
+        "responses": {
+          "200": {
+            "description": "{ success }"
+          }
+        }
       }
     },
     "/api/sync-quest-points": {
       "post": {
-        "tags": ["Misc", "Platform and infrastructure"],
+        "tags": [
+          "Misc",
+          "Platform and infrastructure"
+        ],
         "summary": "Sync quest points",
         "description": "Internal maintenance route for quest/points reconciliation.",
         "x-hidden": true,
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/engage/quests/daily-summary": {
+      "get": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Daily quest checklist per followed team",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ rows, streak, globalRank, total, doneCount, arenaClaimedTeamIds }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/v1/engage/quests/{questId}/session": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Start a timed daily-quest quiz session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "questId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "QuestSession (no correctIndex)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not eligible / already attempted"
+          }
+        }
+      }
+    },
+    "/v1/engage/quests/session/{sessionId}/submit": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Submit an answer for a quest session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ correct, pointsAwarded, streak, earn? }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/v1/engage/quests/session/{sessionId}/forfeit": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Forfeit a quest session (burns the UTC day attempt)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ ok: true }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/v1/engage/quests/arena-check-in": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Arena check-in once per team per UTC day",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ pointsAwarded, earn }"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Must follow team"
+          }
+        }
+      }
+    },
+    "/v1/engage/rep/breakdown": {
+      "get": {
+        "tags": [
+          "Rep",
+          "Engage"
+        ],
+        "summary": "Fan Rep totals split by source plus per-team Club Rep subtotals",
+        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player. dsportsDirectRep is always 0 until a producer exists (#389). totalFanRep is the sum of all four.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/v1/engage/rep/ledger": {
+      "get": {
+        "tags": [
+          "Rep",
+          "Engage"
+        ],
+        "summary": "Paginated Rep ledger (Fan, Club, and Player sources)",
+        "description": "Keyset pagination on (createdAt DESC, id DESC). source is fanAmp | club | playerAmp (dsportsDirect never appears). playerChallenge maps to source=playerAmp.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque base64url JSON {createdAt, id}"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ entries: [{ id, source, amount, timestamp, reason }], nextCursor? }"
+          },
+          "400": {
+            "description": "Invalid cursor or limit"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/v1/engage/rep/earn": {
+      "post": {
+        "tags": [
+          "Rep",
+          "Engage"
+        ],
+        "summary": "Record a client-safe Rep earn (reaction/message/pollVote/share only)",
+        "description": "Amount and repType are server-authoritative. Arena check-in and daily-quest Rep use their dedicated routes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ earn: { amount, repType, capped } }"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "earnKind not allowed from client"
+          }
+        }
+      }
+    },
+    "/api/games/catalog": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Public team mini-game catalog",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamSlug",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ daily, weekly } PublicCatalogGame[]"
+          },
+          "400": {
+            "description": "teamId or teamSlug required"
+          },
+          "404": {
+            "description": "Team not found"
+          }
+        }
+      }
+    },
+    "/api/wallets/{address}/sign-transaction": {
+      "post": {
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
+        "summary": "PIN-gated custodial sign and send",
+        "description": "Signs and broadcasts server-side. Private key never leaves the server. Returns { txHash, chainId }.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pin",
+                  "to",
+                  "value",
+                  "chainId"
+                ],
+                "properties": {
+                  "pin": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "to": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\d+$"
+                  },
+                  "data": {
+                    "type": "string",
+                    "pattern": "^0x([a-fA-F0-9]{2})*$"
+                  },
+                  "chainId": {
+                    "type": "integer"
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: { txHash, chainId } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/wallets/{address}/export": {
+      "post": {
+        "tags": [
+          "Wallets",
+          "Wallet and web3"
+        ],
+        "summary": "PIN-gated custodial seed/key export",
+        "description": "Replacement for deprecated POST /api/wallets/private-key. Reveals signing material after PIN check.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pin"
+                ],
+                "properties": {
+                  "pin": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: { privateKey, mnemonic } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/binders": {
+      "get": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "List authenticated user's binders",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "walletAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ binders }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Create a binder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "sport",
+                  "walletAddress"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "sport": {
+                    "type": "string"
+                  },
+                  "walletAddress": {
+                    "type": "string"
+                  },
+                  "pin": {
+                    "type": "string",
+                    "description": "Binder PIN, not the wallet PIN"
+                  },
+                  "coverImage": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ binder }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/binders/{id}": {
+      "get": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Get binder contents grouped by shelf",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ binder, shelves }"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Rename binder or update cover",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "coverImage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ binder }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Delete binder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success: true }"
+          }
+        }
+      }
+    },
+    "/api/binders/{id}/cards": {
+      "put": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Assign or transfer cards into a binder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idempotencyKey",
+                  "items"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "collectibleId",
+                        "amount"
+                      ],
+                      "properties": {
+                        "collectibleId": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "number"
+                        },
+                        "fromBinderId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ results: [{ collectibleId, ok, error? }] }"
+          }
+        }
+      }
+    },
+    "/api/binders/{id}/card-order": {
+      "put": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Persist binder card display order",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "order"
+                ],
+                "properties": {
+                  "order": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "BinderCard ids"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/binders/{id}/transfer-card": {
+      "post": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Transfer a card to another binder",
+        "description": "Path id is the source binder. Binder PIN \u2260 wallet PIN.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "collectibleId",
+                  "toBinderId"
+                ],
+                "properties": {
+                  "collectibleId": {
+                    "type": "string"
+                  },
+                  "toBinderId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/binders/{id}/verify-pin": {
+      "post": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Verify binder PIN",
+        "description": "Returns { granted }. Binder PIN is not the wallet PIN.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pin"
+                ],
+                "properties": {
+                  "pin": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ granted: boolean }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/games/daily-spin/config": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Public daily-spin wheel layout",
+        "description": "Clients animate from this. Outcomes come from POST /api/games/daily-spin/spin.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ segments, limits }"
+          },
+          "503": {
+            "description": "SPIN_NOT_CONFIGURED"
+          }
+        }
+      }
+    },
+    "/api/games/daily-spin/state": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Authenticated daily-spin progress",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ spins remaining, weekly collection }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/games/daily-spin/spin": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Server-authoritative daily spin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teamId": {
+                    "type": "string"
+                  },
+                  "leaderboardId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ segment, awards }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/games/guess-player/session/start": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Start a Guess the Player session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ session }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/games/guess-player/session/guess": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Submit a Guess the Player guess",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sessionId",
+                  "guess"
+                ],
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "guess": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ correct, remaining }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/games/live/active": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Active live game for a team",
+        "security": [],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "session or null"
+          },
+          "400": {
+            "description": "teamId required"
+          }
+        }
       }
     }
   },

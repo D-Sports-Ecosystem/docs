@@ -1,0 +1,36 @@
+---
+title: "Fan Rep behavior"
+description: "Runtime behavior for Fan Rep breakdown, ledger, and earn routes."
+icon: "list-checks"
+---
+
+## Main routes
+
+- `GET /v1/engage/rep/breakdown`
+- `GET /v1/engage/rep/ledger`
+- `POST /v1/engage/rep/earn`
+
+All three require Clerk bearer auth.
+
+## Runtime behavior highlights
+
+- Breakdown returns `totalFanRep`, `fanAmpRep`, `clubRep`, `playerAmpRep`, `dsportsDirectRep` (always `0`), and `clubRepByTeam`.
+- Ledger uses keyset pagination on `(createdAt DESC, id DESC)`.
+- Ledger `source` is `fanAmp` | `club` | `playerAmp`. `dsportsDirect` never appears.
+- Earn accepts only `reaction`, `message`, `pollVote`, and `share`.
+- Arena check-in and daily-quest completion write Rep on their own routes. Do not also call `/earn` for those events.
+
+## Common outputs and side effects
+
+- New `RepLedgerEntry` rows for accepted earns
+- Updated breakdown totals on the next read
+- No leaderboard or `PointsHistory` writes from the generic earn route
+
+## Known caveats
+
+- `dsportsDirectRep` stays `0` until a producer exists.
+- Club totals can be larger than the sum of `clubRepByTeam` when some Club `targetId`s are not teams.
+
+## Exclusions
+
+- Admin grant/override paths, if any, are not public documentation.

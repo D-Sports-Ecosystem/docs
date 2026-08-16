@@ -1,22 +1,34 @@
 ---
 title: "Gamification API"
-description: "Non-admin endpoint guide for quests, points-facing reads, leaderboards, and rewards."
+description: "Non-admin endpoint guide for quests, daily quiz sessions, points-facing reads, leaderboards, and rewards."
 ---
 
 ## Scope
 
-Gamification APIs include quest progression, leaderboard reads/streams, rewards, and related user quest history.
+Gamification APIs include quest progression, daily quiz sessions, leaderboard reads/streams, rewards, and related user quest history.
 
 ## Endpoint map
 
-- Quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
+- Legacy quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
+- Engage daily quests: `/v1/engage/quests/{questId}/session`, `/v1/engage/quests/session/{sessionId}/submit`, `/v1/engage/quests/session/{sessionId}/forfeit`, `/v1/engage/quests/daily-summary`, `/v1/engage/quests/arena-check-in`
 - Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
 - Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
 - User quest history: `/api/user/completed-quests`
 
+Fan Rep lives on a separate ledger. See [Fan Rep](/api-reference/domains/fan-rep).
+
+## Daily quest session contract
+
+- `POST /v1/engage/quests/{questId}/session` starts a timed daily-quest quiz session.
+- `POST /v1/engage/quests/session/{sessionId}/submit` records an answer.
+- `POST /v1/engage/quests/session/{sessionId}/forfeit` burns the UTC-day attempt.
+- `GET /v1/engage/quests/daily-summary` returns the per-followed-team checklist.
+- `POST /v1/engage/quests/arena-check-in` is once per team per UTC day.
+- Amount and Rep type for arena check-in and daily-quest completion are server-authoritative. Do not send those through `POST /v1/engage/rep/earn`.
+
 ## Revamped quest endpoint map
 
-Quest behavior now includes team-aware eligibility and pass-aware progression semantics in addition to base step completion flows.
+Quest behavior includes team-aware eligibility and pass-aware progression semantics in addition to base step completion flows.
 
 - Team-scoped eligibility is resolved server-side and reflected in quest availability/completion outcomes.
 - Pass-aware behavior supports global pass and event pass gates where configured.
@@ -30,7 +42,7 @@ Quest behavior now includes team-aware eligibility and pass-aware progression se
 
 ## Reward claim/redeem contracts
 
-- Reward flows now include differentiated free and unpaid reward handling semantics in contributor docs.
+- Reward flows include differentiated free and unpaid reward handling semantics.
 - Claim/redeem operations remain server-validated and should be treated as mutation operations with explicit failure handling.
 
 ## Integration notes

@@ -1,0 +1,32 @@
+---
+title: "Games behavior"
+description: "Runtime behavior for the public games catalog and unpublished play routes."
+icon: "list-checks"
+---
+
+## Published route
+
+- `GET /api/games/catalog?teamId=...` or `?teamSlug=...`
+
+Public. No Clerk session required.
+
+## Runtime behavior highlights
+
+- Returns `{ daily: Game[], weekly: Game[] }` for the team's enabled games.
+- Each entry includes `id`, `key`, `title`, `description`, `icon`, and `badge`.
+- Cache: `public, max-age=60, stale-while-revalidate=300`.
+- Missing `teamId`/`teamSlug` → `400`. Unknown team → `404`.
+
+## Published play routes
+
+- `/api/games/daily-spin/config`, `/state`, `/spin`
+- `/api/games/guess-player/session/start`, `/session/guess`
+- `/api/games/live/active`
+
+Still OpenAPI-pending: `/reward` (deprecated), guess-player player lists/invalidate, live start/join/score/end, pick-em.
+
+Native must not assume these keys exist for every team. Render only catalog results.
+
+## Exclusions
+
+- Admin game CRUD and team assignment internals are redacted.

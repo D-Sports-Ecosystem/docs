@@ -5,22 +5,41 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Feature parity with backend/PWA
 
-`d-sports-engage-native` targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
+`d-sports-engage-native` (1.22.4) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
 ## Wallet and pack opening
 
-- Wallet screens consume balances, token data, and secure key/pin flows from backend APIs.
+- Wallet screens consume balances, token data, and PIN-gated custodial flows from backend APIs.
+- Sends use server-side `sign-transaction`, not on-device private-key signing.
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
-## Quest, rewards, and pass surfaces
+## Binder and market
+
+- `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
+- Binder PIN is not the wallet PIN.
+- `app/market` browses and lists collectibles through `/v1/marketplace/*` (not yet in generated OpenAPI).
+
+## Quest, Fan Rep, rewards, and pass surfaces
 
 - Quest UI supports team-aware progression and pass-gated eligibility.
+- Daily quiz sessions use `/v1/engage/quests/*`.
+- Fan Rep screens read `/v1/engage/rep/breakdown` and `/v1/engage/rep/ledger`.
 - Reward states and claim flows follow backend quest/reward APIs.
 - Global pass and event pass effects are reflected in native quest visibility/completion UX.
+
+## Games
+
+- The games surface renders only what `GET /api/games/catalog` returns for the selected team.
+- Known keys include `daily-spin` and other catalog slugs. Unknown keys are ignored.
 
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Admin hub
+
+- `app/(admin)` exposes team-manager surfaces: packs, collectibles, coins, games, live, moderation, social, submissions, team access, users, and CMS.
+- The client gate is UX only. Every `/api/admin/*` route re-checks RBAC server-side.

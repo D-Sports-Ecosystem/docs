@@ -13,6 +13,7 @@ icon: "list-checks"
 - `GET /api/user/packs`
 - `GET /api/user/packs/opened`
 - `GET /api/user/collectibles`
+- `GET/PUT /api/user/featured-collectibles`
 
 ## Runtime behavior highlights
 
@@ -20,6 +21,8 @@ icon: "list-checks"
 - Purchase route records pack purchase state for the user.
 - Open route resolves collectible outcomes and updates user ownership/inventory state.
 - User collectible and pack routes expose owned content for client rendering.
+- Featured collectibles expose a public showcase; authenticated replace is capped at 12 slots.
+- Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload helpers are not.
 
 ## Side effects and dependencies
 

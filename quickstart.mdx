@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Run the D-Sports docs locally or one of the four apps in three steps"
+description: "Run the D-Sports docs locally or one of the apps in three steps"
 ---
 
 ## Get started in three steps
@@ -24,14 +24,15 @@ Run the D-Sports Documentation site locally, or jump to running one of the apps 
 
 ### Step 2: (Optional) Run an app
 
-To run one of the D-Sports applications (PWA, marketing site, native app, or Mic'd Up), use the repo-specific instructions:
+To run one of the D-Sports applications, use the repo-specific instructions:
 
-- **[d-sports-api](/repositories/d-sports-api)** — `bun dev` (port 3004)
+- **[d-sports-api](/repositories/d-sports-api)** — `infisical login` once, then `bun dev` (port 3004)
 - **[d-sports-site](/repositories/d-sports-site)** — `bun dev` (port 3005)
-- **[d-sports-engage-native](/repositories/d-sports-engage-native)** — `bunx expo start`
+- **[d-sports-engage-native](/repositories/d-sports-engage-native)** — `infisical login` once, then `bun start` with an Expo **dev client** (not Expo Go)
 - **[d-sports-mic-d-up](/repositories/d-sports-mic-d-up)** — backend in `backend/`, then mobile with `bun run android` or `bun run ios`
+- **[d-sports-backend](/repositories/d-sports-backend)** — optional Rust parity server on port 8080. Not required for normal client work.
 
-See the [Ecosystem overview](/repositories/ecosystem-overview) and each repo page for prerequisites (Node, Bun, PostgreSQL, env vars).
+See the [Ecosystem overview](/repositories/ecosystem-overview) and each repo page for prerequisites (Bun, Infisical, PostgreSQL).
 
 ### Step 3: Deploy docs changes
 
@@ -42,7 +43,7 @@ See the [Ecosystem overview](/repositories/ecosystem-overview) and each repo pag
 
 <CardGroup cols={2}>
   <Card title="Ecosystem overview" icon="map" href="/repositories/ecosystem-overview">
-    How the four repositories fit together.
+    How the repositories fit together.
   </Card>
   <Card title="d-sports-api" icon="server" href="/repositories/d-sports-api">
     PWA and backend setup.

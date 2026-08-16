@@ -1,0 +1,22 @@
+---
+title: "Games"
+description: "Team mini-game catalog and play-route coverage for d-sports-api."
+icon: "gamepad-2"
+---
+
+## Scope
+
+This section covers the public per-team mini-game catalog and the play routes that exist behind it.
+
+The published contract is `GET /api/games/catalog`. Play routes for daily spin, guess-the-player, live games, and pick-em are implemented and consumed by native, but they are not all in the generated OpenAPI yet.
+
+## Subsections
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="workflow" href="/repositories/d-sports-api/games/architecture">
+    Catalog models, team selection, and play-route map.
+  </Card>
+  <Card title="Behavior" icon="list-checks" href="/repositories/d-sports-api/games/behavior">
+    Catalog response rules and client integration notes.
+  </Card>
+</CardGroup>

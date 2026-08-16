@@ -1,0 +1,35 @@
+---
+title: "Games architecture"
+description: "Catalog models and play-route boundaries for team mini-games."
+icon: "workflow"
+---
+
+## Primary backend components
+
+- `app/api/games/catalog/route.ts`
+- `Game`, `TeamGame`, `TeamGameSchedule`, `FeaturedGames` in Prisma
+- Play routers under `app/api/games/daily-spin`, `guess-player`, `live`, and `pick-em`
+- Admin selection: `app/api/admin/teams/[teamId]/games`
+
+## Core model touchpoints
+
+- `Game` — catalog entry with cadence (`DAILY` / `WEEKLY`) and status
+- `TeamGame` — which games a team has enabled
+- `LiveGameSession`, `LiveGamePlayer`, `LiveGamePayout` — live session state
+- `GuessPlayerSession` — guess-the-player session
+- `SpinWheelSegment`, `DailySpinDayUsage` — daily spin configuration and usage
+
+## High-level flow
+
+```mermaid
+flowchart LR
+  adminSelect[TeamGameSelection] --> catalog[GET /api/games/catalog]
+  catalog --> nativeRender[NativeGamesSurface]
+  nativeRender --> playRoute[PlayRouteByKey]
+```
+
+## Architectural notes
+
+- The catalog is the only public, cacheable discovery contract.
+- Clients map `key` to a local route. Unknown keys must be ignored, not guessed.
+- Admin catalog management is documented with redaction only.
