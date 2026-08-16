@@ -12,6 +12,9 @@ This guide covers authentication and onboarding-related API routes for user-faci
 - Auth: `/api/auth/native-token`, `/api/auth/validate`, `/api/logout`
 - Mobile auth: `/api/mobile/start`, `/api/mobile/callback`, `/api/mobile/exchange`, `/api/mobile/verify`
 - User profile/onboarding: `/api/user`, `/api/user/profile`, `/api/user/onboarding`, `/api/user/sync-clerk`, `/api/user/isOnboarded`
+- Handle check: `GET /api/user/check-username?username=` (public; `{ available: boolean }`; OpenAPI pending)
+
+Favorite teams on the user profile are capped at **5**. `d-sports` and `house-of-doge` do not count toward that cap. `GET /api/user` includes `claimedRewardsCount`.
 
 See generated endpoint pages in the Endpoints section for full request/response schemas.
 

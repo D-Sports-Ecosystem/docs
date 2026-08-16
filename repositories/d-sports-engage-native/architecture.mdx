@@ -28,6 +28,7 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## Auth and deep-link entry
 
 - Clerk (`@clerk/clerk-expo`) owns the session after login.
+- Login supports Google OAuth, Apple Sign In, email/password, and MFA (TOTP, SMS, or email code).
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
 - Android App Links cover `api.d-sports.org` mobile callbacks.
 
@@ -40,6 +41,6 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## Platform-specific behavior
 
 - iOS/Android platform differences are handled in native-specific components and runtime checks.
-- Web-target support exists but mobile behavior is primary for interaction and performance design.
+- iPad and tablets are supported (`supportsTablet`). Orientation-aware layouts exist for tablets and foldables. Web-target support exists but mobile behavior is primary.
 - The app requires an Expo **dev client**. Expo Go cannot load MMKV, RevenueCat, or Filament.
 - Haptics, modal controls, and animation handling are implemented with platform-safe fallbacks.

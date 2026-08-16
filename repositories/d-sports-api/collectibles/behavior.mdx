@@ -21,7 +21,7 @@ icon: "list-checks"
 ## Runtime behavior highlights
 
 - Pack browse routes expose currently available packs and pack metadata.
-- Purchase route records pack purchase state for the user.
+- Purchase route records pack purchase state for the user. Free packs are limited to 3 purchases per user per UTC day.
 - Open route resolves collectible outcomes and updates user ownership/inventory state.
 - `GET /api/user/packs` status is authoritative (`pending` | `processing` | `opened` | `completed`). Template `isOpenable` is not per-purchase state.
 - User collectible and pack routes expose owned content for client rendering.

@@ -19,6 +19,7 @@ Route documentation status uses:
 | `/api/auth/*` | Publish | Core auth/session contracts for all clients. |
 | `/api/mobile/start`, `/callback`, `/verify`, `/exchange` | Publish | Native OAuth + one-time MobileSession ticket exchange. |
 | `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
+| `/api/user/check-username` | Shipped, OpenAPI pending | Public handle availability check. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
 | `/api/locker-room*` | Publish | Includes per-post GET/PUT/DELETE. |
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
@@ -35,6 +36,8 @@ Route documentation status uses:
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
 | `/api/wallets/{address}/sign-transaction`, `/export` | Publish | Custodial server-side sign/export. `private-key` is deprecated. |
 | `/api/feedback/*` | Publish | User-facing reporting channels. |
+| `/api/accessibility` | Shipped, OpenAPI pending | Public Apple Nutrition Label support matrix for native and marketing. |
+| `/api/notifications*` (non-admin) | Shipped, OpenAPI pending | Authenticated inbox, read, read-all, archive. |
 | `/api/games/catalog` | Publish | Public per-team mini-game catalog consumed by native clients. |
 | `/api/games/daily-spin/config`, `/state`, `/spin` | Publish | Public config + authenticated spin/state. |
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |

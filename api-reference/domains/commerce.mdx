@@ -11,7 +11,7 @@ Commerce APIs cover checkout initiation/verification, catalog reads, and balance
 
 - Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`
 - Cash balance: `/api/dsports-cash`
-- Catalog: `/api/products`
+- Catalog: `/api/products` (retired Frontline Pack / Frontline Pass rows are hidden even if they remain in the database)
 - Revenue webhooks (platform integration): `/api/webhooks/revenuecat`
 - Card provenance: `GET /api/v1/cards/{id}/provenance` (public; in OpenAPI)
 - Marketplace: `/v1/marketplace/*` exists and is consumed by native `app/market`, but it is not in the generated OpenAPI yet

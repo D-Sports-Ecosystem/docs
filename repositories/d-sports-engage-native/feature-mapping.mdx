@@ -42,6 +42,12 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
 
+## Notifications and legal
+
+- Push delivery uses OneSignal. In-app inbox uses `/api/notifications*`.
+- Locker-room posting gates on the in-app EULA. Policy pages render in-app; do not hardcode legal copy in clients.
+- Accessibility settings include high contrast and color-blindness palettes. The public support matrix is `GET /api/accessibility`.
+
 ## Admin hub
 
 - `app/(admin)` exposes team-manager surfaces: packs, collectibles, coins, games, live, moderation, social, submissions, team access, users, and CMS.
