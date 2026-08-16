@@ -1,6 +1,6 @@
 ---
 title: "Fan Rep behavior"
-description: "Runtime behavior for Fan Rep breakdown, ledger, and earn routes."
+description: "Runtime behavior for Fan Rep breakdown, ledger, earn, and Direct grant routes."
 icon: "list-checks"
 ---
 
@@ -9,28 +9,39 @@ icon: "list-checks"
 - `GET /v1/engage/rep/breakdown`
 - `GET /v1/engage/rep/ledger`
 - `POST /v1/engage/rep/earn`
+- `POST /api/admin/users/{userId}/rep`
 
-All three require Clerk bearer auth.
+The first three require Clerk bearer auth. The grant route also requires `isAdmin`.
 
 ## Runtime behavior highlights
 
-- Breakdown returns `totalFanRep`, `fanAmpRep`, `clubRep`, `playerAmpRep`, `dsportsDirectRep` (always `0`), and `clubRepByTeam`.
+- Breakdown returns `totalFanRep`, `fanAmpRep`, `clubRep`, `playerAmpRep`, `dsportsDirectRep`, and `clubRepByTeam`.
+- `dsportsDirectRep` is the sum of `repType = Direct` rows. It is no longer hardcoded to `0`.
 - Ledger uses keyset pagination on `(createdAt DESC, id DESC)`.
-- Ledger `source` is `fanAmp` | `club` | `playerAmp`. `dsportsDirect` never appears.
+- Ledger `source` is `fanAmp` | `club` | `playerAmp` | `dsportsDirect`.
 - Earn accepts only `reaction`, `message`, `pollVote`, and `share`.
+- Direct kinds on `/earn` (`adminGrant`, `referralBonus`, `eventReward`) return `403`.
 - Arena check-in and daily-quest completion write Rep on their own routes. Do not also call `/earn` for those events.
+
+## Direct grant behavior
+
+- Body: `{ amount: integer 1–100000, reason?: string max 200 }`.
+- Non-integer or out-of-range amounts return `400`.
+- Non-admin callers return `403`. Missing users return `404`.
+- Success returns `{ userId, amount, reason, entryId }`.
+- The grant writes `repType = Direct` and `earnKind = adminGrant`.
 
 ## Common outputs and side effects
 
-- New `RepLedgerEntry` rows for accepted earns
-- Updated breakdown totals on the next read
+- New `RepLedgerEntry` rows for accepted earns and grants
+- Updated breakdown totals on the next read, including `dsportsDirectRep`
 - No leaderboard or `PointsHistory` writes from the generic earn route
 
 ## Known caveats
 
-- `dsportsDirectRep` stays `0` until a producer exists.
+- `referralBonus` and `eventReward` are reserved. They do not appear until a producer exists.
 - Club totals can be larger than the sum of `clubRepByTeam` when some Club `targetId`s are not teams.
 
 ## Exclusions
 
-- Admin grant/override paths, if any, are not public documentation.
+- Admin UI wiring and grant-audit dashboards are out of scope here.

@@ -26,10 +26,11 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Fan Rep contracts
 
-- `GET /v1/engage/rep/breakdown` returns Fan/Club/Player totals plus `clubRepByTeam`. `dsportsDirectRep` is always `0`.
-- `GET /v1/engage/rep/ledger` is keyset-paginated. `source` is `fanAmp` | `club` | `playerAmp`.
-- `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`. Amount and `repType` are server-authoritative.
-- Do not call `/earn` for arena check-in or daily-quest completion.
+- `GET /v1/engage/rep/breakdown` returns Fan/Club/Player/Direct totals plus `clubRepByTeam`. `dsportsDirectRep` sums `repType = Direct` rows.
+- `GET /v1/engage/rep/ledger` is keyset-paginated. `source` is `fanAmp` | `club` | `playerAmp` | `dsportsDirect`.
+- `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`. Amount and `repType` are server-authoritative. Direct kinds return `403`.
+- Do not call `/earn` for arena check-in, daily-quest completion, or admin Direct grants.
+- Direct grants use `POST /api/admin/users/{userId}/rep` (`isAdmin` only). Native Coins UI for this is follow-up.
 
 ## Team and league API contracts
 

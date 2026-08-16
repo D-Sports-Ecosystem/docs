@@ -24,7 +24,8 @@ Route documentation status uses:
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
 | `/api/quests*` | Publish | Core quest progression contracts and side effects. |
 | `/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. |
-| `/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, and client-safe earn. |
+| `/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, and client-safe earn. Direct kinds on `/earn` return 403. |
+| `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
 | `/api/teams*`, `/api/leagues` | Publish | Team/league integrations for all clients. |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |

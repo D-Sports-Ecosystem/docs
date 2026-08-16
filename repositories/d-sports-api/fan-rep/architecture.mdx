@@ -1,6 +1,6 @@
 ---
 title: "Fan Rep architecture"
-description: "Models and service boundaries for Fan, Club, and Player Rep."
+description: "Models and service boundaries for Fan, Club, Player, and Direct Rep."
 icon: "workflow"
 ---
 
@@ -9,8 +9,10 @@ icon: "workflow"
 - `app/api/v1/engage/rep/breakdown/route.ts`
 - `app/api/v1/engage/rep/ledger/route.ts`
 - `app/api/v1/engage/rep/earn/route.ts`
+- `app/api/admin/users/[userId]/rep/route.ts`
 - `server/rep-breakdown.ts`
-- `RepLedgerEntry` in `prisma/schema.prisma`
+- `server/rep-ledger.ts` (`recordRepEarn`, `recordDirectRepGrant`)
+- `RepLedgerEntry` in `prisma/schema.prisma` (optional `reason`)
 
 ## Core model
 
@@ -21,8 +23,17 @@ icon: "workflow"
 | `Fan` | `fanAmp` |
 | `Club` | `club` |
 | `Player` | `playerAmp` |
+| `Direct` | `dsportsDirect` |
 
-`playerChallenge` writes map to `playerAmp` on the ledger read path.
+`playerChallenge` writes map to `playerAmp` on the ledger read path. Direct grants map to `dsportsDirect`.
+
+Direct earn kinds:
+
+| Kind | Writer today |
+| --- | --- |
+| `adminGrant` | `POST /api/admin/users/{userId}/rep` |
+| `referralBonus` | Reserved — no writer yet |
+| `eventReward` | Reserved — no writer yet |
 
 Club rows may store a `targetId`. Only target IDs that resolve to a `Team` appear in `clubRepByTeam`. Daily-quest Club rows that target a quest id still count in `clubRep` but are dropped from the per-team list.
 
@@ -32,8 +43,10 @@ Club rows may store a `targetId`. Only target IDs that resolve to a `Team` appea
 flowchart LR
   clientAction[ClientSafeAction] --> earnRoute[POST /v1/engage/rep/earn]
   dedicatedRoute[ArenaCheckInOrDailyQuest] --> dedicatedWrite[DedicatedRepWrite]
+  adminGrant[AdminDirectGrant] --> directWrite[recordDirectRepGrant]
   earnRoute --> ledger[RepLedgerEntry]
   dedicatedWrite --> ledger
+  directWrite --> ledger
   ledger --> breakdown[GET /v1/engage/rep/breakdown]
   ledger --> history[GET /v1/engage/rep/ledger]
 ```
@@ -42,4 +55,5 @@ flowchart LR
 
 - Amount and `repType` are never client-authoritative.
 - Fan Rep is a separate ledger from `PointsHistory`.
-- D-Sports Direct is a reserved fourth bucket with no writer today.
+- Direct grants use a server-generated idempotency key. Each admin POST is a new grant.
+- Optional `reason` is stored on the ledger row and preferred on ledger reads.

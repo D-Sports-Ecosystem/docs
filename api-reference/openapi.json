@@ -122,6 +122,18 @@
       "description": "Domain grouping for utility, infrastructure, and platform support endpoints"
     },
     {
+      "name": "Rep",
+      "description": "Fan / Club / Player / Direct Rep earn, breakdown, and ledger"
+    },
+    {
+      "name": "Engage",
+      "description": "Engage-domain Rep and related mobile contracts"
+    },
+    {
+      "name": "Admin",
+      "description": "Staff-only admin operations"
+    },
+    {
       "name": "Binders",
       "description": "Digital binder inventory, PIN, and card transfer"
     },
@@ -3126,7 +3138,7 @@
           "Engage"
         ],
         "summary": "Fan Rep totals split by source plus per-team Club Rep subtotals",
-        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player. dsportsDirectRep is always 0 until a producer exists (#389). totalFanRep is the sum of all four.",
+        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. totalFanRep is the sum of all four.",
         "security": [
           {
             "bearerAuth": []
@@ -3148,8 +3160,8 @@
           "Rep",
           "Engage"
         ],
-        "summary": "Paginated Rep ledger (Fan, Club, and Player sources)",
-        "description": "Keyset pagination on (createdAt DESC, id DESC). source is fanAmp | club | playerAmp (dsportsDirect never appears). playerChallenge maps to source=playerAmp.",
+        "summary": "Paginated Rep ledger (Fan, Club, Player, and Direct sources)",
+        "description": "Keyset pagination on (createdAt DESC, id DESC). source is fanAmp | club | playerAmp | dsportsDirect. playerChallenge maps to source=playerAmp; Direct grants map to dsportsDirect.",
         "security": [
           {
             "bearerAuth": []
@@ -3195,7 +3207,7 @@
           "Engage"
         ],
         "summary": "Record a client-safe Rep earn (reaction/message/pollVote/share only)",
-        "description": "Amount and repType are server-authoritative. Arena check-in and daily-quest Rep use their dedicated routes.",
+        "description": "Amount and repType are server-authoritative. Arena check-in and daily-quest Rep use their dedicated routes. Direct kinds (adminGrant, referralBonus, eventReward) are rejected with 403.",
         "security": [
           {
             "bearerAuth": []
@@ -3211,6 +3223,88 @@
           "403": {
             "description": "earnKind not allowed from client"
           }
+        }
+      }
+    },
+    "/api/v1/engage/rep/breakdown": {
+      "get": {
+        "tags": ["Rep", "Engage"],
+        "summary": "Fan Rep totals split by source",
+        "description": "Sums Fan, Club, Player, and Direct ledger rows for the authenticated user. clubRepByTeam only includes Club targetIds that resolve to a Team.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+          },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/v1/engage/rep/ledger": {
+      "get": {
+        "tags": ["Rep", "Engage"],
+        "summary": "Paginated Rep ledger history",
+        "description": "Keyset pagination on createdAt DESC, id DESC. Sources: fanAmp, club, playerAmp, dsportsDirect.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ entries: { id, source, amount, timestamp, reason }[], nextCursor? }"
+          },
+          "400": { "description": "Invalid cursor or limit" },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/api/admin/users/{userId}/rep": {
+      "post": {
+        "tags": ["Admin", "Rep"],
+        "summary": "Grant D-Sports Direct Rep to a user",
+        "description": "isAdmin only. Body: { amount: integer 1–100000, reason?: string max 200 }. Each POST is a new grant (server-generated idempotency key).",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount"],
+                "properties": {
+                  "amount": { "type": "integer", "minimum": 1, "maximum": 100000 },
+                  "reason": { "type": "string", "maxLength": 200 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "{ userId, amount, reason, entryId }" },
+          "400": { "description": "Invalid amount or reason" },
+          "401": { "description": "Authentication required" },
+          "403": { "description": "Admin access required" },
+          "404": { "description": "User not found" },
+          "500": { "description": "Failed to record Direct Rep grant" }
         }
       }
     },
