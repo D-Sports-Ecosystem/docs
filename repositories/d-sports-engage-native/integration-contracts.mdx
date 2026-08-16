@@ -15,6 +15,8 @@ description: "Backend-facing contracts and behavior expectations for native clie
   3. `signIn.create({ strategy: 'ticket', ticket })` then `setActive({ session })`.
 
 - A second exchange of the same token fails. If exchange returns 404/401, leave the user on login.
+- After a Clerk session exists, login can also use Google, Apple, email/password, and MFA. Those are Clerk strategies, not extra API routes.
+- `GET /api/user/check-username?username=` is the public handle-availability check.
 
 ## Quest and reward API contracts
 

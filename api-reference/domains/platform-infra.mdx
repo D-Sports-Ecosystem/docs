@@ -11,6 +11,8 @@ Platform APIs include utility routes that support app infrastructure or cross-do
 
 - Utility and media: `/api/image-proxy`, `/api/upload/banner`
 - Public sports catalog: `GET /api/config/sports` (OpenAPI pending; see [Teams and leagues](/api-reference/domains/teams-leagues))
+- Public accessibility matrix: `GET /api/accessibility` (OpenAPI pending; used by native and the marketing site)
+- Notifications inbox: `GET /api/notifications`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all`, `POST /api/notifications/{id}/archive` (OpenAPI pending)
 - Platform status/data surfaces: `/api/dashboard`, `/api/dashboard/stats`, `/api/dashboard/balance`, `/api/dashboard/quests`
 - Maintenance utility: `/api/sync-quest-points`
 - Integration sync references: `/api/webhooks/leagues-sync` (behavior reference), admin sync triggers documented in domain guides

@@ -37,6 +37,8 @@ interface AccessibilityContextType {
   highContrast: boolean;
   screenReaderSupport: boolean;
   hapticFeedback: boolean;
+  colorBlindModeEnabled: boolean;
+  colorBlindModeType: "deuteranopia" | "protanopia" | "tritanopia";
 
   // Derived values
   textScale: number;          // max(inAppScale, systemFontScale)

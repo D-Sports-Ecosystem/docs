@@ -55,6 +55,7 @@ Card league labels on binder contents come from `Team.leagueRelation`, not a cli
 ## Integration notes
 
 - Pack purchase and open are separate phases; preserve returned identifiers between calls.
+- Free packs are limited to **3 purchases per user per UTC day** (resets 00:00 UTC). Over the limit returns `400`.
 - `GET /api/user/packs` instance status is authoritative (`pending` | `processing` | `opened` | `completed`). Do not treat pack-template `isOpenable` as per-purchase state.
 - Inventory endpoints should be refreshed after successful open/purchase mutations.
 - Odds-disclosure values must come from backend pack payloads, not client constants.
