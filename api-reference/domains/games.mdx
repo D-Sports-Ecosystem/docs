@@ -1,0 +1,40 @@
+---
+title: "Games API"
+description: "Public team mini-game catalog and notes on play routes not yet in OpenAPI."
+---
+
+## Scope
+
+The public games contract is the per-team catalog. Play routes for daily spin, guess-the-player, live games, and pick-em exist in `d-sports-api` but are not all published in the generated OpenAPI yet.
+
+## Published endpoint
+
+- `GET /api/games/catalog?teamId=...` or `?teamSlug=...` — public, no auth
+
+Response shape: `{ daily: Game[], weekly: Game[] }`.
+
+Each game entry carries `id`, `key`, `title`, `description`, `icon`, and `badge`. `key` is the stable slug the client maps to a playable route (for example `daily-spin`).
+
+## Catalog rules
+
+- The catalog is admin-managed and team-selected server-side.
+- Clients must render only the games returned and must not assume a fixed set.
+- Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`).
+- Unknown teams return `404`. A missing `teamId`/`teamSlug` returns `400`.
+
+## Published play routes
+
+- `GET /api/games/daily-spin/config` — public wheel layout
+- `GET /api/games/daily-spin/state` — authenticated progress
+- `POST /api/games/daily-spin/spin` — server-authoritative spin
+- `POST /api/games/guess-player/session/start`
+- `POST /api/games/guess-player/session/guess`
+- `GET /api/games/live/active?teamId=...`
+
+Still OpenAPI-pending: remaining live session mutations, pick-em, and guess-player player lists. Render playable games from the catalog first.
+
+## Deep-dive documentation
+
+- [Games overview](/repositories/d-sports-api/games/index)
+- [Architecture](/repositories/d-sports-api/games/architecture)
+- [Behavior](/repositories/d-sports-api/games/behavior)

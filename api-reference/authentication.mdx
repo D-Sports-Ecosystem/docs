@@ -1,6 +1,6 @@
 ---
 title: "Authentication"
-description: "Authentication model for non-admin API endpoints in d-sports-api."
+description: "Authentication model for non-admin API endpoints in d-sports-api, including native mobile session exchange."
 ---
 
 ## Auth model
@@ -11,6 +11,22 @@ Most non-admin API endpoints use Clerk-backed bearer authentication.
 - Public routes explicitly set no auth requirement.
 - Webhook routes can use separate auth schemes (for example shared secrets).
 
+## Native mobile session exchange
+
+Native OAuth does not always arrive with a Clerk JWT. The API can issue a one-time `MobileSession` hex token (128 hex chars). Native prefers the URL **fragment** (`#token=`) over the query string, stashes it in memory, then redeems it:
+
+1. `GET /api/mobile/start` — begin mobile OAuth (`provider`, `redirect_uri`).
+2. `GET /api/mobile/callback` — redirect back with token or error.
+3. `POST /api/mobile/exchange` — redeem `{ token }` (or `Authorization: Bearer <token>`) for a Clerk sign-in ticket. No Clerk session is required. The mobile session is consumed.
+4. Native calls `signIn.create({ strategy: 'ticket', ticket })` then `setActive({ session })`.
+5. `GET /api/mobile/verify` — verify a Bearer token from the native app after the Clerk session exists.
+
+`POST /api/auth/native-token` remains the older ticket mint path. Prefer `/api/mobile/exchange` for the fragment-token flow.
+
+<Note>
+  The hex token is not a Clerk JWT. Treat it as a one-time credential. A second exchange of the same token fails.
+</Note>
+
 ## In OpenAPI
 
 The primary scheme is `bearerAuth` in `api-reference/openapi.json`.
@@ -20,4 +36,6 @@ Use the Endpoints section in API Reference to verify per-route security requirem
 ## Related docs
 
 - [API introduction](/api-reference/introduction)
+- [Auth and onboarding domain guide](/api-reference/domains/auth-onboarding)
 - [d-sports-api backend overview](/repositories/d-sports-api)
+- [Native integration contracts](/repositories/d-sports-engage-native/integration-contracts)

@@ -54,6 +54,22 @@
                   },
                   "repositories/d-sports-api/gamification/coverage-status",
                   {
+                    "group": "Fan Rep",
+                    "pages": [
+                      "repositories/d-sports-api/fan-rep/index",
+                      "repositories/d-sports-api/fan-rep/architecture",
+                      "repositories/d-sports-api/fan-rep/behavior"
+                    ]
+                  },
+                  {
+                    "group": "Games",
+                    "pages": [
+                      "repositories/d-sports-api/games/index",
+                      "repositories/d-sports-api/games/architecture",
+                      "repositories/d-sports-api/games/behavior"
+                    ]
+                  },
+                  {
                     "group": "Auth and onboarding",
                     "pages": [
                       "repositories/d-sports-api/auth-onboarding/index",
@@ -138,6 +154,7 @@
                 ]
               },
               "repositories/d-sports-site",
+              "repositories/d-sports-backend",
               "repositories/d-sports-engage-native",
               {
                 "group": "D-Sports Engage Native Deep Dives",
@@ -207,6 +224,8 @@
               "api-reference/domains/auth-onboarding",
               "api-reference/domains/social-locker-room",
               "api-reference/domains/gamification",
+              "api-reference/domains/fan-rep",
+              "api-reference/domains/games",
               "api-reference/domains/commerce",
               "api-reference/domains/collectibles",
               "api-reference/domains/wallet-web3",

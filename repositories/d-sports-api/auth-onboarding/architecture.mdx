@@ -9,8 +9,11 @@ icon: "workflow"
 - `app/api/user/profile/route.ts`
 - `app/api/user/onboarding/route.ts`
 - `app/api/auth/native-token/route.ts`
+- `app/api/mobile/exchange/route.ts`
 - `server/onboarding-actions.ts`
 - `server/auth-actions.ts`
+- `server/mobile-session-actions.ts`
+- `lib/mobile-session-token.ts`
 - `lib/server-auth.ts`
 - `lib/clerk-sync.ts`
 
@@ -18,6 +21,7 @@ icon: "workflow"
 
 - `User`
 - `ConnectedAccount`
+- `MobileSession` (one-time hex token, consumed on exchange)
 - `PointsHistory` (onboarding reward write)
 - `LeaderboardEntry` (global enrollment path from onboarding profile flow)
 

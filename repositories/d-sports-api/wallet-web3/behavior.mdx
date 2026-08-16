@@ -10,7 +10,9 @@ icon: "list-checks"
 - `POST /api/pregen-wallet`
 - `POST /api/wallets/set-pin`
 - `POST /api/wallets/verify-pin`
-- `POST /api/wallets/private-key`
+- `POST /api/wallets/private-key` (deprecated; PIN-gated)
+- `POST /api/wallets/{address}/sign-transaction`
+- `POST /api/wallets/{address}/export`
 - `GET /api/wallets/coin-prices`
 - `GET /api/crypto-prices`
 - `POST /api/thirdweb-link`
@@ -20,7 +22,7 @@ icon: "list-checks"
 
 - Wallet routes return or provision user wallet context depending on prior state.
 - PIN routes establish and verify credential gates before private-key access.
-- Private-key access route is guarded and requires prior validation path.
+- Private-key access route is deprecated. New client work must call PIN-gated `sign-transaction` instead of fetching raw keys.
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.
 - Provider proxy/link routes bridge client flow to external web3 integrations.
 

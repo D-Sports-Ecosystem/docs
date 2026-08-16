@@ -5,14 +5,31 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Auth/session contracts
 
-- Native auth uses backend-compatible token/session validation flows.
+- Native auth uses Clerk after a session exists.
 - Protected feature calls require authenticated user context and must handle session expiry gracefully.
+- Mobile OAuth can return a one-time 128-char hex `MobileSession` token. Prefer the URL fragment (`#token=`) over the query string.
+- Native stashes the token in module memory (not MMKV), then:
+
+  1. `POST /api/mobile/exchange` with `{ token }` (or `Authorization: Bearer <token>`). No Clerk session required.
+  2. Receive `{ ticket, expiresAt }`.
+  3. `signIn.create({ strategy: 'ticket', ticket })` then `setActive({ session })`.
+
+- A second exchange of the same token fails. If exchange returns 404/401, leave the user on login.
 
 ## Quest and reward API contracts
 
 - Quest progression is backend-authoritative for eligibility and completion.
+- Daily quiz sessions use `/v1/engage/quests/{questId}/session`, `/session/{sessionId}/submit`, and `/session/{sessionId}/forfeit`.
+- Arena check-in is `POST /v1/engage/quests/arena-check-in` (once per team per UTC day).
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
+
+## Fan Rep contracts
+
+- `GET /v1/engage/rep/breakdown` returns Fan/Club/Player totals plus `clubRepByTeam`. `dsportsDirectRep` is always `0`.
+- `GET /v1/engage/rep/ledger` is keyset-paginated. `source` is `fanAmp` | `club` | `playerAmp`.
+- `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`. Amount and `repType` are server-authoritative.
+- Do not call `/earn` for arena check-in or daily-quest completion.
 
 ## Team and league API contracts
 
@@ -28,6 +45,19 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`); short-lived staleness after a team changes its selection is expected.
 - Unknown teams return `404`; a missing `teamId`/`teamSlug` returns `400`.
 
+## Wallet contracts
+
+- Custodial create: `POST /api/wallets` with `{ pin, legalTermsVersion }` only.
+- Import/link: same route with `pin`, `address`, and `encryptedPrivateKey` or `privateKey`. `pin` is required on every create path.
+- Custodial send: PIN gate, then `POST /api/wallets/{address}/sign-transaction`.
+- Seed reveal: PIN-gated `POST /api/wallets/{address}/export`.
+- Do not call deprecated `POST /api/wallets/private-key` for new work.
+
+## Featured collectibles
+
+- `GET /api/user/featured-collectibles` is public.
+- `PUT /api/user/featured-collectibles` replaces the authenticated user's showcase (max 12).
+
 ## User interests contract
 
 - `User.interests` is a `string[]` of slug IDs stored on the `User` row in Postgres (via Prisma).
@@ -39,6 +69,6 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Error handling and fallback UX
 
-- Show user-actionable errors for purchase/open/claim failures.
+- Show user-actionable errors for purchase/open/claim/sign failures.
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.

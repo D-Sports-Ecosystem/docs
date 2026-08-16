@@ -1,6 +1,6 @@
 ---
 title: "Social and locker room API"
-description: "Non-admin endpoint guide for feed, comments, reactions, and social graph APIs."
+description: "Non-admin endpoint guide for feed, per-post CRUD, comments, reactions, and social graph APIs."
 ---
 
 ## Scope
@@ -9,8 +9,14 @@ Social APIs power locker room activity and user-to-user interactions.
 
 ## Endpoint map
 
-- Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
+- Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
 - Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+
+## Per-post contract
+
+- `GET /api/locker-room/{id}` is public and returns a single post.
+- `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
+- `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).
 
 ## Integration notes
 

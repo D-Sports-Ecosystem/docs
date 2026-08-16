@@ -11,6 +11,10 @@ icon: "list-checks"
 - `GET/POST /api/user/onboarding`
 - `POST /api/auth/native-token`
 - `POST /api/user/sync-clerk`
+- `GET /api/mobile/start`
+- `GET /api/mobile/callback`
+- `POST /api/mobile/exchange`
+- `GET /api/mobile/verify`
 
 ## Runtime behavior highlights
 
@@ -19,6 +23,8 @@ icon: "list-checks"
 - Onboarding completion is idempotent and avoids duplicate onboarding reward entries.
 - Onboarding path can enroll users in global leaderboard and write initial points history.
 - Auth identity sync path updates app-side fields when identity provider data changes.
+- `POST /api/mobile/exchange` consumes a one-time 128-char hex `MobileSession` token and returns a Clerk sign-in ticket. No Clerk session is required on that call.
+- Native prefers the URL fragment (`#token=`) over the query string, then calls `signIn.create({ strategy: 'ticket' })`.
 
 ## Common outputs and side effects
 

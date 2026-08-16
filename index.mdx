@@ -1,11 +1,11 @@
 ---
 title: "D-Sports Documentation"
-description: "Fan engagement platform for sports teams. Docs for the PWA, site, native app, and Mic'd Up."
+description: "Fan engagement platform for sports teams. Docs for the PWA/API, native app, marketing site, and Mic'd Up."
 ---
 
 ## Welcome
 
-D-Sports is a fan engagement platform for sports teams, with a focus on hockey. Our ecosystem includes a Progressive Web App, a marketing site, a native mobile app, and live audio rooms (Mic'd Up).
+D-Sports is a fan engagement platform for sports teams, with a focus on hockey. The live stack is a Progressive Web App plus API, a native iOS/Android app, a marketing site, and live audio rooms (Mic'd Up).
 
 <img src="/images/og-image.png" alt="D-Sports" style={{ borderRadius: '0.5rem', maxWidth: '100%' }} />
 
@@ -17,7 +17,7 @@ D-Sports is a fan engagement platform for sports teams, with a focus on hockey. 
   href="/repositories/ecosystem-overview"
   horizontal
 >
-  How the four repositories fit together and what each one does.
+  How the repositories fit together and what each one does.
 </Card>
 
 ## Repositories
@@ -28,7 +28,14 @@ D-Sports is a fan engagement platform for sports teams, with a focus on hockey. 
     icon="server"
     href="/repositories/d-sports-api"
   >
-    PWA and backend: locker room, quests, leaderboards, collectibles, shop, wallet.
+    Live PWA and API: locker room, quests, Fan Rep, collectibles, shop, wallet.
+  </Card>
+  <Card
+    title="d-sports-engage-native"
+    icon="smartphone"
+    href="/repositories/d-sports-engage-native"
+  >
+    Native iOS/Android app (Expo 57): wallet, shop, binder, market, locker room, admin.
   </Card>
   <Card
     title="d-sports-site"
@@ -38,11 +45,11 @@ D-Sports is a fan engagement platform for sports teams, with a focus on hockey. 
     Marketing site: home, about, shop, wallet, leaderboard, support.
   </Card>
   <Card
-    title="d-sports-engage-native"
-    icon="smartphone"
-    href="/repositories/d-sports-engage-native"
+    title="d-sports-backend"
+    icon="cog"
+    href="/repositories/d-sports-backend"
   >
-    Native iOS/Android app: wallet, shop, leaderboard, locker room, profile.
+    Rust rewrite (Axum). Parity/shim work — not the production API.
   </Card>
   <Card
     title="d-sports-mic-d-up"
@@ -50,6 +57,13 @@ D-Sports is a fan engagement platform for sports teams, with a focus on hockey. 
     href="/repositories/d-sports-mic-d-up"
   >
     Live audio rooms for real-time voice discussions between fans.
+  </Card>
+  <Card
+    title="leagues"
+    icon="trophy"
+    href="/repositories/leagues"
+  >
+    Canonical league and team branding synced into the API.
   </Card>
 </Columns>
 
@@ -75,7 +89,7 @@ D-Sports is a fan engagement platform for sports teams, with a focus on hockey. 
     icon="terminal"
     href="/api-reference/introduction"
   >
-    API documentation for the d-sports-api backend.
+    OpenAPI endpoints and domain guides for d-sports-api.
   </Card>
   <Card
     title="Writing D-Sports docs"

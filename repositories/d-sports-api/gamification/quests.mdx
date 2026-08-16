@@ -12,6 +12,11 @@ icon: "list-checks"
 - `POST /api/quests/check-progress`: trigger action-based progression checks.
 - `POST /api/quests/daily-visit`: complete the daily dashboard visit quest.
 - `GET /api/user/completed-quests`: read quest-related completion history from points records.
+- `POST /v1/engage/quests/{questId}/session`: start a timed daily-quest quiz session.
+- `POST /v1/engage/quests/session/{sessionId}/submit`: submit an answer.
+- `POST /v1/engage/quests/session/{sessionId}/forfeit`: burn the UTC-day attempt.
+- `GET /v1/engage/quests/daily-summary`: per-followed-team checklist.
+- `POST /v1/engage/quests/arena-check-in`: once per team per UTC day.
 
 ## Lifecycle
 

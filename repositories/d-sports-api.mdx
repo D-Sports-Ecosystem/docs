@@ -6,65 +6,74 @@ icon: "server"
 
 ## Overview
 
-**d-sports-api** (package name: `d-sports-pwa`) is the main application: a Progressive Web App that provides the full fan engagement experience. It is both the backend and the web client.
+**d-sports-api** (package name: `d-sports-pwa`) is the live application: a Progressive Web App that provides the full fan engagement experience. It is both the production backend and the web client.
 
 - **Default port:** 3004
-- **Run:** `bun dev`
+- **Run:** `infisical login` once, then `bun dev`
+- **App version:** 0.1.16
 
 ## Tech stack
 
 | Category   | Technology                    |
 | ---------- | ----------------------------- |
 | Framework  | Next.js 16, React 19          |
-| Database   | PostgreSQL, Prisma 6.8        |
+| Database   | PostgreSQL, Prisma 7.9        |
 | Auth       | Clerk 6.x                     |
 | Styling    | Tailwind CSS 4, Radix UI, shadcn/ui |
-| Web3       | Thirdweb, Viem, Wagmi        |
+| Web3       | Thirdweb, Viem                |
 | Payments   | RevenueCat (purchases-js)     |
 | State      | TanStack Query, TanStack Store |
-| Secrets    | HashiCorp Vault (optional)    |
+| Observability | Sentry                     |
+| Secrets    | Infisical                     |
 | Package    | Bun                           |
+
+<Note>
+  Every `dev` / `db:*` / build script runs through `infisical run --env=<env>`. You do not copy `.env` files by hand.
+</Note>
 
 ## Features
 
-- **Locker room** — Social feed, posts, comments, likes, following
-- **Gamification** — Quests, points, achievements, leaderboards, Frontline Pass
-- **Digital collectibles** — NFT-style collectibles, rarity tiers, pack opening, inventory
-- **Shop** — Product catalog, cart, RevenueCat purchases
-- **Wallet** — Web3 wallet, token balances, Thirdweb integration
-- **Interactive games** — Trivia, wheel spin
+- **Locker room** — Social feed, posts, comments, reactions, follows, per-post get/update/delete
+- **Gamification** — Quests, points, achievements, leaderboards, Frontline Pass, daily quiz sessions
+- **Fan Rep** — Append-only `RepLedgerEntry` with Fan, Club, and Player sources
+- **Digital collectibles** — Rarity-tiered collectibles, pack opening, inventory, featured showcase
+- **Shop** — Product catalog, cart, RevenueCat and crypto checkout, D-Sports Cash
+- **Wallet** — Custodial Thirdweb wallets, PIN gates, server-side transaction signing
+- **Interactive games** — Team-selected catalog (daily spin, guess-the-player, live games, pick-em)
 - **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
 - **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
 
 ## What changed since last docs sync
 
-- Team-management and admin route surfaces were expanded and hardened with RBAC layers.
-- Team and league canonical sync behaviors were expanded, including webhook-triggered updates and admin sync controls.
-- Quest/reward behavior evolved toward team-aware and pass-aware progression.
-- Pack odds and compliance-oriented disclosure behavior received implementation and runbook updates.
+- OpenAPI grew from 73 to 99 paths. New public contracts: mobile session exchange, locker-room post CRUD, featured collectibles, games catalog + daily-spin/guess-player/live-active, binders, custodial `sign-transaction`/`export`, `/v1/engage` daily quests, and Fan Rep reads/earns.
+- Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.
+- Prisma is **7.9** (the repo README badge may still say 6 — trust `package.json`).
+- Custodial wallets sign on the server. `POST /api/wallets/private-key` is deprecated and PIN-gated.
+- Fan Rep is a first-class ledger, not a client-computed score. `dsportsDirectRep` stays `0` until a producer exists.
+- Marketplace catch-all, KYC, and some remaining game play routes exist in `app/api` but are **not** in the public OpenAPI yet.
 
 ## Getting started
 
 1. Clone the repository and install dependencies (`bun install`).
-2. Set up environment variables (see repo `.env.example` or Vault setup in README).
-3. Configure PostgreSQL and run `bun prisma db pull` then `bun prisma generate`.
+2. Run `infisical login` once so `bun dev` and `bun db:*` can inject secrets.
+3. Pull and generate Prisma: `bun db:pull` then `bun db:gen`.
 4. Run `bun dev` — app is at http://localhost:3004.
 
-For full setup (Vault, seeds, migrations), see the repository README.
+For deployment, Sentry, and seed catalogs, see the repository README and `docs/` folder. Do not copy in-repo `AGENTS.md` into this site.
 
 ## API
 
-This app is the primary API surface for the D-Sports platform. The [API reference](/api-reference/introduction) in these docs covers endpoints and usage; detailed OpenAPI or API specs live in the repo.
+This app is the primary API surface for the D-Sports platform. The [API reference](/api-reference/introduction) covers endpoints and usage. The generated spec is synced from the API repo's `openapi.json` — do not edit `api-reference/openapi.json` by hand.
 
 ## Season 0.5 leaderboard infrastructure
 
-- Points events are now scoped in `PointsHistory` by both leaderboard and season.
+- Points events are scoped in `PointsHistory` by both leaderboard and season.
 - Season reset/wipe behavior is unchanged.
 - Legacy Season 0 rows with null scoping are intentionally preserved for backward compatibility.
 
 ### Leaderboard scoring behavior
 
-- Team boards now compute totals from `PointsHistory` rows filtered by both active `seasonId` and the team `leaderboardId`.
+- Team boards compute totals from `PointsHistory` rows filtered by both active `seasonId` and the team `leaderboardId`.
 - The global board computes totals from `PointsHistory` rows filtered by active `seasonId` only (cross-board season aggregate).
 - New point writes (quests, onboarding, daily actions, backfill scripts) include `seasonId` and `leaderboardId` where available.
 - Some historical/backfill paths can intentionally write `leaderboardId: null` when a board cannot be determined yet.
@@ -77,38 +86,40 @@ This app is the primary API surface for the D-Sports platform. The [API referenc
 - `GET /api/leaderboard` (no params) returns global leaderboard scoring for the active season.
 - This release does not introduce season reset/archiving behavior changes, and does not remove `LeaderboardEntry.points` yet (planned Season 2 cleanup).
 
-## Gamification deep dives!
-
-Comprehensive non-admin gamification docs now live in dedicated sections with subsections:
+## Gamification deep dives
 
 <CardGroup cols={2}>
   <Card title="Gamification docs hub" icon="trophy" href="/repositories/d-sports-api/gamification/index">
-    Start here for architecture and behavior docs across quests, points, leaderboards, rewards, and achievements.
+    Architecture and behavior across quests, points, leaderboards, rewards, and achievements.
+  </Card>
+  <Card title="Fan Rep" icon="chart-line" href="/repositories/d-sports-api/fan-rep/index">
+    Ledger-backed Fan, Club, and Player Rep totals and earn rules.
+  </Card>
+  <Card title="Games" icon="gamepad-2" href="/repositories/d-sports-api/games/index">
+    Public team mini-game catalog and play-route coverage.
   </Card>
   <Card title="Backend coverage status" icon="clipboard-list" href="/repositories/d-sports-api/gamification/coverage-status">
-    See exactly what is documented vs missing across all non-admin backend feature domains, not only gamification.
+    What is documented vs missing across non-admin backend domains.
   </Card>
 </CardGroup>
 
 ## Backend domain deep dives
 
-Each non-admin backend domain now has dedicated folderized docs with architecture and behavior subsections.
-
 <CardGroup cols={2}>
   <Card title="Auth and onboarding" icon="shield-check" href="/repositories/d-sports-api/auth-onboarding/index">
-    Session/auth boundaries, profile lifecycle, and onboarding behavior.
+    Session/auth boundaries, mobile exchange, profile lifecycle, and onboarding.
   </Card>
   <Card title="Social and locker room" icon="messages-square" href="/repositories/d-sports-api/social-locker-room/index">
-    Posts, comments, reactions, follow graph, and stream behavior.
+    Posts, comments, reactions, follow graph, and per-post CRUD.
   </Card>
   <Card title="Commerce and purchases" icon="shopping-bag" href="/repositories/d-sports-api/commerce/index">
     Catalog, checkout, purchases, dsports-cash, and entitlement flows.
   </Card>
   <Card title="Collectibles and packs" icon="package" href="/repositories/d-sports-api/collectibles/index">
-    Pack lifecycle, collectible ownership, inventory, and minting paths.
+    Pack lifecycle, featured collectibles, inventory, and minting paths.
   </Card>
   <Card title="Wallet and web3" icon="wallet" href="/repositories/d-sports-api/wallet-web3/index">
-    Wallet provisioning, key access controls, and provider integration behavior.
+    Custodial wallets, PIN gates, and server-side signing.
   </Card>
   <Card title="Moderation and reporting" icon="shield-alert" href="/repositories/d-sports-api/moderation/index">
     User-facing report intake and moderation model lifecycle.
@@ -117,13 +128,11 @@ Each non-admin backend domain now has dedicated folderized docs with architectur
     Streams, sync routes, backfills, and non-admin operational patterns.
   </Card>
   <Card title="Backend coverage status" icon="clipboard-list" href="/repositories/d-sports-api/gamification/coverage-status">
-    Track what is documented, partial, or not yet documented across all non-admin backend domains.
+    Track what is documented, partial, or not yet documented.
   </Card>
 </CardGroup>
 
 ## Admin and team management surfaces (public-safe)
-
-Admin and team-management docs include contributor-facing behavior and route contracts while excluding sensitive internal operations.
 
 <CardGroup cols={2}>
   <Card title="Admin and team management" icon="shield-check" href="/repositories/d-sports-api/admin-team-management/index">
@@ -135,8 +144,6 @@ Admin and team-management docs include contributor-facing behavior and route con
 </CardGroup>
 
 ## Compliance and legal: pack opening odds
-
-Pack-opening disclosure, operations, and app-review evidence references:
 
 <Card title="Compliance and legal docs" icon="scale" href="/repositories/d-sports-api/compliance/index">
   Backend implementation and policy-alignment guidance for randomized pack disclosures.

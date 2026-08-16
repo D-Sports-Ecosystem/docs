@@ -1,21 +1,40 @@
 ---
 title: "Collectibles and packs API"
-description: "Non-admin endpoint guide for packs, inventory, and collectible retrieval flows."
+description: "Non-admin endpoint guide for packs, inventory, featured collectibles, and binder notes."
 ---
 
 ## Scope
 
-Collectibles APIs include pack browsing, purchase lifecycle, opening packs, and user inventory views.
+Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user inventory views, and featured showcase slots.
 
 ## Endpoint map
 
 - Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
+- Featured showcase: `GET/PUT /api/user/featured-collectibles`
+
+## Featured collectibles
+
+- `GET /api/user/featured-collectibles` is public and returns the profile showcase.
+- `PUT /api/user/featured-collectibles` replaces the authenticated user's featured set (max 12).
+- Clients should refresh this after inventory mutations that can change ownership.
+
+## Binders
+
+- `GET/POST /api/binders` — list and create (optional `?walletAddress=`)
+- `GET/PATCH/DELETE /api/binders/{id}` — contents, rename/cover, delete
+- `PUT /api/binders/{id}/cards` — assign/transfer cards (1–20 items, idempotency key)
+- `PUT /api/binders/{id}/card-order` — persist display order
+- `POST /api/binders/{id}/transfer-card` — move a card to another binder
+- `POST /api/binders/{id}/verify-pin` — binder PIN (not the wallet PIN)
+
+Cover upload helpers remain implementation-present and are not in the generated spec.
 
 ## Integration notes
 
 - Pack purchase and open are separate phases; preserve returned identifiers between calls.
 - Inventory endpoints should be refreshed after successful open/purchase mutations.
+- Odds-disclosure values must come from backend pack payloads, not client constants.
 
 ## Deep-dive documentation
 
