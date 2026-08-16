@@ -20,7 +20,12 @@ Both routes require privileged authorization and return structured sync summarie
 
 ## API response shapes consumed by clients
 
-- `/api/teams` returns enriched team payloads (counts, ranking context, league linkage metadata).
+- `/api/teams` returns enriched team payloads (counts, ranking context, league linkage, never-null `sport`).
+- `GET /api/teams?slug=` returns a single team. Archived-team slug checks are case-insensitive.
+- `GET /api/teams/search` filters by `q` (max 64), `sport`, `league`, `cursor`, `limit` (1–50), and `sort` (`rank` | `name` | `fans`).
+- `GET /api/config/sports` groups leagues by `League.sport`. There is no second hardcoded catalog.
+- `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
+- `POST/DELETE /api/teams/{id}/join` mutates leaderboard membership only and is idempotent. `TeamFollow` is unchanged.
 - `/api/leagues` returns league metadata and color/logo payloads.
 - Client apps should tolerate propagation delay immediately after sync events.
 

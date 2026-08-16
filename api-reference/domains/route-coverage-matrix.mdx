@@ -27,7 +27,10 @@ Route documentation status uses:
 | `/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, and client-safe earn. Direct kinds on `/earn` return 403. |
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
-| `/api/teams*`, `/api/leagues` | Publish | Team/league integrations for all clients. |
+| `/api/teams`, `/api/teams/followed`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. |
+| `/api/config/sports` | Shipped, OpenAPI pending | Public sports + leagues catalog derived from `League.sport`. |
+| `/api/teams/search`, `/api/teams?slug=` | Shipped, OpenAPI pending | Search (`q`/`sport`/`league`/`cursor`/`limit`/`sort`) and single-team slug lookup. |
+| `/api/teams/{id}/join`, `/api/user/teams` | Shipped, OpenAPI pending | Leaderboard join/leave vs social follow. Returns `{ joinedTeamIds, followedTeamIds }`. |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
 | `/api/wallets/{address}/sign-transaction`, `/export` | Publish | Custodial server-side sign/export. `private-key` is deprecated. |
@@ -37,8 +40,9 @@ Route documentation status uses:
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
 | `/api/games/guess-player/players`, `/session/invalidate`, `/api/games/live/*` (start/join/score/end), `/api/games/pick-em*` | Shipped, OpenAPI pending | Additional play routes; catalog + published play paths are the stable contract. |
-| `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. |
-| `/v1/marketplace/*` | Shipped, OpenAPI pending | Marketplace catch-all. Native `app/market` consumes it. |
+| `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
+| `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
+| `/v1/marketplace/*` | Shipped, OpenAPI pending | Marketplace catch-all. Native `listings/mine` aliases `me/listings`. Pack listing can return `PACK_NOT_LISTABLE`. |
 | `/v1/kyc/*`, `/v1/user/kyc-status` | Shipped, OpenAPI pending | KYC session helpers. Not a public integration surface yet. |
 | `/api/admin/games*`, `/api/admin/teams/[teamId]/games` | Publish with redaction | Catalogue management and team game selection; redact ops internals. |
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |

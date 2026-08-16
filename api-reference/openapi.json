@@ -3226,6 +3226,32 @@
         }
       }
     },
+    "/api/v1/cards/{id}/provenance": {
+      "get": {
+        "tags": ["Cards", "Marketplace"],
+        "summary": "Card provenance chain",
+        "description": "Public ownership, sale, and mint history assembled from UserCollectible, MarketSale, and MintedNFT. No dedicated card_provenance table.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: { card, currentOwners[], transfers[], mints[] } }"
+          },
+          "400": {
+            "description": "{ success: false, error, code: VALIDATION_ERROR }"
+          },
+          "404": {
+            "description": "{ success: false, error, code: NOT_FOUND }"
+          }
+        }
+      }
+    },
     "/api/v1/engage/rep/breakdown": {
       "get": {
         "tags": ["Rep", "Engage"],

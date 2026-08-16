@@ -13,6 +13,8 @@ icon: "list-checks"
 - `GET /api/dsports-cash`
 - `POST /api/webhooks/revenuecat`
 - `GET /api/v1/product_entitlement_mapping`
+- `GET /api/v1/cards/{id}/provenance`
+- `/v1/marketplace/*` (shipped, OpenAPI pending)
 
 ## Runtime behavior highlights
 
@@ -20,6 +22,9 @@ icon: "list-checks"
 - Checkout endpoints initialize and verify purchase attempts before final persistence.
 - Webhook path reconciles provider-side purchase state into app-side records.
 - dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
+- Marketplace `listings/mine` aliases `me/listings`.
+- Listing a pack still in `processing` returns `409 PACK_NOT_LISTABLE`. An opened pack returns `409 PACK_ALREADY_OPENED`.
+- Card provenance is public and assembled from existing ownership, sale, and mint rows.
 
 ## Side effects and dependencies
 

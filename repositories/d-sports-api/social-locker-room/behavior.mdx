@@ -18,8 +18,11 @@ icon: "list-checks"
 ## Runtime behavior highlights
 
 - Post creation updates feed-visible entities with author-linked identity.
+- `teamId` on create is the about-tag. `authorTeamId` / `postAsTeamId` is who the post is authored as.
+- Unauthorized `authorTeamId` returns `403`. Unknown ids return `400`. Following a team does not grant post-as-team.
 - Comment and reaction routes mutate child entities tied to post IDs.
 - Follow routes enforce self-consistency and update follower/following graph edges.
+- `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.
 - Recommendation and follower endpoints read from current social graph state.
 
 ## Side effects and integration points

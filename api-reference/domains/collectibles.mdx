@@ -1,17 +1,19 @@
 ---
 title: "Collectibles and packs API"
-description: "Non-admin endpoint guide for packs, inventory, featured collectibles, and binder notes."
+description: "Non-admin endpoint guide for packs, inventory, featured collectibles, binders, and card provenance."
 ---
 
 ## Scope
 
-Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user inventory views, and featured showcase slots.
+Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user inventory views, featured showcase slots, binders, and public card provenance.
 
 ## Endpoint map
 
 - Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
 - Featured showcase: `GET/PUT /api/user/featured-collectibles`
+- Binders: `/api/binders*`
+- Provenance: `GET /api/v1/cards/{id}/provenance`
 
 ## Featured collectibles
 
@@ -26,13 +28,34 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 - `PUT /api/binders/{id}/cards` — assign/transfer cards (1–20 items, idempotency key)
 - `PUT /api/binders/{id}/card-order` — persist display order
 - `POST /api/binders/{id}/transfer-card` — move a card to another binder
-- `POST /api/binders/{id}/verify-pin` — binder PIN (not the wallet PIN)
+- `POST /api/binders/{id}/verify-pin` — binder PIN (not the wallet PIN and not `POST /api/v1/user/verify-pin`)
 
 Cover upload helpers remain implementation-present and are not in the generated spec.
+
+### Binder PIN gate
+
+PIN-protected binders do not return shelves or card payloads until you prove the binder PIN.
+
+1. `POST /api/binders/{id}/verify-pin` with `{ pin }`. Success returns `{ granted, token, expiresIn: 300 }`.
+2. Send that `token` as the `x-binder-pin-token` header on `GET /api/binders/{id}`.
+3. Do not put the token in `Authorization`. Clerk bearer auth still proves who you are; the binder token only proves this binder's PIN.
+
+Without a valid token, a PIN-protected binder returns `403` with code `PIN_REQUIRED` and binder metadata only (`hasPin: true`, no shelves). Binders with no PIN return full contents after the ownership check. Ownership `403` is unchanged.
+
+The generated OpenAPI still describes verify-pin as `{ granted }` only. Treat the token + header contract above as the live behavior.
+
+Card league labels on binder contents come from `Team.leagueRelation`, not a client-side league map.
+
+## Card provenance
+
+- `GET /api/v1/cards/{id}/provenance` is public.
+- Response is `{ card, currentOwners[], transfers[], mints[] }` assembled from `UserCollectible`, `MarketSale`, and `MintedNFT`.
+- There is no dedicated provenance table. Unknown or empty ids return `400`; missing cards return `404`.
 
 ## Integration notes
 
 - Pack purchase and open are separate phases; preserve returned identifiers between calls.
+- `GET /api/user/packs` instance status is authoritative (`pending` | `processing` | `opened` | `completed`). Do not treat pack-template `isOpenable` as per-purchase state.
 - Inventory endpoints should be refreshed after successful open/purchase mutations.
 - Odds-disclosure values must come from backend pack payloads, not client constants.
 

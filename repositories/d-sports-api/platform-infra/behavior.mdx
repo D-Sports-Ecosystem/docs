@@ -16,6 +16,7 @@ icon: "list-checks"
 - Stream routes deliver incremental updates and require reconnect-aware clients.
 - Sync routes refresh derived data used by dashboard and ranking experiences.
 - Maintenance scripts reconcile historical inconsistencies without changing primary route contracts.
+- Unbuilt `/api/*` paths hit a catch-all that returns JSON `404` with code `NOT_FOUND` instead of the HTML app 404.
 
 ## Script categories in current backend
 

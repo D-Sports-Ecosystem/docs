@@ -17,8 +17,9 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 ## Binder and market
 
 - `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
-- Binder PIN is not the wallet PIN.
-- `app/market` browses and lists collectibles through `/v1/marketplace/*` (not yet in generated OpenAPI).
+- Binder PIN is not the wallet PIN. Native must store the short-lived verify-pin token and send `x-binder-pin-token` on binder reads.
+- `app/market` browses and lists collectibles through `/v1/marketplace/*` (not yet in generated OpenAPI). `listings/mine` still works; `me/listings` is the live path.
+- Card history uses public `GET /api/v1/cards/{id}/provenance`.
 
 ## Quest, Fan Rep, rewards, and pass surfaces
 
@@ -36,6 +37,8 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 ## Team and leaderboard integration
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
+- Sports catalog comes from `GET /api/config/sports`. Team search uses `GET /api/teams/search`.
+- Joining a team (`POST /api/teams/{id}/join`) is leaderboard membership. Following a team is a separate social action.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
 

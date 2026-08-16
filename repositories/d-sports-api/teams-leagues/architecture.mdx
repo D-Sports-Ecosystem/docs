@@ -17,6 +17,8 @@ Canonical sync processing is split into coordinated backend services:
 
 - Team rows are linked to league rows through normalized identifiers and mapping logic.
 - Team sync paths also ensure team leaderboard rows exist for consistent ranking surfaces.
+- Public `GET /api/config/sports` is derived from `League.sport`. Team `sport` is never null (`"other"` when unknown).
+- Leaderboard join (`/api/teams/{id}/join`) is a separate write from social `TeamFollow`.
 
 ## Team logo propagation
 
