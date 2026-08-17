@@ -8,6 +8,7 @@ on:
 context:
   - repo: "d-sports-ecosystem/d-sports-site"
   - repo: "d-sports-ecosystem/d-sports-backend"
+  - repo: "d-sports-ecosystem/leagues"
 ---
 
 When a PR merges into one of the trigger repos, update the **docs** repo so documentation stays in sync.
@@ -22,6 +23,9 @@ When a PR merges into one of the trigger repos, update the **docs** repo so docu
 ## If the change is in **d-sports-backend** (context repo):
 - Only update public docs when the production-vs-parity story changes (for example a documented cutover, or a new public warning). Do not copy internal parity plans, gap registers, or unpublished ADRs into this site.
 - The live API contract remains `d-sports-api` + `openapi.json`.
+
+## If the change is in **leagues** (context repo):
+- Update `repositories/leagues.mdx`, canonical-data, roster, and sync-workflow pages when branding, roster snapshots, or the webhook trigger paths change.
 
 ## If the change is in **d-sports-site** (context repo):
 - Only suggest doc updates if the PR clearly affects something documented in the docs repo (e.g. shared config or integration points). Prefer not to open a docs PR for minor marketing-site-only changes.

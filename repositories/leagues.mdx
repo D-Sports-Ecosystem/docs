@@ -12,7 +12,9 @@ icon: "database"
 
 - Country/league folders store league logos, color tokens, and accessibility reports.
 - `teams/teams.canonical.json` stores normalized team records and aliases.
+- `teams/rosters.json` stores starters-and-bench player snapshots keyed by the same `slug`.
 - `teams/assets/*` stores canonical team logo files by league and slug.
+- Official teams include D-Sports and House of Doge. ICEHL now includes HC Milano.
 - `.github/workflows/sync.yml` triggers the backend webhook-based sync path.
 
 ## Canonical teams dataset
@@ -23,6 +25,7 @@ Team normalization is driven by `teams/teams.canonical.json` and includes:
 - League code and alias support
 - Branding metadata and source confidence
 - Official team records (including D-Sports-owned teams)
+- Optional roster join via `teams/rosters.json` on the same `slug`
 
 ## Logo and branding assets
 
@@ -47,4 +50,5 @@ Pushes that touch team, image, or json assets trigger workflow sync:
 ## Related pages
 
 - [Teams canonical data](/repositories/leagues/teams-canonical-data)
+- [Team rosters](/repositories/leagues/team-rosters)
 - [Sync workflow](/repositories/leagues/sync-workflow)

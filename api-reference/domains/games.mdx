@@ -33,6 +33,19 @@ Each game entry carries `id`, `key`, `title`, `description`, `icon`, and `badge`
 
 Still OpenAPI-pending: remaining live session mutations, pick-em, and guess-player player lists. Render playable games from the catalog first.
 
+## Game Center events
+
+These public and authenticated Game Center routes are in OpenAPI:
+
+- `GET /api/events/schedule?teamId=` — repeatable `teamId` for the locker-room hero strip
+- `GET /api/events/{gameId}` — event detail
+- `GET /api/events/{gameId}/stats`, `/plays`, `/lineup`
+- `GET/POST /api/events/{gameId}/chat` and authenticated `POST/DELETE /chat/mute`
+- `GET/POST /api/events/{gameId}/presence`
+- `GET/POST /api/events/{gameId}/ratings` — submit may award Club Rep. Do not call `/v1/engage/rep/earn` for this.
+
+In-app inbox types include `GAME_ALERT` and `RATING` on `GET /api/notifications`.
+
 ## Deep-dive documentation
 
 - [Games overview](/repositories/d-sports-api/games/index)

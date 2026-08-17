@@ -10,6 +10,8 @@ Social APIs power locker room activity and user-to-user interactions.
 ## Endpoint map
 
 - Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
+- Likes and polls: `/api/locker-room/{id}/like`, `/api/locker-room/{id}/poll/vote`, `/api/locker-room/comments/{commentId}/like`
+- Drafts and discovery: `/api/locker-room/posts/draft`, `/api/locker-room/hot-takes`, `/api/discovery/teams`, `/api/discovery/fans`
 - Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
 
 ## Per-post contract
@@ -24,6 +26,10 @@ Social APIs power locker room activity and user-to-user interactions.
 - `authorTeamId` (native alias `postAsTeamId`) is who the post is authored as. It is distinct from `teamId`.
 - If `authorTeamId` is set, the caller must be allowed to manage that team or be a super-admin. Otherwise the route returns `403`.
 - An unknown `authorTeamId` returns `400`.
+- `content` may be empty when `media`, `poll`, `collectible`, or `lineup` is present.
+- `lineup` is persisted as `{ presetKey, assignments, faces }` and echoed on subsequent reads.
+- `POST /api/locker-room/{id}/like` is additive and returns `{ liked, likeCount }`. It does not replace `/react`.
+- `GET/PUT/DELETE /api/locker-room/posts/draft` is the authenticated composer draft. GET is `404` when none exists. DELETE is `204` even if none existed.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
 
 ## Integration notes

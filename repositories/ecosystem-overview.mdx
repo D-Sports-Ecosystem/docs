@@ -12,13 +12,13 @@ description: "Overview of the D-Sports repositories and how they fit together"
 | **d-sports-site** | Marketing/public web site | `bun dev` (3005) |
 | **d-sports-backend** | Rust rewrite + `/api/*` parity shim | `make dev` (8080) — not production |
 | **d-sports-mic-d-up** | Live audio product with separate backend | separate backend/mobile |
-| **leagues** | Canonical league/team branding and metadata | data + sync workflow |
+| **leagues** | Canonical league/team branding, logos, and roster snapshots | data + sync workflow |
 
 `d-sports-api` is the production API. Native and web clients call it. `d-sports-backend` is a tracked Rust rewrite that can proxy unmatched `/api/*` routes back to the TypeScript API. Do not point production clients at the Rust service unless you are running a documented parity soak.
 
 ## Cross-repo data flow
 
-`d-sports-api` is the runtime API center for native and web clients. `leagues` is the canonical metadata input for teams and leagues. Sync jobs write that data into Postgres, then clients read it through `/api/teams` and `/api/leagues`.
+`d-sports-api` is the runtime API center for native and web clients. `leagues` is the canonical metadata input for teams, leagues, and editorial rosters. Sync jobs write that data into Postgres, then clients read it through `/api/teams`, `/api/leagues`, and `/api/teams/{id}/roster`.
 
 Secrets for API and native local runs go through **Infisical** (`infisical run --env=dev`). You do not maintain a hand-copied `.env` for those repos.
 
@@ -42,7 +42,7 @@ Secrets for API and native local runs go through **Infisical** (`infisical run -
 
 - Mobile OAuth can return a one-time `MobileSession` hex token (fragment preferred). Native exchanges it at `POST /api/mobile/exchange` for a Clerk sign-in ticket.
 - Custodial wallets sign on the server (`POST /api/wallets/{address}/sign-transaction`). `POST /api/wallets/private-key` is deprecated.
-- Featured collectibles, locker-room post CRUD, and the public games catalog are first-class client contracts.
+- Featured collectibles, locker-room post CRUD (including persisted lineups), Game Center `/api/events/*`, and the public games catalog are first-class client contracts.
 
 ## Public vs internal documentation boundaries
 

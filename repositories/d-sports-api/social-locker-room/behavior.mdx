@@ -10,6 +10,10 @@ icon: "list-checks"
 - `GET/PUT/DELETE /api/locker-room/[id]`
 - `GET/POST /api/locker-room/[id]/comments`
 - `POST /api/locker-room/[id]/react`
+- `POST /api/locker-room/[id]/like`
+- `POST /api/locker-room/[id]/poll/vote`
+- `GET/PUT/DELETE /api/locker-room/posts/draft`
+- `GET /api/locker-room/hot-takes`
 - `GET /api/locker-room/stream`
 - `POST /api/user/follow`
 - `GET /api/user/followers`
@@ -20,6 +24,8 @@ icon: "list-checks"
 - Post creation updates feed-visible entities with author-linked identity.
 - `teamId` on create is the about-tag. `authorTeamId` / `postAsTeamId` is who the post is authored as.
 - Unauthorized `authorTeamId` returns `403`. Unknown ids return `400`. Following a team does not grant post-as-team.
+- Attachment-only posts are valid. `lineup` is stored on the post and returned on later reads.
+- `POST /{id}/like` is additive (`{ liked, likeCount }`) and does not replace `/react`.
 - Comment and reaction routes mutate child entities tied to post IDs.
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.

@@ -33,7 +33,7 @@ icon: "server"
 
 ## Features
 
-- **Locker room** — Social feed, posts, comments, reactions, follows, per-post get/update/delete
+- **Locker room** — Social feed, posts, comments, reactions, likes, drafts, lineup attachments, follows, per-post get/update/delete
 - **Gamification** — Quests, points, achievements, leaderboards, Frontline Pass, daily quiz sessions
 - **Fan Rep** — Append-only `RepLedgerEntry` with Fan, Club, and Player sources
 - **Digital collectibles** — Rarity-tiered collectibles, pack opening, inventory, featured showcase
@@ -45,10 +45,10 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI is 103 paths. The newest generated path is public `GET /api/v1/cards/{id}/provenance`.
+- OpenAPI is 132 paths. New generated surfaces include sports catalog, team search/join/roster, leagues, locker-room drafts/likes, Game Center `/api/events/*`, notifications, and settings.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
-- Sports catalog, team search, slug lookup, and leaderboard join/leave are shipped. They are not in OpenAPI yet. `TeamFollow` stays social-only.
-- `POST /api/locker-room` `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
+- Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
+- `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
 - Marketplace pack listing rejects `processing` purchases with `409 PACK_NOT_LISTABLE`. Native `listings/mine` aliases `me/listings`.
 - Unknown `/api/*` paths return JSON `404`, not the HTML app 404.
 - Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.

@@ -76,7 +76,7 @@ docs/
 │   ├── d-sports-site.mdx
 │   ├── d-sports-mic-d-up.mdx
 │   ├── leagues.mdx
-│   └── leagues/                      # sync-workflow.mdx, teams-canonical-data.mdx
+│   └── leagues/                      # sync-workflow.mdx, teams-canonical-data.mdx, team-rosters.mdx
 │
 ├── ai-tools/                         # Agent integration guides
 │   ├── cursor.mdx
@@ -194,7 +194,7 @@ This documentation site sits alongside the code repos it documents:
 | [`d-sports-engage-native`](../d-sports-engage-native/) | Architecture, integration contracts, compliance evidence |
 | [`d-sports-backend`](../d-sports-backend/) | Rust rewrite status, crate map, and production-vs-parity warning |
 | [`d-sports-site`](../d-sports-site/) | Brief overview only — the marketing site is largely self-documenting |
-| [`leagues`](../leagues/) | Data model, sync workflow, canonical team data |
+| [`leagues`](../leagues/) | Data model, sync workflow, canonical team data, roster snapshots |
 
 When the source repo changes, the docs need to keep up. The `d-sports-api` repo is the most coupled — most doc PRs here are paired with one there.
 

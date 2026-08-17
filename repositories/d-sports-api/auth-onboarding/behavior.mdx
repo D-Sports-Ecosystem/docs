@@ -15,6 +15,8 @@ icon: "list-checks"
 - `GET /api/mobile/callback`
 - `POST /api/mobile/exchange`
 - `GET /api/mobile/verify`
+- `GET /api/user/check-username`
+- `GET/PATCH /api/user/settings`
 
 ## Runtime behavior highlights
 
@@ -25,6 +27,7 @@ icon: "list-checks"
 - Auth identity sync path updates app-side fields when identity provider data changes.
 - `POST /api/mobile/exchange` consumes a one-time 128-char hex `MobileSession` token and returns a Clerk sign-in ticket. No Clerk session is required on that call.
 - Native prefers the URL fragment (`#token=`) over the query string, then calls `signIn.create({ strategy: 'ticket' })`.
+- `GET/PATCH /api/user/settings` is the settings SoT. `privateProfile` mirrors `User.isPrivate`. Persist `notifyTeams`, `notifyMilestones`, and `notifyCommunity` separately.
 
 ## Common outputs and side effects
 

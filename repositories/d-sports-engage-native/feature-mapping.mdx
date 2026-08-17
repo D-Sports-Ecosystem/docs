@@ -5,7 +5,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Feature parity with backend/PWA
 
-`d-sports-engage-native` (1.22.4) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
+`d-sports-engage-native` (1.22.5) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
 ## Wallet and pack opening
 
@@ -33,6 +33,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - The games surface renders only what `GET /api/games/catalog` returns for the selected team.
 - Known keys include `daily-spin` and other catalog slugs. Unknown keys are ignored.
+- Game Center reads `/api/events/schedule` and `/api/events/{gameId}` for hero, lineup, chat, presence, and ratings.
 
 ## Team and leaderboard integration
 
@@ -44,7 +45,9 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Notifications and legal
 
-- Push delivery uses OneSignal. In-app inbox uses `/api/notifications*`.
+- Push delivery uses OneSignal. In-app inbox uses `/api/notifications*` and includes `GAME_ALERT` and `RATING`.
+- Settings persist per-channel notify flags on `PATCH /api/user/settings`.
+- About can check for an EAS OTA update without waiting for the next cold start.
 - Locker-room posting gates on the in-app EULA. Policy pages render in-app; do not hardcode legal copy in clients.
 - Accessibility settings include high contrast and color-blindness palettes. The public support matrix is `GET /api/accessibility`.
 

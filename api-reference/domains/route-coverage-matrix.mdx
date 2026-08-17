@@ -19,7 +19,7 @@ Route documentation status uses:
 | `/api/auth/*` | Publish | Core auth/session contracts for all clients. |
 | `/api/mobile/start`, `/callback`, `/verify`, `/exchange` | Publish | Native OAuth + one-time MobileSession ticket exchange. |
 | `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
-| `/api/user/check-username` | Shipped, OpenAPI pending | Public handle availability check. |
+| `/api/user/check-username` | Publish | Public handle availability check. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
 | `/api/locker-room*` | Publish | Includes per-post GET/PUT/DELETE. |
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
@@ -29,15 +29,20 @@ Route documentation status uses:
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
 | `/api/teams`, `/api/teams/followed`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. |
-| `/api/config/sports` | Shipped, OpenAPI pending | Public sports + leagues catalog derived from `League.sport`. |
-| `/api/teams/search`, `/api/teams?slug=` | Shipped, OpenAPI pending | Search (`q`/`sport`/`league`/`cursor`/`limit`/`sort`) and single-team slug lookup. |
-| `/api/teams/{id}/join`, `/api/user/teams` | Shipped, OpenAPI pending | Leaderboard join/leave vs social follow. Returns `{ joinedTeamIds, followedTeamIds }`. |
+| `/api/config/sports` | Publish | Public sports + leagues catalog derived from `League.sport`. |
+| `/api/teams/search`, `/api/teams?slug=` | Publish | Search (`q`/`sport`/`league`/`cursor`/`limit`/`sort`) and single-team slug lookup. |
+| `/api/teams/{id}/join`, `/api/user/teams` | Publish | Leaderboard join/leave vs social follow. Returns `{ joinedTeamIds, followedTeamIds }`. |
+| `/api/teams/{id}/roster` | Publish | Public real-player roster for the lineup builder. |
+| `/api/user/settings` | Publish | Authenticated settings SoT, including per-channel notify flags. |
+| `/api/locker-room/posts/draft`, `/{id}/like`, `/{id}/poll/vote` | Publish | Composer draft, additive likes, and poll votes. |
+| `/api/events/*` | Publish | Game Center schedule, detail, stats, plays, lineup, chat, mute, presence, ratings. |
+| `/api/discovery/teams`, `/api/discovery/fans` | Publish | Suggested teams (public) and fans (authenticated). |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
 | `/api/wallets/{address}/sign-transaction`, `/export` | Publish | Custodial server-side sign/export. `private-key` is deprecated. |
 | `/api/feedback/*` | Publish | User-facing reporting channels. |
-| `/api/accessibility` | Shipped, OpenAPI pending | Public Apple Nutrition Label support matrix for native and marketing. |
-| `/api/notifications*` (non-admin) | Shipped, OpenAPI pending | Authenticated inbox, read, read-all, archive. |
+| `/api/accessibility` | Publish | Public Apple Nutrition Label support matrix for native and marketing. |
+| `/api/notifications*` (non-admin) | Publish | Authenticated inbox, read, read-all, archive. Includes `GAME_ALERT` and `RATING`. |
 | `/api/games/catalog` | Publish | Public per-team mini-game catalog consumed by native clients. |
 | `/api/games/daily-spin/config`, `/state`, `/spin` | Publish | Public config + authenticated spin/state. |
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
@@ -63,7 +68,7 @@ Route documentation status uses:
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus the shipped-but-unpublished rows above. Curated domain pages cover approved admin/team routes and the pending public contracts without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus marketplace catch-all, KYC, and remaining live/pick-em play routes. Curated domain pages cover approved admin/team routes and those pending public contracts without exposing sensitive internals.
 
 ## Review cadence
 

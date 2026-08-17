@@ -24,6 +24,7 @@ icon: "list-checks"
 - dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
 - Marketplace `listings/mine` aliases `me/listings`.
 - Listing a pack still in `processing` returns `409 PACK_NOT_LISTABLE`. An opened pack returns `409 PACK_ALREADY_OPENED`.
+- Auction `reservePrice` is optional and auction-only. Missed reserve ends as `ended-reserve-not-met`.
 - Card provenance is public and assembled from existing ownership, sale, and mint rows.
 
 ## Side effects and dependencies

@@ -21,6 +21,7 @@ The native app is structured around Expo Router screens, feature-oriented compon
 
 ## API client and retry behavior
 
+- Game Center and locker-room lineups use `lib/api/events-api.ts`, `lib/api/locker-room-api.ts`, and `GET /api/teams/{id}/roster`.
 - All network calls route through `lib/api/*` modules.
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest, Fan Rep, reward, and team flows should consume backend eligibility as source of truth.

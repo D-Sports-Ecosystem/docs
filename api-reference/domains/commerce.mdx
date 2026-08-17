@@ -14,7 +14,7 @@ Commerce APIs cover checkout initiation/verification, catalog reads, and balance
 - Catalog: `/api/products` (retired Frontline Pack / Frontline Pass rows are hidden even if they remain in the database)
 - Revenue webhooks (platform integration): `/api/webhooks/revenuecat`
 - Card provenance: `GET /api/v1/cards/{id}/provenance` (public; in OpenAPI)
-- Marketplace: `/v1/marketplace/*` exists and is consumed by native `app/market`, but it is not in the generated OpenAPI yet
+- Marketplace: `/api/v1/marketplace/*` exists and is consumed by native `app/market`, but the catch-all is not in the generated OpenAPI yet
 
 ## Marketplace notes
 
@@ -22,6 +22,8 @@ Commerce APIs cover checkout initiation/verification, catalog reads, and balance
 - Listing a pack that is still `processing` returns `409` with code `PACK_NOT_LISTABLE`.
 - An already-opened pack returns `409` with code `PACK_ALREADY_OPENED`.
 - Pack-instance status on `GET /api/user/packs` is authoritative. Do not use template `isOpenable` as a substitute.
+- Auction listings accept optional `reservePrice` (positive integer, at least the starting bid). Ended auctions that miss reserve surface as `ended-reserve-not-met`.
+- Featured listings and team promos are server-authored extras on the same marketplace prefix. There is no combined shop featured feed.
 
 ## Integration notes
 

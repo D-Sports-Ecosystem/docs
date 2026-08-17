@@ -43,6 +43,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `POST /api/teams/{id}/follow` is social only (`TeamFollow`).
 - `POST/DELETE /api/teams/{id}/join` is leaderboard membership only. Both are idempotent.
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
+- `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder.
 - League metadata and branding come from `/api/leagues`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
@@ -57,6 +58,9 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - `teamId` on `POST /api/locker-room` is the about-tag.
 - `authorTeamId` / `postAsTeamId` is who the post is authored as. Unauthorized callers get `403`.
+- `lineup` on create is persisted and echoed. Fetch players from `GET /api/teams/{id}/roster` instead of fabricating names.
+- Composer drafts use `GET/PUT/DELETE /api/locker-room/posts/draft`.
+- `POST /api/locker-room/{id}/like` returns `{ liked, likeCount }` and does not replace `/react`.
 
 ## Marketplace contracts
 
@@ -72,6 +76,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - The catalog is admin-managed and team-selected server-side; the client must render only the games returned and must not assume a fixed set.
 - Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`); short-lived staleness after a team changes its selection is expected.
 - Unknown teams return `404`; a missing `teamId`/`teamSlug` returns `400`.
+
+## Game Center contracts
+
+- `GET /api/events/schedule` accepts repeatable `teamId` query params.
+- Detail, box score, plays, and lineup are public reads under `/api/events/{gameId}`.
+- Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
+- Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/v1/engage/rep/earn`.
 
 ## Wallet contracts
 
@@ -94,6 +105,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `PATCH /api/user` accepts `interests: string[]`; server validates slugs and dedupes (max 20).
 - `GET /api/user` returns `interests` on the authenticated profile payload.
 - Retroactive gate: users with `onboardingComplete=true` and empty `interests` are redirected to `/(onboarding)/interests` until at least one interest is saved.
+
+## Settings and notifications
+
+- `GET/PATCH /api/user/settings` is the settings SoT. `privateProfile` mirrors `isPrivate`.
+- Persist `notifyTeams`, `notifyMilestones`, and `notifyCommunity` as separate booleans. Do not collapse them.
+- Inbox types include `GAME_ALERT` and `RATING`.
 
 ## Error handling and fallback UX
 

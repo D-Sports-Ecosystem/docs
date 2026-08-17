@@ -1,0 +1,53 @@
+---
+title: "Team rosters"
+description: "Contract for teams/rosters.json — starters and bench snapshots keyed by canonical team slug."
+---
+
+## File contract: teams/rosters.json
+
+`teams/rosters.json` is a research snapshot of real named players. It complements `teams/teams.canonical.json`, which covers branding and aliases, not players.
+
+Join the two files on `slug`. Every roster key must already exist in the canonical registry.
+
+## Schema
+
+Top-level shape:
+
+- `schemaVersion` — currently `1.0.0`
+- `note` — human-readable coverage caveats
+- `rosters.<slug>` — one club
+
+Each roster row includes:
+
+- `asOf` — season the snapshot represents (for example `2025-26`)
+- `league` — display league name
+- `players[]` — `{ name, jersey, position, note? }`
+- `sources[]` — URLs used to compile that club
+
+Hockey position vocabulary today: `G`, `C`, `LW`, `RW`, `D`. When a source only publishes a broad Forward grouping, the row defaults to `C` and sets `note`.
+
+## Coverage
+
+This is starters plus bench, not a full organizational depth chart. Typical size is 15–22 players.
+
+Current slugs:
+
+- `hc-sierre`, `hc-bolzano`, `hc-milano`, `hockey-club-lugano`, `sc-bern`
+- `barrie-colts`, `niagara-icedogs`
+- `wisconsin-badgers`, `michigan-wolverines`, `boston-college-eagles`, `maine-black-bears`
+- `chicago-steel`
+
+Brand or promotional teams stay out of this file. Do not invent placeholder players.
+
+## Runtime consumption
+
+`d-sports-api` exposes the live roster through public `GET /api/teams/{id}/roster`. That route reads `Player` rows in Postgres (`isActive: true`) and returns `{ players: [{ id, name, jersey, position, role, duty }] }`.
+
+Treat `leagues/teams/rosters.json` as the editorial source. Treat the API as runtime truth after sync or seed.
+
+## Adding a roster
+
+1. Confirm the slug exists in `teams/teams.canonical.json`.
+2. Research the official club site plus at least one independent source.
+3. Add `teams/rosters.json` keyed by that slug.
+4. Flag position ambiguity with `note` instead of guessing silently.

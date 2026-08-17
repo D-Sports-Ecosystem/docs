@@ -12,6 +12,8 @@ icon: "workflow"
 - `app/api/locker-room/route.ts`
 - `app/api/locker-room/[id]/comments/route.ts`
 - `app/api/locker-room/[id]/react/route.ts`
+- `app/api/locker-room/[id]/like/route.ts`
+- `app/api/locker-room/posts/draft/route.ts`
 - `app/api/user/follow/route.ts`
 - `app/api/user/followers/route.ts`
 
@@ -42,3 +44,4 @@ flowchart LR
 - Stream endpoints support near-real-time update delivery patterns.
 - Social and follow features are separate model families that intersect through user identity.
 - `LockerRoomPost.teamId` is the about-tag. `LockerRoomPost.authorTeamId` is the post-as-team identity and is authorized separately.
+- Lineup attachments persist on the post row and are echoed to clients. Composer drafts are a separate authenticated resource.

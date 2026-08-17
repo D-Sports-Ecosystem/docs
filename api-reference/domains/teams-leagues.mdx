@@ -14,9 +14,10 @@ Teams/leagues APIs provide team metadata, league metadata, sports catalog, join 
 - `GET /api/teams/followed`
 - `POST /api/teams/{id}/follow` — social follow (`TeamFollow` only)
 - `POST/DELETE /api/teams/{id}/join` — leaderboard membership only (idempotent)
+- `GET /api/teams/{id}/roster` — public real-player roster for the lineup builder
 - `GET /api/user/teams` — `{ joinedTeamIds, followedTeamIds }`
 
-Search, join, and `GET /api/user/teams` are shipped and consumed by native clients. They are not in the generated OpenAPI yet.
+Search, join, roster, and `GET /api/user/teams` are in the generated OpenAPI.
 
 ## Sports catalog
 
@@ -25,7 +26,7 @@ Search, join, and `GET /api/user/teams` are shipped and consumed by native clien
 - There is no second hardcoded sports list. Native may fall back to a local cache on `500`.
 - Team payloads expose never-null `sport` and `leagueInfo.sport`. Unknown or empty values are `"other"`.
 
-This catalog route is shipped and OpenAPI-pending.
+This catalog route is in the generated OpenAPI.
 
 ## Leagues endpoints
 
@@ -49,6 +50,7 @@ This catalog route is shipped and OpenAPI-pending.
 - `/api/teams` payload includes enriched team context (ranking/count, league-link metadata, and never-null `sport`).
 - `GET /api/teams?slug=` is the single-team lookup. Archived-team slug checks are case-insensitive.
 - `/api/leagues` payloads include branding/color metadata used in client visual theming.
+- `GET /api/teams/{id}/roster` returns `{ players: [{ id, name, jersey, position, role, duty }] }` from active `Player` rows. Editorial snapshots live in `leagues/teams/rosters.json`.
 - After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.
 - Users can favorite at most 5 teams. Official `d-sports` and `house-of-doge` do not count toward that cap.
 

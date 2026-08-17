@@ -16,13 +16,14 @@ flowchart TD
   syncTeams --> dbState[League and Team records]
   dbState --> apiTeams[GET /api/teams]
   dbState --> apiLeagues[GET /api/leagues]
+  dbState --> apiRoster[GET /api/teams/id/roster]
 ```
 
 ## GitHub workflow trigger rules
 
 The leagues workflow runs on `main` pushes that touch:
 
-- `teams/**`
+- `teams/**` (canonical JSON, `rosters.json`, and `teams/assets/*`)
 - team/league JSON data
 - image assets (`png`, `svg`, `jpg`)
 

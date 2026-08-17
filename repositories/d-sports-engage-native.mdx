@@ -8,7 +8,7 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, profile, plus binder, market, quests, and a team-admin hub.
 
-- **App version:** 1.22.4
+- **App version:** 1.22.5
 - **Run:** `infisical login` once, then `bun start` — press `a` for Android or `i` for iOS.
 
 <Warning>
@@ -36,7 +36,7 @@ icon: "smartphone"
 - **Digital binder** — Card inventory viewer and transfer flows (`app/binder`)
 - **Market** — Browse and list collectibles (`app/market`)
 - **Leaderboard** — Multi-board rankings powered by the quest/points system
-- **Locker room** — Social feed, posts, comments, likes, stars, live/game surfaces
+- **Locker room** — Social feed, posts, comments, likes, stars, sport-driven lineups, live/game surfaces
 - **Quests** — Team-aware quests, daily quiz sessions, arena check-in, Fan Rep
 - **Profile** — Stats, achievements, featured collectibles, settings, account deletion
 - **Admin hub** — Team-manager surfaces for packs, collectibles, coins, games, moderation, users (`app/(admin)`)
@@ -45,7 +45,9 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- Stack moved from Expo 54 / RN 0.81 to **Expo 57 / RN 0.86**. App version is **1.22.4**.
+- Stack is **Expo 57 / RN 0.86**. App version is **1.22.5**.
+- About → Settings includes a manual EAS OTA update check.
+- Locker room can attach sport-driven lineups. The API persists `lineup` on `POST /api/locker-room` and serves real rosters from `GET /api/teams/{id}/roster`.
 - Secrets are injected with **Infisical**. `bun start` wraps Metro in `infisical run --env=dev`.
 - Mobile OAuth can land a 128-char hex token in the URL **fragment** (`#token=`). Native stashes it in memory and redeems it at `POST /api/mobile/exchange` for a Clerk ticket, then `signIn.create({ strategy: 'ticket' })`.
 - Custodial wallets no longer sign on-device. Sends call `POST /api/wallets/{address}/sign-transaction` after a PIN gate.
