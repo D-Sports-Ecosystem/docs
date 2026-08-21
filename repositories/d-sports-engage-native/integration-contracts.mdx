@@ -84,6 +84,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
 - Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/v1/engage/rep/earn`.
 
+## User mute and block
+
+- Global mute is `GET/POST/DELETE /api/user/mutes`. One-way hide; the muted user is not notified.
+- Global block is `GET/POST/DELETE /api/user/blocks`. Stronger than mute; excluded from the blocker's social surfaces.
+- POST body uses `mutedUserId` / `blockedUserId` (or `handle`). DELETE accepts the same id as a query param or in a JSON body.
+- Do not confuse these with Game Center thread mute (`/api/events/{gameId}/chat/mute`).
+
 ## Wallet contracts
 
 - Custodial create: `POST /api/wallets` with `{ pin, legalTermsVersion }` only.

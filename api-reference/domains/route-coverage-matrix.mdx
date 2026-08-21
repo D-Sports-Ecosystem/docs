@@ -20,6 +20,7 @@ Route documentation status uses:
 | `/api/mobile/start`, `/callback`, `/verify`, `/exchange` | Publish | Native OAuth + one-time MobileSession ticket exchange. |
 | `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
 | `/api/user/check-username` | Publish | Public handle availability check. |
+| `/api/user/mutes`, `/api/user/blocks` | Publish | Authenticated one-way mute and stronger block; handle or User.id refs. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
 | `/api/locker-room*` | Publish | Includes per-post GET/PUT/DELETE. |
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |

@@ -8,7 +8,7 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, profile, plus binder, market, quests, and a team-admin hub.
 
-- **App version:** 1.22.5
+- **App version:** 1.24.1
 - **Run:** `infisical login` once, then `bun start` — press `a` for Android or `i` for iOS.
 
 <Warning>
@@ -45,9 +45,10 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- Stack is **Expo 57 / RN 0.86**. App version is **1.22.5**.
+- Stack is **Expo 57 / RN 0.86**. App version is **1.24.1**.
 - About → Settings includes a manual EAS OTA update check.
 - Locker room can attach sport-driven lineups. The API persists `lineup` on `POST /api/locker-room` and serves real rosters from `GET /api/teams/{id}/roster`.
+- Native safety actions call `/api/user/mutes` and `/api/user/blocks` (distinct from Game Center thread mute).
 - Secrets are injected with **Infisical**. `bun start` wraps Metro in `infisical run --env=dev`.
 - Mobile OAuth can land a 128-char hex token in the URL **fragment** (`#token=`). Native stashes it in memory and redeems it at `POST /api/mobile/exchange` for a Clerk ticket, then `signIn.create({ strategy: 'ticket' })`.
 - Custodial wallets no longer sign on-device. Sends call `POST /api/wallets/{address}/sign-transaction` after a PIN gate.

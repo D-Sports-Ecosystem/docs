@@ -18,6 +18,8 @@ icon: "list-checks"
 - `POST /api/user/follow`
 - `GET /api/user/followers`
 - `GET /api/user/recommended`
+- `GET/POST/DELETE /api/user/mutes`
+- `GET/POST/DELETE /api/user/blocks`
 
 ## Runtime behavior highlights
 
@@ -30,6 +32,8 @@ icon: "list-checks"
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.
 - Recommendation and follower endpoints read from current social graph state.
+- Mute is one-way and silent (`UserMute`). Block is stronger (`UserBlock`) and removes the blocked user from the blocker's social surfaces.
+- Mute/block target refs resolve by `User.id` or handle. Missing targets return `404`. Self-target returns `400`.
 
 ## Side effects and integration points
 
