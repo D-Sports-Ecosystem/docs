@@ -4161,20 +4161,35 @@
           "User"
         ],
         "summary": "Block user",
-        "description": "Persist a block. Body blockedUserId accepts a User.id or display handle.",
+        "description": "Persist a block. Body must include blockedUserId or handle (User.id or display handle; empty strings rejected).",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "blockedUserId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   },
                   "handle": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   }
-                }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "blockedUserId"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "handle"
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -4207,15 +4222,17 @@
           "User"
         ],
         "summary": "Unblock user",
-        "description": "Remove a block. Query blockedUserId accepts a User.id or handle.",
+        "description": "Remove a block. Provide blockedUserId as a query param, or send blockedUserId/handle in a JSON body (User.id or display handle).",
         "parameters": [
           {
             "name": "blockedUserId",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "User.id or handle. Optional when the same target is sent in the JSON body."
           }
         ],
         "security": [
@@ -4238,6 +4255,38 @@
           },
           "500": {
             "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "blockedUserId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "handle": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "blockedUserId"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "handle"
+                    ]
+                  }
+                ]
+              }
+            }
           }
         }
       }

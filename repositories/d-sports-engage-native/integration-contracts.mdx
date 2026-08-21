@@ -88,7 +88,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Global mute is `GET/POST/DELETE /api/user/mutes`. One-way hide; the muted user is not notified.
 - Global block is `GET/POST/DELETE /api/user/blocks`. Stronger than mute; excluded from the blocker's social surfaces.
-- POST body uses `mutedUserId` / `blockedUserId` (User.id or handle). DELETE uses the same id as a required query param.
+- POST body uses `mutedUserId` / `blockedUserId` (or `handle`). DELETE accepts the same id as a query param or in a JSON body.
 - Do not confuse these with Game Center thread mute (`/api/events/{gameId}/chat/mute`).
 
 ## Wallet contracts
