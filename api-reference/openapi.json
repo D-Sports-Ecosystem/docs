@@ -1112,7 +1112,7 @@
           "Events"
         ],
         "summary": "List game chat",
-        "description": "Game-thread messages, hasMore, and onlineCount.",
+        "description": "Game-thread messages, hasMore, and onlineCount. Each message includes authorId (User.id or null) so mute/block can persist server-side.",
         "parameters": [
           {
             "name": "gameId",
@@ -3536,7 +3536,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile.",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured).",
         "parameters": [
           {
             "name": "suggest",
@@ -3579,7 +3579,7 @@
           "User"
         ],
         "summary": "Update user",
-        "description": "Body: user fields to update.",
+        "description": "Body: user fields to update. Writing `interests` stamps `interestsCapturedAt` on first capture.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4022,6 +4022,226 @@
         }
       }
     },
+    "/api/user/mutes": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List muted users",
+        "description": "Authenticated list of users the viewer has muted. One-way hide; the muted user is not notified.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: [{ id, createdAt, user }] }"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Mute user",
+        "description": "Persist a one-way mute. Body mutedUserId accepts a User.id or display handle (chat messages historically only sent the handle).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mutedUserId": {
+                    "type": "string"
+                  },
+                  "handle": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "{ success, data: { success, id, muterId, mutedId } }"
+          },
+          "400": {
+            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty mutedUserId or handle, or self-mute"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "404": {
+            "description": "{ success: false, error, code: NOT_FOUND } \u2014 mutedUserId/handle did not resolve"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Unmute user",
+        "description": "Remove a mute. Query mutedUserId accepts a User.id or handle.",
+        "parameters": [
+          {
+            "name": "mutedUserId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { success: true } }"
+          },
+          "400": {
+            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty mutedUserId or handle"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "404": {
+            "description": "{ success: false, error, code: NOT_FOUND } \u2014 mutedUserId/handle did not resolve"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      }
+    },
+    "/api/user/blocks": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List blocked users",
+        "description": "Authenticated list of users the viewer has blocked. Stronger than mute: blocked users are excluded from social surfaces.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: [{ id, createdAt, user }] }"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Block user",
+        "description": "Persist a block. Body blockedUserId accepts a User.id or display handle.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "blockedUserId": {
+                    "type": "string"
+                  },
+                  "handle": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "{ success, data: { id, blockerId, blockedId, createdAt } }"
+          },
+          "400": {
+            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty blockedUserId or handle, or self-block"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "404": {
+            "description": "{ success: false, error, code: NOT_FOUND } \u2014 blockedUserId/handle did not resolve"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Unblock user",
+        "description": "Remove a block. Query blockedUserId accepts a User.id or handle.",
+        "parameters": [
+          {
+            "name": "blockedUserId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { success: true } }"
+          },
+          "400": {
+            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty blockedUserId or handle"
+          },
+          "401": {
+            "description": "{ success: false, error, code: UNAUTHORIZED }"
+          },
+          "404": {
+            "description": "{ success: false, error, code: NOT_FOUND } \u2014 blockedUserId/handle did not resolve"
+          },
+          "500": {
+            "description": "{ success: false, error, code: INTERNAL_ERROR }"
+          }
+        }
+      }
+    },
     "/api/user/onboarding": {
       "get": {
         "tags": [
@@ -4044,6 +4264,7 @@
           "User"
         ],
         "summary": "Complete onboarding",
+        "description": "Optional body `{ interests?: string[] }` is persisted and stamps `interestsCapturedAt` when present.",
         "security": [
           {
             "bearerAuth": []

@@ -13,6 +13,7 @@ Social APIs power locker room activity and user-to-user interactions.
 - Likes and polls: `/api/locker-room/{id}/like`, `/api/locker-room/{id}/poll/vote`, `/api/locker-room/comments/{commentId}/like`
 - Drafts and discovery: `/api/locker-room/posts/draft`, `/api/locker-room/hot-takes`, `/api/discovery/teams`, `/api/discovery/fans`
 - Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+- Safety: `/api/user/mutes`, `/api/user/blocks`
 
 ## Per-post contract
 
@@ -32,10 +33,18 @@ Social APIs power locker room activity and user-to-user interactions.
 - `GET/PUT/DELETE /api/locker-room/posts/draft` is the authenticated composer draft. GET is `404` when none exists. DELETE is `204` even if none existed.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
 
+## Mute vs block
+
+- `GET/POST/DELETE /api/user/mutes` is a one-way hide. The muted user is not notified and can still see the muter's content. Game chat list/serialize filters mutes.
+- `GET/POST/DELETE /api/user/blocks` is stronger. Blocked users are excluded from social surfaces the blocker sees.
+- Both accept a `User.id` or display handle (`mutedUserId` / `blockedUserId`, or `handle` on POST). Self-mute and self-block return `400`.
+- Unmute/unblock take a required query param (`mutedUserId` / `blockedUserId`).
+
 ## Integration notes
 
 - Read endpoints support pagination/query parameters; always pass explicit paging when available.
 - Mutations should handle auth failures and stale target IDs gracefully.
+- Prefer server mute/block IDs from message `authorId` when chat only displays a handle.
 
 ## Deep-dive documentation
 
