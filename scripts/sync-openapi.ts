@@ -109,7 +109,11 @@ async function main() {
     process.exit(1);
   }
 
-  if (!spec.paths || typeof spec.paths !== "object") {
+  if (
+    !spec.paths ||
+    typeof spec.paths !== "object" ||
+    Array.isArray(spec.paths)
+  ) {
     console.error(`Source OpenAPI has no paths object: ${src}`);
     process.exit(1);
   }

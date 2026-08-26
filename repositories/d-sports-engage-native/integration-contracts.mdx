@@ -63,7 +63,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Composer drafts use `GET/PUT/DELETE /api/locker-room/posts/draft`.
 - `POST /api/locker-room/{id}/like` returns `{ liked, likeCount }` and does not replace `/react`.
 - Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
-- Mention typeahead should call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
+- For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
 
 ## Marketplace contracts

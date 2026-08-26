@@ -19,21 +19,21 @@ These operations are in generated OpenAPI under the `Game Engine` tag (also tagg
 
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Omit both for the platform catalogue. `X-Client-Version` is optional on the wire. Returns `{ daily, weekly }` rows that include `playable` and `reason`. |
-| `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume today's slot. Body `{ teamId?, leaderboardId? }`. |
-| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session }`. |
-| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Banks awarded points / Rep. |
+| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Omit both for the platform catalogue. `X-Client-Version` is optional on the wire. Returns `{ daily, weekly }` groups of catalog rows that include `playable` and `reason`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume the current UTC day slot (`dayKey`). Body `{ teamId?, leaderboardId? }`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session? }`. If `session` is omitted, keep the session you already have. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Settles awarded points / Rep, or returns `PENDING_RESOLUTION` when the result is still outstanding. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
 
 Send `Authorization: Bearer <Clerk token>` on session verbs.
 
-`X-Client-Version` is optional in OpenAPI. Supported Engage native clients must send it on every engine call. If a game has `minClientVersion` and the header is missing or unparseable, the catalog marks the row `UPDATE_REQUIRED` and session start returns `403 GAME_UPDATE_REQUIRED`. If `minClientVersion` is unset, an absent header does not block play.
+`X-Client-Version` is optional in OpenAPI. If you build a supported Engage native client, send it on every engine call. If a game has `minClientVersion` and the header is missing or unparseable, the catalog marks the row `UPDATE_REQUIRED` and session start returns `403 GAME_UPDATE_REQUIRED`. If `minClientVersion` is unset, an absent header does not block play.
 
 Session start returns:
 
 - `403 GAME_UPDATE_REQUIRED` when the binary is below `minClientVersion`
 - `404 GAME_UNKNOWN` for an unknown key
-- `409 GAME_DAILY_NOT_ELIGIBLE` when today's slot is already used
+- `409 GAME_DAILY_NOT_ELIGIBLE` when the current UTC day slot is already used
 
 ## Client rules
 
