@@ -20,14 +20,16 @@ Public. No Clerk session required.
 ## Published play routes
 
 - `/api/games/daily-spin/config`, `/state`, `/spin`
-- `/api/games/guess-player/session/start`, `/session/guess`
-- `/api/games/live/active`
+- `/api/games/guess-player/session/start`, `/session/guess`, `/session/invalidate`, `/players`
+- `/api/games/live/active`, `/by-code/{code}`, `/join`, `/{sessionId}/score`, `/{sessionId}/leaderboard`
+- `/api/games/live/start` and `/{sessionId}/end` (team manager)
+- `/api/games/pick-em/players` (leftover roster helper)
 
-Still OpenAPI-pending: `/reward` (deprecated), guess-player player lists/invalidate, live start/join/score/end, pick-em.
+Do not call deprecated `/api/games/daily-spin/reward`. Engine Pick'em sessions use `/api/v1/engage/games/daily-pickem/*`.
 
-Game Center schedule, detail, stats, plays, lineup, chat, presence, and ratings are published under `/api/events/*`.
+Game Center schedule, realtime discovery, detail, stats, plays, lineup, chat, presence, and ratings are published under `/api/events/*`.
 
-Native must not assume these keys exist for every team. Render only catalog results.
+Native must not assume these keys exist for every team. Render only catalog results, then overlay the [engine catalog](/repositories/game-engine/client).
 
 ## Exclusions
 

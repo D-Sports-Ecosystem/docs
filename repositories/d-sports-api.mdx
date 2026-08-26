@@ -39,13 +39,13 @@ icon: "server"
 - **Digital collectibles** — Rarity-tiered collectibles, pack opening, inventory, featured showcase
 - **Shop** — Product catalog, cart, RevenueCat and crypto checkout, D-Sports Cash
 - **Wallet** — Custodial Thirdweb wallets, PIN gates, server-side transaction signing
-- **Interactive games** — Team-selected catalog (daily spin, guess-the-player, live games, pick-em)
+- **Interactive games** — Team-selected catalog (daily spin, guess-the-player, live games) plus the [Game Engine](/repositories/game-engine/index) for Pick'em and Trivia
 - **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
 - **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
 
 ## What changed since last docs sync
 
-- OpenAPI is 132 paths. New generated surfaces include sports catalog, team search/join/roster, leagues, locker-room drafts/likes, Game Center `/api/events/*`, notifications, and settings.
+- OpenAPI is **187** paths. New generated surfaces include `/api/v1/marketplace/*`, KYC (`/api/v1/kyc/*`, `/api/v1/user/kyc-status`), the [Game Engine](/repositories/game-engine/index), leftover public `/api/games/*` play routes, `GET /api/events/realtime`, and `GET /api/leagues/{leagueId}/standings`.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
@@ -101,6 +101,9 @@ This app is the primary API surface for the D-Sports platform. The [API referenc
   </Card>
   <Card title="Games" icon="gamepad-2" href="/repositories/d-sports-api/games/index">
     Public team mini-game catalog and play-route coverage.
+  </Card>
+  <Card title="Game Engine" icon="blocks" href="/repositories/game-engine/index">
+    Modular daily mini-games: client, server, and how you add a game.
   </Card>
   <Card title="Backend coverage status" icon="clipboard-list" href="/repositories/d-sports-api/gamification/coverage-status">
     What is documented vs missing across non-admin backend domains.

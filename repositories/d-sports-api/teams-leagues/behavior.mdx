@@ -28,6 +28,7 @@ Both routes require privileged authorization and return structured sync summarie
 - `POST/DELETE /api/teams/{id}/join` mutates leaderboard membership only and is idempotent. `TeamFollow` is unchanged.
 - `GET /api/teams/{id}/roster` is public and returns active `Player` rows for the lineup builder.
 - `/api/leagues` returns league metadata and color/logo payloads.
+- `GET /api/leagues/{leagueId}/standings` returns already-sorted `{ rows, tiebreakRules }`. Prefer unique vendor rank; otherwise points, wins, then goal difference.
 - Client apps should tolerate propagation delay immediately after sync events.
 
 ## Troubleshooting checklist

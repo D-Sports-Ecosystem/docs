@@ -14,7 +14,8 @@ icon: "list-checks"
 - `POST /api/webhooks/revenuecat`
 - `GET /api/v1/product_entitlement_mapping`
 - `GET /api/v1/cards/{id}/provenance`
-- `/v1/marketplace/*` (shipped, OpenAPI pending)
+- `/api/v1/marketplace/*` (published in OpenAPI)
+- `POST /api/v1/kyc/link-token`, `POST /api/v1/kyc/session/complete`, `GET /api/v1/user/kyc-status`
 
 ## Runtime behavior highlights
 
@@ -22,7 +23,8 @@ icon: "list-checks"
 - Checkout endpoints initialize and verify purchase attempts before final persistence.
 - Webhook path reconciles provider-side purchase state into app-side records.
 - dsports-cash endpoints expose tier/balance and purchase lifecycle behavior.
-- Marketplace `listings/mine` aliases `me/listings`.
+- Marketplace `listings/mine` aliases `me/listings`. `POST /listings` requires `x-listing-pin-token`.
+- List and detail marketplace GETs declare optional bearer auth. `featured` and `price-suggestion` stay anonymous.
 - Listing a pack still in `processing` returns `409 PACK_NOT_LISTABLE`. An opened pack returns `409 PACK_ALREADY_OPENED`.
 - Auction `reservePrice` is optional and auction-only. Missed reserve ends as `ended-reserve-not-met`.
 - Card provenance is public and assembled from existing ownership, sale, and mint rows.

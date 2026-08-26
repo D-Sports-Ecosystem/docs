@@ -1,0 +1,51 @@
+---
+title: "Game Engine API"
+description: "Additive catalog and session verbs for the modular mini-game engine. Published in OpenAPI."
+---
+
+## Scope
+
+This guide is the HTTP contract for `/api/v1/engage/games/*`. It is additive to the public [Games catalog](/api-reference/domains/games). Do not replace `GET /api/games/catalog` with the engine catalog. Clients that already consume the unversioned route keep working.
+
+Deep dives: [Game Engine overview](/repositories/game-engine/index) · [Client](/repositories/game-engine/client) · [Server](/repositories/game-engine/server) · [Modularity](/repositories/game-engine/modularity)
+
+## Coverage
+
+Status: **Publish**.
+
+These operations are in generated OpenAPI under the `Game Engine` tag (also tagged `Games` and `Engage`). They landed in [d-sports-api#536](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/536). Use the **Endpoints** group for request/response playgrounds.
+
+## Endpoints
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Omit both for the platform catalogue. `X-Client-Version` is optional on the wire. Returns `{ daily, weekly }` groups of catalog rows that include `playable` and `reason`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume the current UTC day slot (`dayKey`). Body `{ teamId?, leaderboardId? }`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session? }`. If `session` is omitted, keep the session you already have. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Settles awarded points / Rep, or returns `PENDING_RESOLUTION` when the result is still outstanding. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
+
+Send `Authorization: Bearer <Clerk token>` on session verbs.
+
+`X-Client-Version` is optional in OpenAPI. If you build a supported Engage native client, send it on every engine call. If a game has `minClientVersion` and the header is missing or unparseable, the catalog marks the row `UPDATE_REQUIRED` and session start returns `403 GAME_UPDATE_REQUIRED`. If `minClientVersion` is unset, an absent header does not block play.
+
+Session start returns:
+
+- `403 GAME_UPDATE_REQUIRED` when the binary is below `minClientVersion`
+- `404 GAME_UNKNOWN` for an unknown key
+- `409 GAME_DAILY_NOT_ELIGIBLE` when the current UTC day slot is already used
+
+## Client rules
+
+- Render **awarded** Rep after complete, not `requested`.
+- Treat `GAME_UPDATE_REQUIRED` as an update wall. Treat `GAME_DAILY_NOT_ELIGIBLE` as already played.
+- Reject scenario payloads that leak answers (`correctIndex`, `resolutionKey`, `answer`).
+- Do not call `/v1/engage/rep/earn` from a playfield. Awards are server-side.
+
+## Not in this guide
+
+- `GET /api/games/catalog` and legacy play routes — [Games API](/api-reference/domains/games)
+- Game Center schedule and realtime — `/api/events/*`
+- Admin catalog management — redacted
+- Cron settlement — excluded
+- Deprecated `POST /api/games/daily-spin/reward` — excluded

@@ -38,7 +38,7 @@ Copy and track:
 
 Prefer `gh repo clone` / `gh repo sync` of `main` (depth 1 is fine).
 
-Place checkouts so `scripts/sync-openapi.ts` works: sibling `../d-sports-api` relative to this repo root.
+Place checkouts so `scripts/sync-openapi.ts` works: sibling `../d-sports-api`, or pass `--api <dir>` / `D_SPORTS_API`.
 
 If a sibling checkout is dirty or not `main`, clone into a throwaway directory instead of mutating someone else's worktree.
 
@@ -85,7 +85,8 @@ Do **not** add debug, cron, internal, or privileged admin-override routes.
 
 ```bash
 bun run sync-openapi
-# or: cp "$API/openapi.json" api-reference/openapi.json
+# or: bun run sync-openapi -- --api "$API"
+# or: D_SPORTS_API="$API" bun run sync-openapi
 ```
 
 Confirm path counts match.

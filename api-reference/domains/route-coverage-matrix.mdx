@@ -36,7 +36,7 @@ Route documentation status uses:
 | `/api/teams/{id}/roster` | Publish | Public real-player roster for the lineup builder. |
 | `/api/user/settings` | Publish | Authenticated settings SoT, including per-channel notify flags. |
 | `/api/locker-room/posts/draft`, `/{id}/like`, `/{id}/poll/vote` | Publish | Composer draft, additive likes, and poll votes. |
-| `/api/events/*` | Publish | Game Center schedule, detail, stats, plays, lineup, chat, mute, presence, ratings. |
+| `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, plays, lineup, chat, mute, presence, ratings. |
 | `/api/discovery/teams`, `/api/discovery/fans` | Publish | Suggested teams (public) and fans (authenticated). |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
@@ -48,11 +48,17 @@ Route documentation status uses:
 | `/api/games/daily-spin/config`, `/state`, `/spin` | Publish | Public config + authenticated spin/state. |
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
-| `/api/games/guess-player/players`, `/session/invalidate`, `/api/games/live/*` (start/join/score/end), `/api/games/pick-em*` | Shipped, OpenAPI pending | Additional play routes; catalog + published play paths are the stable contract. |
+| `/api/leagues/{leagueId}/standings` | Publish | Public HQ standings (`rows`, `tiebreakRules`). |
+| `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
+| `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |
+| `/api/games/live/by-code/{code}`, `/join`, `/{sessionId}/leaderboard`, `/{sessionId}/score` | Publish | Authenticated live-arena fan routes. |
+| `/api/games/live/start`, `/api/games/live/{sessionId}/end` | Publish with redaction | Team-manager start/end. Document RBAC only. |
+| `/api/games/pick-em/players` | Publish | Leftover roster helper. Engine Pick'em does not use this path. |
+| `/api/games/daily-spin/reward` | Exclude | Deprecated client-claimed reward. New clients use `POST /api/games/daily-spin/spin`. |
 | `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
-| `/v1/marketplace/*` | Shipped, OpenAPI pending | Marketplace catch-all. Native `listings/mine` aliases `me/listings`. Pack listing can return `PACK_NOT_LISTABLE`. |
-| `/v1/kyc/*`, `/v1/user/kyc-status` | Shipped, OpenAPI pending | KYC session helpers. Not a public integration surface yet. |
+| `/api/v1/marketplace/*` | Publish | Expanded catch-all. Native `listings/mine` aliases `me/listings`. Create requires `x-listing-pin-token`. Pack listing can return `409 PACK_NOT_LISTABLE` or `PACK_ALREADY_OPENED`. See [Commerce](/api-reference/domains/commerce). |
+| `/api/v1/kyc/link-token`, `/api/v1/kyc/session/complete`, `/api/v1/user/kyc-status` | Publish | Authenticated KYC session helpers. Status only; no vendor secrets. |
 | `/api/admin/games*`, `/api/admin/teams/[teamId]/games` | Publish with redaction | Catalogue management and team game selection; redact ops internals. |
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
 | `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
@@ -69,7 +75,7 @@ Route documentation status uses:
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus marketplace catch-all, KYC, and remaining live/pick-em play routes. Curated domain pages cover approved admin/team routes and those pending public contracts without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations. There is no leftover unversioned public helper set outside that list. Marketplace, KYC, Game Engine, and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` and staff-only `POST /featured` / `POST /promos` stay excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 

@@ -1,14 +1,16 @@
 ---
 title: "Games"
-description: "Team mini-game catalog and play-route coverage for d-sports-api."
+description: "Team mini-game catalog, legacy play routes, and Game Center coverage for d-sports-api."
 icon: "gamepad-2"
 ---
 
 ## Scope
 
-This section covers the public per-team mini-game catalog and the play routes that exist behind it.
+This section covers the public per-team mini-game catalog, the legacy `/api/games/*` play routes, and Game Center `/api/events/*`.
 
-The published contract is `GET /api/games/catalog` plus Game Center `/api/events/*`. Play routes for daily spin, guess-the-player, live games, and pick-em are implemented and consumed by native, but they are not all in the generated OpenAPI yet.
+The published catalog contract is `GET /api/games/catalog`. Daily spin, guess-the-player (including players/invalidate), live arena (active, by-code, join, score, leaderboard, manager start/end), and leftover `GET /api/games/pick-em/players` are in generated OpenAPI. Deprecated `POST /api/games/daily-spin/reward` is excluded.
+
+New daily mini-games use the [Game Engine](/repositories/game-engine/index). That is a separate Guides section.
 
 ## Subsections
 
@@ -18,5 +20,8 @@ The published contract is `GET /api/games/catalog` plus Game Center `/api/events
   </Card>
   <Card title="Behavior" icon="list-checks" href="/repositories/d-sports-api/games/behavior">
     Catalog response rules and client integration notes.
+  </Card>
+  <Card title="Game Engine" icon="gamepad-2" href="/repositories/game-engine/index">
+    Client, server, and modularity for `/api/v1/engage/games/*`.
   </Card>
 </CardGroup>

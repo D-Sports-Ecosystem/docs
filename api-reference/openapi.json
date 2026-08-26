@@ -142,6 +142,10 @@
       "description": "Team mini-game catalog and play routes"
     },
     {
+      "name": "Game Engine",
+      "description": "Engage native catalog and server-authoritative daily session lifecycle"
+    },
+    {
       "name": "Events",
       "description": "Game schedule, Game Center, chat, presence, and ratings"
     },
@@ -160,6 +164,14 @@
     {
       "name": "Leagues",
       "description": "League metadata and branding"
+    },
+    {
+      "name": "Marketplace",
+      "description": "Listings, bids, offers, cart, and shop merchandising"
+    },
+    {
+      "name": "KYC",
+      "description": "Identity verification session helpers"
     }
   ],
   "paths": {
@@ -185,7 +197,7 @@
           "Rep"
         ],
         "summary": "Grant D-Sports Direct Rep to a user",
-        "description": "isAdmin only. Body: { amount: integer 1\u2013100000, reason?: string max 200 }. Each POST is a new grant (server-generated idempotency key).",
+        "description": "isAdmin only. Body: { amount: integer 1–100000, reason?: string max 200 }. Each POST is a new grant (server-generated idempotency key).",
         "security": [
           {
             "bearerAuth": []
@@ -612,7 +624,7 @@
           "Collectibles and packs"
         ],
         "summary": "Transfer a card to another binder",
-        "description": "Path id is the source binder. Binder PIN \u2260 wallet PIN.",
+        "description": "Path id is the source binder. Binder PIN ≠ wallet PIN.",
         "security": [
           {
             "bearerAuth": []
@@ -1055,6 +1067,21 @@
         }
       }
     },
+    "/api/events/realtime": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Discover Game Center Realtime Broadcast",
+        "description": "Public. Returns supabase URL, anon key, and the private channel template `events:{gameId}`. Subscribe with the anon key; only the API service role may broadcast. Polling/ETag/afterId remain the hydrate + reconnect path.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { enabled, url, anonKey, channelPrefix, channelForGame, private, events, note } }"
+          }
+        }
+      }
+    },
     "/api/events/schedule": {
       "get": {
         "tags": [
@@ -1087,7 +1114,7 @@
           "Events"
         ],
         "summary": "Get game event",
-        "description": "Public Game Center detail for one event.",
+        "description": "Public Game Center detail for one event. Includes a `realtime` pointer `{ channel, events }` (no anon key). Discover URL/anon key via GET /api/events/realtime.",
         "parameters": [
           {
             "name": "gameId",
@@ -1564,6 +1591,47 @@
         }
       }
     },
+    "/api/games/guess-player/players": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Search Guess the Player roster",
+        "description": "Autocomplete over seeded Player rows. Empty q returns an empty players list.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ query, players[] }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
     "/api/games/guess-player/session/guess": {
       "post": {
         "tags": [
@@ -1606,6 +1674,56 @@
           },
           "401": {
             "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/games/guess-player/session/invalidate": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Invalidate a Guess the Player session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sessionId",
+                  "reason"
+                ],
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ found, status, remainingGuesses }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
           }
         }
       }
@@ -1654,6 +1772,336 @@
           },
           "400": {
             "description": "teamId required"
+          }
+        }
+      }
+    },
+    "/api/games/live/by-code/{code}": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Look up a live game by join code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "session"
+          },
+          "400": {
+            "description": "code required"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/games/live/join": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Join a live game by code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 12
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ session, participant }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/games/live/start": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Start a live game (team manager)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "teamId",
+                  "gameKey",
+                  "title",
+                  "prizeTiers"
+                ],
+                "properties": {
+                  "teamId": {
+                    "type": "string"
+                  },
+                  "gameKey": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "prizeTiers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "session"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/games/live/{sessionId}/end": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "End a live game (team manager)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "teamId"
+                ],
+                "properties": {
+                  "teamId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ session }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/games/live/{sessionId}/leaderboard": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Live game leaderboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ entries[] }"
+          },
+          "400": {
+            "description": "sessionId required"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/games/live/{sessionId}/score": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Submit a live-game score delta",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "delta"
+                ],
+                "properties": {
+                  "delta": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ score }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/games/pick-em/players": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Legacy Pick'em player list",
+        "description": "Leftover roster helper. Engine Pick'em does not use this path.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ players[] }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
           }
         }
       }
@@ -1880,6 +2328,35 @@
         }
       }
     },
+    "/api/leagues/{leagueId}/standings": {
+      "get": {
+        "tags": [
+          "Leagues"
+        ],
+        "summary": "Get league standings",
+        "description": "HQ Standings tab. Public. Rows are already sorted. Prefer unique vendor rank; otherwise points, wins, then goal difference. tiebreakRules names that fallback only. 404 if the league id/slug is missing. Empty rows when the league cannot be scored honestly.",
+        "parameters": [
+          {
+            "name": "leagueId",
+            "in": "path",
+            "required": true,
+            "description": "Prisma League.id or slug (not the vendor NHL id).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { rows, tiebreakRules } }"
+          },
+          "404": {
+            "description": "League not found"
+          }
+        }
+      }
+    },
     "/api/locker-room": {
       "get": {
         "tags": [
@@ -1930,6 +2407,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorTeamId",
+            "in": "query",
+            "description": "When set, only return posts authored officially by this team",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "security": [],
@@ -1968,6 +2453,11 @@
                   "postAsTeamId": {
                     "type": "string",
                     "description": "Native alias for authorTeamId"
+                  },
+                  "scheduledFor": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Scheduled publish date (ISO 8601)"
                   },
                   "privacy": {
                     "type": "string",
@@ -2804,7 +3294,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ collectibles }"
+            "description": "{ collectibles, mintedNftIds, landedBinderId }"
           }
         }
       }
@@ -3536,7 +4026,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured).",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read.",
         "parameters": [
           {
             "name": "suggest",
@@ -4079,13 +4569,13 @@
             "description": "{ success, data: { success, id, muterId, mutedId } }"
           },
           "400": {
-            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty mutedUserId or handle, or self-mute"
+            "description": "{ success: false, error, code: VALIDATION_ERROR } — missing/empty mutedUserId or handle, or self-mute"
           },
           "401": {
             "description": "{ success: false, error, code: UNAUTHORIZED }"
           },
           "404": {
-            "description": "{ success: false, error, code: NOT_FOUND } \u2014 mutedUserId/handle did not resolve"
+            "description": "{ success: false, error, code: NOT_FOUND } — mutedUserId/handle did not resolve"
           },
           "500": {
             "description": "{ success: false, error, code: INTERNAL_ERROR }"
@@ -4118,13 +4608,13 @@
             "description": "{ success, data: { success: true } }"
           },
           "400": {
-            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty mutedUserId or handle"
+            "description": "{ success: false, error, code: VALIDATION_ERROR } — missing/empty mutedUserId or handle"
           },
           "401": {
             "description": "{ success: false, error, code: UNAUTHORIZED }"
           },
           "404": {
-            "description": "{ success: false, error, code: NOT_FOUND } \u2014 mutedUserId/handle did not resolve"
+            "description": "{ success: false, error, code: NOT_FOUND } — mutedUserId/handle did not resolve"
           },
           "500": {
             "description": "{ success: false, error, code: INTERNAL_ERROR }"
@@ -4204,13 +4694,13 @@
             "description": "{ success, data: { id, blockerId, blockedId, createdAt } }"
           },
           "400": {
-            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty blockedUserId or handle, or self-block"
+            "description": "{ success: false, error, code: VALIDATION_ERROR } — missing/empty blockedUserId or handle, or self-block"
           },
           "401": {
             "description": "{ success: false, error, code: UNAUTHORIZED }"
           },
           "404": {
-            "description": "{ success: false, error, code: NOT_FOUND } \u2014 blockedUserId/handle did not resolve"
+            "description": "{ success: false, error, code: NOT_FOUND } — blockedUserId/handle did not resolve"
           },
           "500": {
             "description": "{ success: false, error, code: INTERNAL_ERROR }"
@@ -4245,13 +4735,13 @@
             "description": "{ success, data: { success: true } }"
           },
           "400": {
-            "description": "{ success: false, error, code: VALIDATION_ERROR } \u2014 missing/empty blockedUserId or handle"
+            "description": "{ success: false, error, code: VALIDATION_ERROR } — missing/empty blockedUserId or handle"
           },
           "401": {
             "description": "{ success: false, error, code: UNAUTHORIZED }"
           },
           "404": {
-            "description": "{ success: false, error, code: NOT_FOUND } \u2014 blockedUserId/handle did not resolve"
+            "description": "{ success: false, error, code: NOT_FOUND } — blockedUserId/handle did not resolve"
           },
           "500": {
             "description": "{ success: false, error, code: INTERNAL_ERROR }"
@@ -4523,26 +5013,47 @@
           "User"
         ],
         "summary": "Search users",
+        "description": "Authenticated paginated user search. Default scope matches handle, name, and (for q length >= 2) location. `scope=mention` matches handle and name only and omits users without a handle — use this from @mention typeahead so a city fragment cannot outrank a handle. `limit` is accepted (1–50, default 20). Each row uses `profileUrl` (not `avatar`); there is no `level` field. `handle` is nullable on the default scope and non-empty on `scope=mention`. `location` is always returned as a profile field; only the default scope uses it for matching and ranking.",
         "parameters": [
           {
             "name": "q",
             "in": "query",
+            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".*\\S.*"
             }
           },
           {
             "name": "page",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
             }
           },
           {
             "name": "limit",
             "in": "query",
+            "description": "Page size. Accepted; typeaheads should send their visible row count (e.g. 6) instead of slicing a full page client-side.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Omit for the default explore search. `mention` matches handle and name only.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mention"
+              ]
             }
           }
         ],
@@ -4553,7 +5064,91 @@
         ],
         "responses": {
           "200": {
-            "description": "{ users, total, page, totalPages, query }"
+            "description": "{ success, data: { users, total, page, totalPages, query } }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "users",
+                        "total",
+                        "page",
+                        "totalPages",
+                        "query"
+                      ],
+                      "properties": {
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/UserSearchUser"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        },
+                        "query": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Empty q, invalid page/limit, or unknown scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
           }
         }
       }
@@ -4564,7 +5159,7 @@
           "User"
         ],
         "summary": "Get user settings",
-        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans and accessibility flags.",
+        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, and liveScoreUpdates (opt-in, default false) for OS live score surfaces.",
         "security": [
           {
             "bearerAuth": []
@@ -4581,7 +5176,7 @@
           "User"
         ],
         "summary": "Update user settings",
-        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity separately. Do not write preferences.privacy.",
+        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity, and liveScoreUpdates (opt-in Live Activity / ongoing notification consent) separately. Do not write preferences.privacy.",
         "security": [
           {
             "bearerAuth": []
@@ -4781,6 +5376,313 @@
         }
       }
     },
+    "/api/v1/engage/games/catalog": {
+      "get": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Engage game catalog with playability marks",
+        "description": "Additive to GET /api/games/catalog. Query teamId or teamSlug; omit both for the platform catalogue. Marks unplayable rows with playable/reason instead of omitting them. Optional X-Client-Version drives UPDATE_REQUIRED.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamSlug",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Games below minClientVersion are marked playable=false, reason=UPDATE_REQUIRED."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ daily, weekly } EngineCatalogGame[] with playable and reason (UPDATE_REQUIRED | NOT_SHIPPED | null)"
+          },
+          "404": {
+            "description": "Team not found"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/{gameKey}/session": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Start or resume a daily game session",
+        "description": "Starts or resumes the caller's daily slot for gameKey. Optional X-Client-Version is checked against minClientVersion.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gameKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teamId": {
+                    "type": "string"
+                  },
+                  "leaderboardId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ session }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          },
+          "409": {
+            "description": "GAME_DAILY_NOT_ELIGIBLE"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/{gameKey}/session/{sessionId}/action": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Submit a server-authoritative game action",
+        "description": "Applies input to the session. Outcome is computed on the server.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gameKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {},
+                  "sequenceNumber": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ outcome, session }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/{gameKey}/session/{sessionId}/complete": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Complete a game session and bank awards",
+        "description": "Banks awarded points / Rep for the session.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gameKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ awarded, requested, totalPoints, status }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Forfeit a game session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gameKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ sessionId, status: FORFEITED }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
     "/api/v1/engage/rep/breakdown": {
       "get": {
         "tags": [
@@ -4788,7 +5690,7 @@
           "Engage"
         ],
         "summary": "Fan Rep totals split by source",
-        "description": "Sums Fan, Club, Player, and Direct ledger rows for the authenticated user. clubRepByTeam only includes Club targetIds that resolve to a Team.",
+        "description": "Sums Fan, Club, Player, and Direct ledger rows plus the user's PointsHistory total (questsAndGamesRep). clubRepByTeam only includes Club targetIds that resolve to a Team.",
         "security": [
           {
             "bearerAuth": []
@@ -4796,7 +5698,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, questsAndGamesRep, clubRepByTeam[] }"
           },
           "401": {
             "description": "Authentication required"
@@ -4847,6 +5749,2043 @@
           },
           "401": {
             "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/kyc/link-token": {
+      "post": {
+        "tags": [
+          "KYC",
+          "User"
+        ],
+        "summary": "Create a KYC Link token",
+        "description": "Authenticated session helper. Returns a short-lived Link token. No Plaid dashboard URLs or webhook secrets.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "retry": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data: { linkToken, expiration, identityVerificationId, status } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "No prior verification session to retry"
+          }
+        }
+      }
+    },
+    "/api/v1/kyc/session/complete": {
+      "post": {
+        "tags": [
+          "KYC",
+          "User"
+        ],
+        "summary": "Complete a KYC Link session",
+        "description": "Accepts the local IdentityVerification id from link-token / kyc-status, or Plaid's identity_verification_id from Link onSuccess.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "identityVerificationId"
+                ],
+                "properties": {
+                  "identityVerificationId": {
+                    "type": "string"
+                  },
+                  "linkSessionId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data: { status, verifiedAt } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "502": {
+            "description": "UPSTREAM_ERROR"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "List marketplace listings",
+        "description": "Optional auth. Same handler as GET /api/v1/marketplace/listings. Viewer context personalizes serialized rows when a session is present.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "itemType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "pack"
+              ]
+            }
+          },
+          {
+            "name": "listingType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sale",
+                "auction",
+                "trade",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recent",
+                "price-asc",
+                "price-desc",
+                "ending-soon",
+                "most-bids"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "rarities",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated rarities"
+          },
+          {
+            "name": "teams",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated team ids"
+          },
+          {
+            "name": "leagues",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated league ids"
+          },
+          {
+            "name": "sport",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "auctionState",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "ending-soon",
+                "just-started",
+                "has-bids"
+              ]
+            }
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings, totalCount, hasMore } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/activity": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Marketplace activity inbox",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { activity } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/activity/{id}/read": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Mark marketplace activity as read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/bids/{bidId}": {
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Retract a bid",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/cart": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Get shop cart",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { items } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Add a product to the cart",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "productId"
+                ],
+                "properties": {
+                  "productId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/cart/{itemId}": {
+      "patch": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Update cart item quantity",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "quantity"
+                ],
+                "properties": {
+                  "quantity": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Remove a cart item",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/collectibles/{id}/listings": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Listings for a collectible",
+        "description": "Optional auth. Keyset pagination.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings, nextCursor? } }"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/favorites": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Get shop favorites",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { items } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Add a product to favorites",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "productId"
+                ],
+                "properties": {
+                  "productId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/favorites/{itemId}": {
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Remove a favorite",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/featured": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Featured marketplace listings",
+        "description": "Public merchandising feed. Cache-Control: public, s-maxage=60, stale-while-revalidate=30. POST is staff-only and omitted from this public spec.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "itemType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "pack"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "List marketplace listings",
+        "description": "Same list handler as GET /api/v1/marketplace.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "itemType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "pack"
+              ]
+            }
+          },
+          {
+            "name": "listingType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sale",
+                "auction",
+                "trade",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recent",
+                "price-asc",
+                "price-desc",
+                "ending-soon",
+                "most-bids"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "rarities",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated rarities"
+          },
+          {
+            "name": "teams",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated team ids"
+          },
+          {
+            "name": "leagues",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated league ids"
+          },
+          {
+            "name": "sport",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "auctionState",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "ending-soon",
+                "just-started",
+                "has-bids"
+              ]
+            }
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings, totalCount, hasMore } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Create a listing",
+        "description": "Requires a valid x-listing-pin-token for the caller. Optional reservePrice on auctions only.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "x-listing-pin-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "PIN verification token. Missing or invalid → 401 PIN_TOKEN_INVALID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "itemType",
+                  "itemId",
+                  "type"
+                ],
+                "properties": {
+                  "itemType": {
+                    "type": "string",
+                    "enum": [
+                      "card",
+                      "pack"
+                    ]
+                  },
+                  "itemId": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "sale",
+                      "auction",
+                      "trade"
+                    ]
+                  },
+                  "salePrice": {
+                    "type": "number"
+                  },
+                  "openToTradeOffers": {
+                    "type": "boolean"
+                  },
+                  "startingBid": {
+                    "type": "number"
+                  },
+                  "askingPrice": {
+                    "type": "number"
+                  },
+                  "buyNowPrice": {
+                    "type": "number"
+                  },
+                  "durationDays": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      3,
+                      7,
+                      14
+                    ]
+                  },
+                  "reservePrice": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "tradeCriteria": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data: { listing } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED or PIN_TOKEN_INVALID"
+          },
+          "409": {
+            "description": "PACK_NOT_LISTABLE | PACK_ALREADY_OPENED | already listed"
+          },
+          "503": {
+            "description": "CONFIGURATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/mine": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "My listings (native alias)",
+        "description": "Alias of GET /api/v1/marketplace/me/listings. Native still calls this path.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/{id}": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Get a listing",
+        "description": "Optional auth. Bare GET /api/v1/marketplace/{id} also resolves a listing (not documented as its own path).",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listing } }"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Cancel a listing",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/{id}/bids": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Listing bid history",
+        "description": "Optional auth.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { bids } }"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Place a bid",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/{id}/buy": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Buy a listing now",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/{id}/offers": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Send a trade offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "offeredCardIds",
+                  "offeredPackIds"
+                ],
+                "properties": {
+                  "offeredCardIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "offeredPackIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expiresInDays": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      3,
+                      7,
+                      14,
+                      30
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data: { offer } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/listings/{id}/subscribe": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Subscribe to listing updates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "push": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Unsubscribe from listing updates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/me/listings": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "My listings",
+        "description": "Live path. Native alias: GET /api/v1/marketplace/listings/mine.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/me/purchases": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "My purchases",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { purchases } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/me/sales": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "My sales",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { sales } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/received": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Received trade offers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { offers } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/sent": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Sent trade offers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { offers } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/{id}": {
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Withdraw a trade offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/{id}/accept": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Accept a trade offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/{id}/counter": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Counter a trade offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "offeredCardIds",
+                  "offeredPackIds"
+                ],
+                "properties": {
+                  "offeredCardIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "offeredPackIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "expiresInDays": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      3,
+                      7,
+                      14,
+                      30
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data: { offer } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/offers/{id}/reject": {
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Reject a trade offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/price-suggestion": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Suggested listing price",
+        "description": "Public. itemId and itemType (card | pack) are required.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "itemType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "card",
+                "pack"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/promos": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Shop promos for the caller",
+        "description": "Published, in-window promos for teams the caller follows, favorites, or has joined. POST is staff / team-manager only and omitted from this public spec.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { promos } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/receipts/{receiptId}": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Get a marketplace receipt",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "receiptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { receipt } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/suggested-collectibles": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Suggested collectible listings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 8
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/suggested-packs": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Suggested pack listings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 8
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/top-bids": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Top active auctions by bid count",
+        "description": "Optional auth.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { listings } }"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/wishlist": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Get wishlist",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { entries } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Add to wishlist",
+        "description": "Either listingId, or both itemType and itemId.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "listingId": {
+                    "type": "string"
+                  },
+                  "itemType": {
+                    "type": "string",
+                    "enum": [
+                      "card",
+                      "pack"
+                    ]
+                  },
+                  "itemId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/wishlist/{entryId}": {
+      "delete": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Remove a wishlist entry",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/api/v1/user/kyc-status": {
+      "get": {
+        "tags": [
+          "KYC",
+          "User"
+        ],
+        "summary": "Current KYC status",
+        "description": "Status only. Lives under /api/v1/user, not marketplace. No vendor dashboard URLs.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { status, verifiedAt, identityVerificationId } }"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND"
           }
         }
       }
@@ -4921,7 +7860,7 @@
             "description": "{ wallet }"
           }
         },
-        "description": "PIN is required for every create path. Custodial create: `{ pin, legalTermsVersion }` only \u2014 server generates secrets. Import/link: `pin` plus `address` plus `encryptedPrivateKey` or `privateKey` (optional `mnemonic`)."
+        "description": "PIN is required for every create path. Custodial create: `{ pin, legalTermsVersion }` only — server generates secrets. Import/link: `pin` plus `address` plus `encryptedPrivateKey` or `privateKey` (optional `mnemonic`)."
       },
       "delete": {
         "tags": [
@@ -5392,7 +8331,7 @@
           "Engage"
         ],
         "summary": "Fan Rep totals split by source plus per-team Club Rep subtotals",
-        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. totalFanRep is the sum of all four.",
+        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. questsAndGames is the PointsHistory sum (quests, daily spin, guess-the-player, mini-games) — a separate ledger, unified here at the read layer only. totalFanRep is the sum of all five.",
         "security": [
           {
             "bearerAuth": []
@@ -5400,7 +8339,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, questsAndGamesRep, clubRepByTeam[] }"
           },
           "401": {
             "description": "Authentication required"
@@ -5492,6 +8431,89 @@
         "type": "http",
         "scheme": "bearer",
         "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+      }
+    },
+    "schemas": {
+      "UserSearchUser": {
+        "type": "object",
+        "description": "Public search row. Image URL is `profileUrl` (not `avatar`). There is no `level`. `handle` may be null on the default scope; `scope=mention` only returns non-empty handles. `location` is a profile field on every row — only the default scope also matches and ranks on it.",
+        "required": [
+          "id",
+          "name",
+          "handle",
+          "profileUrl",
+          "profileUrlThumbhash",
+          "bio",
+          "location",
+          "favoriteTeam",
+          "stats"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profileUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profileUrlThumbhash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "favoriteTeam": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stats": {
+            "type": "object",
+            "required": [
+              "followerCount",
+              "followingCount",
+              "totalPoints"
+            ],
+            "properties": {
+              "followerCount": {
+                "type": "integer"
+              },
+              "followingCount": {
+                "type": "integer"
+              },
+              "totalPoints": {
+                "type": "integer"
+              }
+            }
+          }
+        }
       }
     }
   }

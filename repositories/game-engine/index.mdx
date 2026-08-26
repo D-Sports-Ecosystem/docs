@@ -1,0 +1,52 @@
+---
+title: "Game Engine"
+description: "Modular mini-game engine shared by Engage native and d-sports-api: client shell, server sessions, and how you add a game."
+sidebarTitle: "Overview"
+icon: "gamepad-2"
+tag: "NEW"
+---
+
+The Game Engine is the shared contract for **new** daily mini-games. The server owns scores, rewards, and session status. The client ships playfields in the app binary and renders them inside one shared shell.
+
+This is a different surface from the older `/api/games/*` play routes (daily spin, guess-the-player, live arena) and from Game Center `/api/events/*`. Those stay documented under [Games](/repositories/d-sports-api/games/index).
+
+## What you get
+
+- A public additive catalog that **marks** unplayable games instead of hiding them.
+- Authenticated session verbs: start, action, complete, forfeit.
+- A native registry so a new game is a folder plus `registerGame`, not a new Expo route file.
+- `X-Client-Version` on every engine call so an outdated binary can show **Update required**.
+
+## Sections
+
+<CardGroup cols={2}>
+  <Card title="Client" icon="smartphone" href="/repositories/game-engine/client">
+    Registry, GameShell, HUD, catalog join, and launch routes.
+  </Card>
+  <Card title="Server" icon="server" href="/repositories/game-engine/server">
+    `/api/v1/engage/games/*`, session statuses, awards, and error codes.
+  </Card>
+  <Card title="Modularity" icon="blocks" href="/repositories/game-engine/modularity">
+    How you add a game without editing a shared union.
+  </Card>
+  <Card title="API guide" icon="terminal" href="/api-reference/domains/game-engine">
+    Endpoint map and coverage status for the engine HTTP surface.
+  </Card>
+</CardGroup>
+
+## Shipped vs legacy
+
+| Surface | Engine? | Keys / routes |
+| --- | --- | --- |
+| Daily Pick'em | Yes | `daily-pickem` → `/(tabs)/locker-room/games/daily-pickem` |
+| Daily Trivia | Yes | `daily-trivia` → `/(tabs)/locker-room/games/daily-trivia` |
+| Prize Wheel / Daily Spin | No (legacy) | `/api/games/daily-spin/*` |
+| Guess the Player | No (legacy) | `/api/games/guess-player/session/*` |
+| Arena Live | No (legacy) | `/api/games/live/*` |
+| Game Center | No (sports events) | `/api/events/*` |
+
+Native v1 registers Pick'em and Trivia only. The server catalog can list additional keys. An unknown key is a first-class **Update required** / **Not in this build** state, not a crash.
+
+<Note>
+  Engine routes are in generated OpenAPI under the `Game Engine` tag. Use the [API guide](/api-reference/domains/game-engine) plus the **Endpoints** playground for the HTTP surface.
+</Note>

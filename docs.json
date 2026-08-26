@@ -32,6 +32,15 @@
             ]
           },
           {
+            "group": "Game Engine",
+            "pages": [
+              "repositories/game-engine/index",
+              "repositories/game-engine/client",
+              "repositories/game-engine/server",
+              "repositories/game-engine/modularity"
+            ]
+          },
+          {
             "group": "Repositories",
             "pages": [
               "repositories/d-sports-api",
@@ -227,6 +236,7 @@
               "api-reference/domains/gamification",
               "api-reference/domains/fan-rep",
               "api-reference/domains/games",
+              "api-reference/domains/game-engine",
               "api-reference/domains/commerce",
               "api-reference/domains/collectibles",
               "api-reference/domains/wallet-web3",

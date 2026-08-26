@@ -1,0 +1,96 @@
+---
+title: "Game Engine server"
+description: "Server-authoritative sessions, catalog, and awards for /api/v1/engage/games."
+sidebarTitle: "Server"
+icon: "server"
+---
+
+The engine runs in `d-sports-api` under `server/games/`. Client routes are `/api/v1/engage/games/*`. The older `/api/games/*` play routers stay for Daily Spin, Guess the Player, and live arena.
+
+## HTTP surface
+
+Base path: `/api/v1/engage/games`. Catalog is public. Session verbs require a Clerk bearer token. Send `X-Client-Version` on every call.
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/catalog?teamId=` or `?teamSlug=` | Public | Additive catalog. Marks unplayable games instead of omitting them. |
+| `POST` | `/{gameKey}/session` | Clerk | Start (or resume) today's session. Body: `{ teamId?, leaderboardId? }`. |
+| `POST` | `/{gameKey}/session/{sessionId}/action` | Clerk | Submit raw input. Body: `{ input, sequenceNumber? }`. |
+| `POST` | `/{gameKey}/session/{sessionId}/complete` | Clerk | Bank the session. |
+| `POST` | `/{gameKey}/session/{sessionId}/forfeit` | Clerk | Forfeit. Body: `{ reason }`. |
+
+These routes are published in OpenAPI (`Game Engine` tag). See the [API guide](/api-reference/domains/game-engine) and the generated **Endpoints** pages.
+
+## Catalog rules
+
+`GET /api/v1/engage/games/catalog` is additive to `GET /api/games/catalog`. Keep both. Older clients still read the unversioned route.
+
+Engine rows extend the public catalog fields (`id`, `key`, `title`, `description`, `icon`, `badge`) with:
+
+- `playable` (default true)
+- `reason`: `UPDATE_REQUIRED` or `NOT_SHIPPED`
+- `minClientVersion`
+
+The client normalizes `key` and `gameKey` to the same slug. Grouping is `{ daily, weekly }` (a `{ games }` payload is also accepted and split the same way).
+
+Unplayable games stay in the list so the client can show **Update required**.
+
+## Session contract
+
+The server is authoritative. The client sends raw input. Outcomes, points, and status come back from the API.
+
+Statuses you must handle:
+
+`ACTIVE` | `PENDING_RESOLUTION` | `SETTLING` | `COMPLETE` | `FORFEITED` | `EXPIRED`
+
+Projected session fields:
+
+- `sessionId` (or `id`)
+- `gameKey`, `status`
+- `scenario` — secrets stripped. Do not expect `correctIndex`, `resolutionKey`, or `answer`.
+- `configSnapshot` (or `config`)
+- `attemptsUsed`, `maxAttempts`, `maxPointsPerDay`, `pointsAwarded`
+- `teamId`, `leaderboardId`, `expiresAt`, `dayKey`
+
+One session per user per `gameKey` per UTC `dayKey`.
+
+Action response: `{ outcome, session? }`. Outcome carries `id` plus optional `label`, `detail`, `pointsAwarded`, `bonuses[]`, and `tier`. If the payload has no session id, keep the session you already have.
+
+Complete response: `{ totalPoints, awarded, requested?, …, status?: COMPLETE | PENDING_RESOLUTION }`. Render **awarded** in the HUD.
+
+Forfeit reasons the client sends: `backgrounded`, `navigated_away`, `visibility_lost`, `context_changed`, `expired`.
+
+## v1 input
+
+Pick'em and Trivia send `{ optionKey }` from 2–6 `{ key, label }` options. The client parser **rejects** leaked secret fields rather than playing them. Revealed keys (`revealedCorrectKey` / `revealedWinningKey`) appear only after submit.
+
+- **Pick'em** — one UTC-day pick. Locks on submit. Stays `PENDING_RESOLUTION` until the real-world result settles.
+- **Trivia** — immediate resolve. Distinct from locker-room feed polls.
+
+## Errors
+
+| Code | Client behavior |
+| --- | --- |
+| `GAME_UPDATE_REQUIRED` | Same update UI as a registry miss. |
+| `GAME_DAILY_NOT_ELIGIBLE` | Already-played state. |
+
+Do not retry authorization or eligibility errors as if they were transient network failures.
+
+## Models (public-safe)
+
+- `Game` — `key`, cadence, `configJson`, `rewardJson`, `minClientVersion`
+- `TeamGame` / `TeamGameSchedule` — team enablement
+- `GamePrompt` — Pick'em/trivia prompts. Correctness stays server-side.
+- `GameSession` — unique on `(userId, gameKey, dayKey)`
+- `GameSessionAction`, `GameRewardIssuance`
+
+Awards go through a currency-agnostic port (points plus Fan / Club / Player Rep). Settlement and crash recovery are server jobs. Do not call `/v1/engage/rep/earn` from the playfield.
+
+## What this page does not cover
+
+- Admin catalog CRUD and team assignment internals
+- Settlement sweeper / cron internals
+- Physics helpers used by non-v1 content verticals
+- Legacy `/api/games/daily-spin/*`, `/guess-player/*`, and `/live/*`
+
+Those last three stay on [Games behavior](/repositories/d-sports-api/games/behavior).

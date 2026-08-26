@@ -18,6 +18,7 @@ icon: "list-checks"
 - `POST /api/user/follow`
 - `GET /api/user/followers`
 - `GET /api/user/recommended`
+- `GET /api/user/search`
 - `GET/POST/DELETE /api/user/mutes`
 - `GET/POST/DELETE /api/user/blocks`
 
@@ -29,6 +30,8 @@ icon: "list-checks"
 - Attachment-only posts are valid. `lineup` is stored on the post and returned on later reads.
 - `POST /{id}/like` is additive (`{ liked, likeCount }`) and does not replace `/react`.
 - Comment and reaction routes mutate child entities tied to post IDs.
+- Comment create may send `mentionedUserIds`. Edit must send `mentionedUserIds: []` to clear mentions.
+- `GET /api/user/search` requires `q`. Default scope also matches location when `q` is at least 2 characters. `scope=mention` matches handle and name only and omits users without a handle. `limit` is 1–50 (default 20). Rows use `profileUrl`, not `avatar`.
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.
 - Recommendation and follower endpoints read from current social graph state.
