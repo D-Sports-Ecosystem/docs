@@ -29,6 +29,7 @@ icon: "list-checks"
 - Attachment-only posts are valid. `lineup` is stored on the post and returned on later reads.
 - `POST /{id}/like` is additive (`{ liked, likeCount }`) and does not replace `/react`.
 - Comment and reaction routes mutate child entities tied to post IDs.
+- Comment create may send `mentionedUserIds`. Edit must send `mentionedUserIds: []` to clear mentions.
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.
 - Recommendation and follower endpoints read from current social graph state.

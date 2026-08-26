@@ -11,6 +11,7 @@ This is the **public documentation site for the entire D-Sports ecosystem**, bui
 - The **`d-sports-backend`** Rust rewrite (parity/shim only — not the production API)
 - The **`leagues`** data repo (league assets, sync workflows, canonical team data)
 - The **`d-sports-site`** marketing site
+- The **Game Engine** (native client, API server, modularity) as its own Guides section
 - Cross-cutting topics: ecosystem overview, AI tooling integration (Cursor, Claude Code, Windsurf), authentication, errors, rate limits
 
 Pages are MDX files with YAML frontmatter. Configuration lives in `docs.json`. Run `mint dev` to preview locally.
@@ -48,6 +49,7 @@ docs/
 │       ├── gamification.mdx
 │       ├── fan-rep.mdx
 │       ├── games.mdx
+│       ├── game-engine.mdx
 │       ├── wallet-web3.mdx
 │       ├── commerce.mdx
 │       ├── collectibles.mdx
@@ -75,6 +77,7 @@ docs/
 │   │   └── compliance/...
 │   ├── d-sports-site.mdx
 │   ├── d-sports-mic-d-up.mdx
+│   ├── game-engine/                  # Client, server, modularity (cross-repo)
 │   ├── leagues.mdx
 │   └── leagues/                      # sync-workflow.mdx, teams-canonical-data.mdx, team-rosters.mdx
 │

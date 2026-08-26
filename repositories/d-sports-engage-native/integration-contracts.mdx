@@ -45,6 +45,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
 - `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder.
 - League metadata and branding come from `/api/leagues`.
+- `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. Rows arrive sorted. Empty rows mean the league cannot be scored honestly.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
 ## Binder PIN contract
@@ -61,6 +62,8 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `lineup` on create is persisted and echoed. Fetch players from `GET /api/teams/{id}/roster` instead of fabricating names.
 - Composer drafts use `GET/PUT/DELETE /api/locker-room/posts/draft`.
 - `POST /api/locker-room/{id}/like` returns `{ liked, likeCount }` and does not replace `/react`.
+- Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
+- Tapping `@handle` opens that fan's profile.
 
 ## Marketplace contracts
 
@@ -76,10 +79,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - The catalog is admin-managed and team-selected server-side; the client must render only the games returned and must not assume a fixed set.
 - Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`); short-lived staleness after a team changes its selection is expected.
 - Unknown teams return `404`; a missing `teamId`/`teamSlug` returns `400`.
+- Native also calls `GET /api/v1/engage/games/catalog` and joins the two lists. Engine session verbs, HUD rules, and update-required behavior live in [Game Engine](/repositories/game-engine/index). Do not ignore unknown engine keys.
 
 ## Game Center contracts
 
 - `GET /api/events/schedule` accepts repeatable `teamId` query params.
+- `GET /api/events/realtime` is public Broadcast discovery. Event detail includes a `realtime` pointer without the anon key.
 - Detail, box score, plays, and lineup are public reads under `/api/events/{gameId}`.
 - Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
 - Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/v1/engage/rep/earn`.

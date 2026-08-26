@@ -1,0 +1,87 @@
+---
+title: "Game Engine client"
+description: "How Engage native resolves a game key, joins two catalogs, and renders playfields inside GameShell."
+sidebarTitle: "Client"
+icon: "smartphone"
+---
+
+The native Game Engine lives in `d-sports-engage-native`. Game code ships in the app binary. The playfield never computes a result.
+
+## Architecture
+
+One dynamic route plus shared chrome:
+
+1. `lib/games/index.ts` side-effect imports every shipped game so `registerGame` runs.
+2. `resolveGame(key)` looks up the definition. A miss is **Update required**, not an exception.
+3. `GameEngineScreen` starts `useGameSession` and mounts `GameShell`.
+4. `GameHud` shows title, attempt pips, and running Rep.
+5. The playfield renders **inside** the shell. It does not draw its own chrome or `SafeAreaView`.
+
+Launch path: locker-room Game Site or **This Week's Games** → info modal → `launchRouteForGame` → `/(tabs)/locker-room/games/{gameKey}` for engine games.
+
+Daily Spin and Guess the Player still use dedicated modal routes. They are not engine games yet.
+
+## Registry
+
+`lib/games/registry.ts` is an open `Map` of `gameKey → GameDefinition`. Keys are strings. You do not edit a shared union to add a game.
+
+Each definition supplies:
+
+- `key` — same slug as `Game.key` on the server
+- `parseConfig` / `parseScenario` — runtime-validate server JSON and reject unknown shapes
+- `Component` — playfield only
+- optional `presentOutcome` — cosmetic mapping (animation, HUD copy). It must not decide what happened.
+
+v1 ships `lib/games/pickem` (`daily-pickem`) and `lib/games/trivia` (`daily-trivia`).
+
+## Catalog join
+
+The client merges two public catalogs:
+
+| Source | Module | Rule |
+| --- | --- | --- |
+| `GET /api/games/catalog` | `lib/api/games-api.ts` | Unknown keys are dropped. They have no legacy launch route. |
+| `GET /api/v1/engage/games/catalog` | `lib/api/games-engine-api.ts` | Rows are **never** dropped. |
+
+`lib/join-game-catalog.ts` overlays engine rows on the public catalog. Shipped engine tiles stay visible even if the legacy catalog omits them. The `player-pickem` coming-soon tile hides once `daily-pickem` is present.
+
+Unplayable engine rows stay in the list:
+
+- `reason: UPDATE_REQUIRED` — live-looking card, subtitle **Update required**
+- Registry miss → treat as **Not in this build**
+- Offline or empty → static local tiles from `GAME_CATALOGUE`
+
+Coming-soon tiles never launch.
+
+## Session hook
+
+`useGameSession` owns lifecycle: `idle → loading → active → submitting → resolved`, plus `forfeited | expired | pendingResolution`.
+
+Forfeit is centralized. The hook forfeits when the app backgrounds, the tab hides, you navigate away, board/team context changes, or the session expires. Game authors do not write that branch. Web vs native focus-loss lives in `lib/games/focus-loss.ts`.
+
+Engine calls go through `useGamesEngineApi()`, not `useApi()`. Every request sends `X-Client-Version`.
+
+## HUD rules
+
+- Summary Rep uses **awarded** (`awarded ?? totalPoints`). Caps can bind. Do not show `requested` as the banked amount.
+- `ResultTierOverlay` plays after each server outcome (`elite` | `clean` | `partial` | `miss`).
+- Pick'em locks on submit and shows **Locked in** while `PENDING_RESOLUTION`.
+- Trivia resolves immediately. The correct key appears only after the server responds.
+- On bank, native updates Fan Rep and invalidates leaderboard caches.
+
+## Error UX
+
+- `GAME_UPDATE_REQUIRED` and a registry miss share the same `GameUpdateRequired` screen.
+- `GAME_DAILY_NOT_ELIGIBLE` maps to the already-played state.
+- An unknown session status is treated as finished (`EXPIRED`), never as playable.
+- A failed submit does not consume the next `sequenceNumber`.
+
+## Related files
+
+- `components/locker-room/GameEngineScreen.tsx`
+- `components/locker-room/game-hud/{GameShell,GameHud,ResultTierOverlay}.tsx`
+- `hooks/use-game-session.ts`, `hooks/use-games-engine-api.ts`
+- `app/(tabs)/locker-room/games/[gameKey].tsx`
+- `constants/game-routes.ts`
+
+See [Modularity](/repositories/game-engine/modularity) to add a playfield and [Server](/repositories/game-engine/server) for the HTTP contract.

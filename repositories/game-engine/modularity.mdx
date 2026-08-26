@@ -1,0 +1,67 @@
+---
+title: "Game Engine modularity"
+description: "How you add a mini-game without a new Expo route, shared union, or client-side scoring."
+sidebarTitle: "Modularity"
+icon: "blocks"
+---
+
+The engine is built so a new daily game is a **registration**, not a framework fork. Native keys are open strings. The server catalog can list keys the current binary does not ship.
+
+## Design rules
+
+- No shared TypeScript union of game keys. `GameKey` is `string`.
+- No new Expo Router file per game. Engine games share `app/(tabs)/locker-room/games/[gameKey].tsx`.
+- The playfield does not score, award Rep, or decide win/loss.
+- The playfield does not render chrome, HUD, or safe-area wrappers.
+- v1 does not include a game loop, remote game logic, or realtime. Physics stays outside engine core.
+
+## Add a game on native
+
+<Steps>
+  <Step title="Create the folder">
+    Add `lib/games/<slug>/` with `index.ts`, the playfield component, `parse.ts`, and `styles/*.styles.ts`.
+  </Step>
+  <Step title="Register the definition">
+    Call `registerGame({ key, parseConfig, parseScenario, Component, presentOutcome? })` from that `index.ts`. Side-effect import the folder from `lib/games/index.ts`.
+  </Step>
+  <Step title="Keep the playfield thin">
+    Accept `presentation: "modal" | "screen"`. Use `makeStyles` plus `useTheme` / `useCommonStyles`. Haptics go through `hooks/use-haptics.ts` only.
+  </Step>
+  <Step title="Optional catalog copy">
+    Add static title/art in `constants/games.constants.ts` with `routeKey` equal to the registry key. Engine games also launch through `resolveGame`, so a `GAME_ROUTES` entry is optional.
+  </Step>
+  <Step title="Test the registry">
+    Colocate `bun test` files. Keep the registry multi-game. Do not let a new import replace Pick'em or Trivia.
+  </Step>
+</Steps>
+
+## Add the same key on the server
+
+1. Insert a `Game` row whose `key` matches the native slug.
+2. Ship `configJson`, `rewardJson`, and `minClientVersion`.
+3. Enable the game per team (`TeamGame`).
+4. If the game uses prompts (Pick'em / Trivia style), store them server-side. Never send the answer in `scenario`.
+
+Native sends `X-Client-Version` on every engine call. Raise `minClientVersion` when the binary cannot parse a new config shape. The catalog then returns `playable: false` with `reason: UPDATE_REQUIRED` instead of omitting the tile.
+
+## Expandability
+
+| Layer | What can grow independently |
+| --- | --- |
+| Server catalog | New `Game.key` rows and team enablement |
+| Native registry | New `registerGame` modules in a later app version |
+| Shared chrome | HUD, forfeit, update-required, catalog join stay shared |
+| Legacy play routes | Daily Spin, Guess the Player, and arena stay on `/api/games/*` until a later migration |
+
+A catalog key with no registry entry is **Not in this build**. A registry entry whose `minClientVersion` is newer than the binary is **Update required**. Both are valid, visible states.
+
+Content verticals (for example sport-themed dailies) should `registerGame` on the same engine. Do not start a second shell or a second session API.
+
+## What v1 is not
+
+- Daily Spin and Guess the Player already write live rewards on `/api/games/*`. They are not engine games yet.
+- Live arena (`/api/games/live/*`) is a separate session model.
+- Game Center (`/api/events/*`) is sports-event UX, not a mini-game playfield.
+- Pack opening is commerce, not the engine.
+
+See [Client](/repositories/game-engine/client) for the shell and [Server](/repositories/game-engine/server) for session verbs.

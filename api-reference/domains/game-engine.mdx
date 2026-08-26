@@ -1,0 +1,42 @@
+---
+title: "Game Engine API"
+description: "Additive catalog and session verbs for the modular mini-game engine. Shipped on native; OpenAPI pending."
+---
+
+## Scope
+
+This guide is the HTTP contract for `/api/v1/engage/games/*`. It is additive to the public [Games catalog](/api-reference/domains/games). Do not replace `GET /api/games/catalog` with the engine catalog. Clients that already consume the unversioned route keep working.
+
+Deep dives: [Game Engine overview](/repositories/game-engine/index) · [Client](/repositories/game-engine/client) · [Server](/repositories/game-engine/server) · [Modularity](/repositories/game-engine/modularity)
+
+## Coverage
+
+Status: **Shipped, OpenAPI pending**.
+
+Engage native (`lib/api/games-engine-api.ts`) already calls these routes. They are not in `openapi.json` yet. Track the spec update in [d-sports-api#535](https://github.com/D-Sports-Ecosystem/d-sports-api/issues/535).
+
+## Endpoints
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Optional `X-Client-Version`. Returns `{ daily, weekly }` rows that include `playable` and `reason`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume today's slot. Body `{ teamId?, leaderboardId? }`. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns the outcome. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Banks awarded points / Rep. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
+
+Send `Authorization: Bearer <Clerk token>` on session verbs and `X-Client-Version` on every engine call.
+
+## Client rules
+
+- Render **awarded** Rep after complete, not `requested`.
+- Treat `GAME_UPDATE_REQUIRED` as an update wall. Treat `GAME_DAILY_NOT_ELIGIBLE` as already played.
+- Reject scenario payloads that leak answers (`correctIndex`, `resolutionKey`, `answer`).
+- Do not call `/v1/engage/rep/earn` from a playfield. Awards are server-side.
+
+## Not in this guide
+
+- `GET /api/games/catalog` and legacy play routes — [Games API](/api-reference/domains/games)
+- Game Center schedule and realtime — `/api/events/*`
+- Admin catalog management — redacted
+- Cron settlement — excluded

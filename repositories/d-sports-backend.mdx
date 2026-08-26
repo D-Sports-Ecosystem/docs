@@ -42,6 +42,7 @@ Without `LEGACY__API_BASE_URL`, most proxied routes return `501`. `POST /api/aut
 | Cache | Redis (deadpool) |
 | Auth | Clerk RS256 JWT (`PrivyVerifier` is scaffolded only) |
 | Secrets | Infisical |
+| Chain (roadmap) | Pluggable `ChainProvider` (Noop unless configured). There is no `chain` crate. |
 
 ## Workspace crates
 
@@ -56,8 +57,7 @@ Without `LEGACY__API_BASE_URL`, most proxied routes return `501`. `POST /api/aut
 | `oracle` | Event pipeline, Redis fan-out |
 | `marketplace` | P2P listings (roadmap) |
 | `campaigns` | Brand drops (roadmap) |
-| `fantasy` | Game hooks (roadmap) |
-| `chain` | Pluggable `ChainProvider` (Noop unless configured) |
+| `fantasy` | Game hooks (roadmap). This is not the Engage [Game Engine](/repositories/game-engine/index). |
 
 ## Getting started
 

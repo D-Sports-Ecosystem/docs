@@ -7,7 +7,7 @@ description: "Architecture overview for d-sports-engage-native application layer
 
 The native app is structured around Expo Router screens, feature-oriented components, shared hooks, and API modules. Screen files are JSX-only shells. State, effects, and handlers live in dedicated hooks.
 
-- Routing: `app/*` with grouped routes for `(tabs)`, `(auth)`, `(onboarding)`, `(admin)`, plus `app/binder`, `app/market`, `app/quests`, and `app/settings`.
+- Routing: `app/*` with grouped routes for `(tabs)`, `(auth)`, `(onboarding)`, `(admin)`, plus `app/binder`, `app/market`, `app/quests`, `app/settings`, and the engine route `app/(tabs)/locker-room/games/[gameKey]`.
 - Feature logic: extracted hooks such as `use-wallet-screen.ts` and `use-shop-screen.ts`.
 - Shared contexts: user, collectibles, accessibility, and UI visibility/state controls.
 - Styles: dedicated `*.styles.ts` files. Do not put `StyleSheet.create` inside screen files.
@@ -22,7 +22,8 @@ The native app is structured around Expo Router screens, feature-oriented compon
 ## API client and retry behavior
 
 - Game Center and locker-room lineups use `lib/api/events-api.ts`, `lib/api/locker-room-api.ts`, and `GET /api/teams/{id}/roster`.
-- All network calls route through `lib/api/*` modules.
+- Game Engine calls use `lib/api/games-engine-api.ts` through `useGamesEngineApi()`, not the shared `useApi()` bag. See [Game Engine client](/repositories/game-engine/client).
+- All other network calls route through `lib/api/*` modules.
 - Client wrappers handle auth token propagation, error normalization, and retry strategy.
 - Quest, Fan Rep, reward, and team flows should consume backend eligibility as source of truth.
 

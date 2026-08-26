@@ -1055,6 +1055,21 @@
         }
       }
     },
+    "/api/events/realtime": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Discover Game Center Realtime Broadcast",
+        "description": "Public. Returns supabase URL, anon key, and the private channel template `events:{gameId}`. Subscribe with the anon key; only the API service role may broadcast. Polling/ETag/afterId remain the hydrate + reconnect path.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { enabled, url, anonKey, channelPrefix, channelForGame, private, events, note } }"
+          }
+        }
+      }
+    },
     "/api/events/schedule": {
       "get": {
         "tags": [
@@ -1087,7 +1102,7 @@
           "Events"
         ],
         "summary": "Get game event",
-        "description": "Public Game Center detail for one event.",
+        "description": "Public Game Center detail for one event. Includes a `realtime` pointer `{ channel, events }` (no anon key). Discover URL/anon key via GET /api/events/realtime.",
         "parameters": [
           {
             "name": "gameId",
@@ -1880,6 +1895,35 @@
         }
       }
     },
+    "/api/leagues/{leagueId}/standings": {
+      "get": {
+        "tags": [
+          "Leagues"
+        ],
+        "summary": "Get league standings",
+        "description": "HQ Standings tab. Public. Rows are already sorted. Prefer unique vendor rank; otherwise points, wins, then goal difference. tiebreakRules names that fallback only. 404 if the league id/slug is missing. Empty rows when the league cannot be scored honestly.",
+        "parameters": [
+          {
+            "name": "leagueId",
+            "in": "path",
+            "required": true,
+            "description": "Prisma League.id or slug (not the vendor NHL id).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { rows, tiebreakRules } }"
+          },
+          "404": {
+            "description": "League not found"
+          }
+        }
+      }
+    },
     "/api/locker-room": {
       "get": {
         "tags": [
@@ -1930,6 +1974,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorTeamId",
+            "in": "query",
+            "description": "When set, only return posts authored officially by this team",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "security": [],
@@ -1968,6 +2020,11 @@
                   "postAsTeamId": {
                     "type": "string",
                     "description": "Native alias for authorTeamId"
+                  },
+                  "scheduledFor": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Scheduled publish date (ISO 8601)"
                   },
                   "privacy": {
                     "type": "string",
@@ -2804,7 +2861,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ collectibles }"
+            "description": "{ collectibles, mintedNftIds, landedBinderId }"
           }
         }
       }
@@ -3536,7 +3593,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured).",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read.",
         "parameters": [
           {
             "name": "suggest",
@@ -4564,7 +4621,7 @@
           "User"
         ],
         "summary": "Get user settings",
-        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans and accessibility flags.",
+        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, and liveScoreUpdates (opt-in, default false) for OS live score surfaces.",
         "security": [
           {
             "bearerAuth": []
@@ -4581,7 +4638,7 @@
           "User"
         ],
         "summary": "Update user settings",
-        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity separately. Do not write preferences.privacy.",
+        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity, and liveScoreUpdates (opt-in Live Activity / ongoing notification consent) separately. Do not write preferences.privacy.",
         "security": [
           {
             "bearerAuth": []
@@ -4788,7 +4845,7 @@
           "Engage"
         ],
         "summary": "Fan Rep totals split by source",
-        "description": "Sums Fan, Club, Player, and Direct ledger rows for the authenticated user. clubRepByTeam only includes Club targetIds that resolve to a Team.",
+        "description": "Sums Fan, Club, Player, and Direct ledger rows plus the user's PointsHistory total (questsAndGamesRep). clubRepByTeam only includes Club targetIds that resolve to a Team.",
         "security": [
           {
             "bearerAuth": []
@@ -4796,7 +4853,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, questsAndGamesRep, clubRepByTeam[] }"
           },
           "401": {
             "description": "Authentication required"
@@ -5392,7 +5449,7 @@
           "Engage"
         ],
         "summary": "Fan Rep totals split by source plus per-team Club Rep subtotals",
-        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. totalFanRep is the sum of all four.",
+        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. questsAndGames is the PointsHistory sum (quests, daily spin, guess-the-player, mini-games) — a separate ledger, unified here at the read layer only. totalFanRep is the sum of all five.",
         "security": [
           {
             "bearerAuth": []
@@ -5400,7 +5457,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, clubRepByTeam[] }"
+            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, questsAndGamesRep, clubRepByTeam[] }"
           },
           "401": {
             "description": "Authentication required"

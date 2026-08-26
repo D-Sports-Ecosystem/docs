@@ -23,11 +23,11 @@ Public. No Clerk session required.
 - `/api/games/guess-player/session/start`, `/session/guess`
 - `/api/games/live/active`
 
-Still OpenAPI-pending: `/reward` (deprecated), guess-player player lists/invalidate, live start/join/score/end, pick-em.
+Still OpenAPI-pending: `/reward` (deprecated — do not use for new clients), guess-player player lists/invalidate, live start/join/score/end/leaderboard, and `GET /api/games/pick-em/players`. Engine Pick'em sessions use `/api/v1/engage/games/daily-pickem/*`.
 
-Game Center schedule, detail, stats, plays, lineup, chat, presence, and ratings are published under `/api/events/*`.
+Game Center schedule, realtime discovery, detail, stats, plays, lineup, chat, presence, and ratings are published under `/api/events/*`.
 
-Native must not assume these keys exist for every team. Render only catalog results.
+Native must not assume these keys exist for every team. Render only catalog results, then overlay the [engine catalog](/repositories/game-engine/server).
 
 ## Exclusions
 
