@@ -53,7 +53,7 @@ Native sends `X-Client-Version` on every engine call. Raise `minClientVersion` w
 | Shared chrome | HUD, forfeit, update-required, catalog join stay shared |
 | Legacy play routes | Daily Spin, Guess the Player, and arena stay on `/api/games/*` until a later migration |
 
-A catalog key with no registry entry is **Not in this build**. A registry entry whose `minClientVersion` is newer than the binary is **Update required**. Both are valid, visible states.
+A catalog key with no registry entry is **Not in this build**. A catalog row whose `minClientVersion` is newer than the binary is **Update required**. Both are valid, visible states.
 
 Content verticals (for example sport-themed dailies) should `registerGame` on the same engine. Do not start a second shell or a second session API.
 

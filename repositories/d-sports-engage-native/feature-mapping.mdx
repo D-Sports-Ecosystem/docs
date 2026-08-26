@@ -34,7 +34,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - The games surface joins `GET /api/games/catalog` with `GET /api/v1/engage/games/catalog`. See [Game Engine](/repositories/game-engine/index).
 - Legacy keys (daily spin, guess-the-player) still drop when unknown. Engine keys stay visible as **Update required** or **Not in this build**.
 - Shipped engine games: `daily-pickem`, `daily-trivia` on `/(tabs)/locker-room/games/{key}`.
-- Game Center reads `/api/events/schedule`, `/api/events/realtime`, and `/api/events/{gameId}` for hero, lineup, chat, presence, ratings, and Broadcast discovery.
+- Game Center uses `/api/events/*` for hero, lineup, chat, presence, ratings, and Broadcast discovery. Ratings submit through `POST /api/events/{gameId}/ratings`.
 
 ## Team and leaderboard integration
 
