@@ -32,6 +32,7 @@ Social APIs power locker room activity and user-to-user interactions.
 - `POST /api/locker-room/{id}/like` is additive and returns `{ liked, likeCount }`. It does not replace `/react`.
 - `GET/PUT/DELETE /api/locker-room/posts/draft` is the authenticated composer draft. GET is `404` when none exists. DELETE is `204` even if none existed.
 - Comment create may include `mentionedUserIds`. Responses echo `mentions[]`. Edit must send `mentionedUserIds: []` to clear; omitting the field leaves mentions unchanged.
+- `GET /api/user/search` is authenticated. Send required `q`. Default scope matches handle, name, and (when `q` is at least 2 characters) location. `scope=mention` matches handle and name only and drops users without a handle. `limit` is 1–50 (default 20). Each row uses `profileUrl` (not `avatar`) and has no `level`.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
 
 ## Mute vs block
