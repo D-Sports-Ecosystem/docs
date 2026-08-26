@@ -18,7 +18,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
 - Binder PIN is not the wallet PIN. Native must store the short-lived verify-pin token and send `x-binder-pin-token` on binder reads.
-- `app/market` splits pack browsing (`market/packs`) from trading (`market/trading`) so one tab does not lose the other. Listings go through `/v1/marketplace/*` (not yet in generated OpenAPI). `listings/mine` still works; `me/listings` is the live path.
+- `app/market` splits pack browsing (`market/packs`) from trading (`market/trading`) so one tab does not lose the other. Listings go through `/api/v1/marketplace/*` (in generated OpenAPI). `listings/mine` still works; `me/listings` is the live path.
 - Card history uses public `GET /api/v1/cards/{id}/provenance`.
 
 ## Quest, Fan Rep, rewards, and pass surfaces

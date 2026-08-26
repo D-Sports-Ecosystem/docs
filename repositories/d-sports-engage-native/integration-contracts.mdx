@@ -67,7 +67,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Marketplace contracts
 
-- Prefer `GET /v1/marketplace/me/listings`. `listings/mine` is a native alias for the same handler.
+- Prefer `GET /api/v1/marketplace/me/listings`. `GET /api/v1/marketplace/listings/mine` is a native alias for the same handler. Create listings with `x-listing-pin-token`.
 - Listing a `processing` pack returns `409 PACK_NOT_LISTABLE`.
 - `GET /api/v1/cards/{id}/provenance` is public ownership / sale / mint history.
 - Treat `GET /api/user/packs` status as the per-purchase source of truth.

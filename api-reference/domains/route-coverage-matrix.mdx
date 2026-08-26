@@ -57,8 +57,8 @@ Route documentation status uses:
 | `/api/games/daily-spin/reward` | Exclude | Deprecated client-claimed reward. New clients use `POST /api/games/daily-spin/spin`. |
 | `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
-| `/v1/marketplace/*` | Shipped, OpenAPI pending | Marketplace catch-all. Native `listings/mine` aliases `me/listings`. Pack listing can return `PACK_NOT_LISTABLE`. |
-| `/v1/kyc/*`, `/v1/user/kyc-status` | Shipped, OpenAPI pending | KYC session helpers. Not a public integration surface yet. |
+| `/api/v1/marketplace/*` | Publish | Expanded catch-all. Native `listings/mine` aliases `me/listings`. Create requires `x-listing-pin-token`. Pack listing can return `409 PACK_NOT_LISTABLE` or `PACK_ALREADY_OPENED`. See [Commerce](/api-reference/domains/commerce). |
+| `/api/v1/kyc/link-token`, `/api/v1/kyc/session/complete`, `/api/v1/user/kyc-status` | Publish | Authenticated KYC session helpers. Status only; no vendor secrets. |
 | `/api/admin/games*`, `/api/admin/teams/[teamId]/games` | Publish with redaction | Catalogue management and team game selection; redact ops internals. |
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
 | `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
@@ -75,7 +75,7 @@ Route documentation status uses:
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus marketplace catch-all and KYC. Game Engine and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` stays excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations. Marketplace, KYC, Game Engine, and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` and staff-only `POST /featured` / `POST /promos` stay excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 
