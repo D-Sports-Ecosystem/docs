@@ -1,6 +1,6 @@
 ---
 title: "Game Engine API"
-description: "Additive catalog and session verbs for the modular mini-game engine. Shipped on native; OpenAPI pending."
+description: "Additive catalog and session verbs for the modular mini-game engine. Published in OpenAPI."
 ---
 
 ## Scope
@@ -11,21 +11,27 @@ Deep dives: [Game Engine overview](/repositories/game-engine/index) · [Client](
 
 ## Coverage
 
-Status: **Shipped, OpenAPI pending**.
+Status: **Publish**.
 
-Engage native (`lib/api/games-engine-api.ts`) already calls these routes. They are not in `openapi.json` yet. Track the spec update in [d-sports-api#535](https://github.com/D-Sports-Ecosystem/d-sports-api/issues/535).
+These operations are in generated OpenAPI under the `Game Engine` tag (also tagged `Games` and `Engage`). They landed in [d-sports-api#536](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/536). Use the **Endpoints** group for request/response playgrounds.
 
 ## Endpoints
 
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Optional `X-Client-Version`. Returns `{ daily, weekly }` rows that include `playable` and `reason`. |
+| `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Omit both for the platform catalogue. Optional `X-Client-Version`. Returns `{ daily, weekly }` rows that include `playable` and `reason`. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume today's slot. Body `{ teamId?, leaderboardId? }`. |
-| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns the outcome. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session }`. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Banks awarded points / Rep. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
 
 Send `Authorization: Bearer <Clerk token>` on session verbs and `X-Client-Version` on every engine call.
+
+Session start returns:
+
+- `403 GAME_UPDATE_REQUIRED` when the binary is below `minClientVersion`
+- `404 GAME_UNKNOWN` for an unknown key
+- `409 GAME_DAILY_NOT_ELIGIBLE` when today's slot is already used
 
 ## Client rules
 
@@ -40,3 +46,4 @@ Send `Authorization: Bearer <Clerk token>` on session verbs and `X-Client-Versio
 - Game Center schedule and realtime — `/api/events/*`
 - Admin catalog management — redacted
 - Cron settlement — excluded
+- Deprecated `POST /api/games/daily-spin/reward` — excluded

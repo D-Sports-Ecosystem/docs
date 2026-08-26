@@ -33,10 +33,16 @@ Each game entry carries `id`, `key`, `title`, `description`, `icon`, and `badge`
 - `POST /api/games/guess-player/session/start`
 - `POST /api/games/guess-player/session/guess`
 - `GET /api/games/live/active?teamId=...`
+- `GET /api/games/guess-player/players?q=` — authenticated autocomplete
+- `POST /api/games/guess-player/session/invalidate`
+- `GET /api/games/live/by-code/{code}`, `POST /api/games/live/join`
+- `GET /api/games/live/{sessionId}/leaderboard`, `POST /api/games/live/{sessionId}/score`
+- `POST /api/games/live/start`, `POST /api/games/live/{sessionId}/end` — team manager
+- `GET /api/games/pick-em/players` — leftover roster helper. Engine Pick'em uses `/api/v1/engage/games/daily-pickem/*` instead.
 
-Still OpenAPI-pending: `POST /api/games/daily-spin/reward` (deprecated — do not use for new clients), guess-player player lists and invalidate, live start/join/score/end/leaderboard, and `GET /api/games/pick-em/players`. Engine Pick'em uses `/api/v1/engage/games/daily-pickem/*`, not that leftover players route.
+Do not call deprecated `POST /api/games/daily-spin/reward`. New clients use `POST /api/games/daily-spin/spin`.
 
-Render playable games from the catalog first.
+Render playable games from the catalog first. Overlay the [engine catalog](/api-reference/domains/game-engine) for Pick'em and Trivia.
 
 ## Game Center events
 

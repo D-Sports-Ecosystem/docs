@@ -45,8 +45,7 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI is **136** paths. New generated surfaces include `GET /api/events/realtime` and `GET /api/leagues/{leagueId}/standings`, plus sports catalog, team search/join/roster, leagues, locker-room drafts/likes, Game Center `/api/events/*`, notifications, and settings.
-- The [Game Engine](/repositories/game-engine/index) (`/api/v1/engage/games/*`) is shipped and consumed by native. It is not in generated OpenAPI yet.
+- OpenAPI is **150** paths. New generated surfaces include the [Game Engine](/repositories/game-engine/index) (`/api/v1/engage/games/*`), leftover public `/api/games/*` play routes, `GET /api/events/realtime`, and `GET /api/leagues/{leagueId}/standings`.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.

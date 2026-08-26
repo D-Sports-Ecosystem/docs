@@ -49,8 +49,12 @@ Route documentation status uses:
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
 | `/api/leagues/{leagueId}/standings` | Publish | Public HQ standings (`rows`, `tiebreakRules`). |
-| `/api/v1/engage/games/*` | Shipped, OpenAPI pending | Game Engine catalog + session/action/complete/forfeit. Native already consumes this. See [Game Engine API](/api-reference/domains/game-engine). |
-| `/api/games/guess-player/players`, `/session/invalidate`, `/api/games/live/*` (start/join/score/end/leaderboard), `/api/games/pick-em*`, `/api/games/daily-spin/reward` | Shipped, OpenAPI pending | Additional legacy play routes. `/reward` is deprecated. Engine Pick'em does not use `/api/games/pick-em*`. |
+| `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
+| `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |
+| `/api/games/live/by-code/{code}`, `/join`, `/{sessionId}/leaderboard`, `/{sessionId}/score` | Publish | Authenticated live-arena fan routes. |
+| `/api/games/live/start`, `/api/games/live/{sessionId}/end` | Publish with redaction | Team-manager start/end. Document RBAC only. |
+| `/api/games/pick-em/players` | Publish | Leftover roster helper. Engine Pick'em does not use this path. |
+| `/api/games/daily-spin/reward` | Exclude | Deprecated client-claimed reward. New clients use `POST /api/games/daily-spin/spin`. |
 | `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
 | `/v1/marketplace/*` | Shipped, OpenAPI pending | Marketplace catch-all. Native `listings/mine` aliases `me/listings`. Pack listing can return `PACK_NOT_LISTABLE`. |
@@ -71,7 +75,7 @@ Route documentation status uses:
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus Game Engine `/api/v1/engage/games/*`, marketplace catch-all, KYC, and remaining live play routes. Curated domain pages cover approved admin/team routes and those pending public contracts without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus marketplace catch-all and KYC. Game Engine and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` stays excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 
