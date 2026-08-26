@@ -31,6 +31,8 @@ Native OAuth does not always arrive with a Clerk JWT. The API can issue a one-ti
 
 The primary scheme is `bearerAuth` in `api-reference/openapi.json`.
 
+Optional-auth operations declare both `bearerAuth` and an empty alternative so you can call them with or without a token. Marketplace list and detail GETs use that shape.
+
 Use the Endpoints section in API Reference to verify per-route security requirements.
 
 ## Related docs

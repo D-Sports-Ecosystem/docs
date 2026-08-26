@@ -5861,7 +5861,12 @@
         ],
         "summary": "List marketplace listings",
         "description": "Optional auth. Same handler as GET /api/v1/marketplace/listings. Viewer context personalizes serialized rows when a session is present.",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "itemType",
@@ -6274,7 +6279,12 @@
         ],
         "summary": "Listings for a collectible",
         "description": "Optional auth. Keyset pagination.",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "id",
@@ -6457,7 +6467,12 @@
         ],
         "summary": "List marketplace listings",
         "description": "Same list handler as GET /api/v1/marketplace.",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "itemType",
@@ -6750,7 +6765,12 @@
         ],
         "summary": "Get a listing",
         "description": "Optional auth. Bare GET /api/v1/marketplace/{id} also resolves a listing (not documented as its own path).",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "id",
@@ -6818,7 +6838,12 @@
         ],
         "summary": "Listing bid history",
         "description": "Optional auth.",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "id",
@@ -7606,7 +7631,12 @@
         ],
         "summary": "Top active auctions by bid count",
         "description": "Optional auth.",
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "limit",

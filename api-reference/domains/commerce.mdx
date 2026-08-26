@@ -26,6 +26,7 @@ Commerce APIs cover checkout initiation/verification, catalog reads, marketplace
 - Pack-instance status on `GET /api/user/packs` is authoritative. Do not use template `isOpenable` as a substitute.
 - Auction listings accept optional `reservePrice` (positive integer, at least the starting bid). Ended auctions that miss reserve surface as `ended-reserve-not-met`.
 - Featured listings (`GET /api/v1/marketplace/featured`) are cacheable and public. Team promos are `GET /api/v1/marketplace/promos`. There is no combined shop featured feed.
+- List and detail GETs (`/marketplace`, `/listings`, listing by id, collectible listings, listing bids, `top-bids`) accept an optional Bearer token and personalize when a session is present. `featured` and `price-suggestion` stay public-only.
 - Staff-only `POST /featured` and `POST /promos` are not in generated OpenAPI.
 
 ## KYC notes
