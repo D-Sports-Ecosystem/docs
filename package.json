@@ -2,6 +2,10 @@
   "name": "d-sports-docs",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "bun@1.4.2",
+  "engines": {
+    "bun": "1.4.2"
+  },
   "devDependencies": {
     "@types/node": "^25.3.5"
   },

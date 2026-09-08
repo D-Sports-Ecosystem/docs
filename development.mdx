@@ -5,13 +5,21 @@ description: "Contribute to the D-Sports docs site. Preview locally, validate li
 
 <Info>
   **Prerequisites:**
-  - Node.js 19 or higher
+  - Bun **1.4.2** (for `bun install`, `bun run dev`, and OpenAPI sync scripts)
+  - Node.js 19 or higher (Mintlify CLI)
   - The D-Sports docs repo with a `docs.json` file at the root
 </Info>
 
 This page is for contributing to **this documentation site** (D-Sports Docs at [docs.d-sports.org](https://docs.d-sports.org)). To work on the PWA/API, native app, marketing site, Rust backend, or Mic'd Up, see the [Repositories](/repositories/ecosystem-overview) section.
 
 <Steps>
+  <Step title="Install dependencies with Bun 1.4.2">
+    Confirm the toolchain, then install:
+    ```bash
+    bun --version   # expect 1.4.2
+    bun install
+    ```
+  </Step>
   <Step title="Install the Mintlify CLI">
     ```bash
     npm i -g mint
@@ -20,9 +28,9 @@ This page is for contributing to **this documentation site** (D-Sports Docs at [
   <Step title="Preview locally">
     In the docs directory (where `docs.json` is), run:
     ```bash
-    mint dev
+    bun run dev
     ```
-    The site is available at http://localhost:3000.
+    Or run `mint dev` directly if the OpenAPI spec is already up to date. The site is available at http://localhost:3000.
   </Step>
 </Steps>
 

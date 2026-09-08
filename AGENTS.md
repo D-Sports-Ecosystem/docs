@@ -21,7 +21,7 @@ To refresh the site from latest source `main` branches, run **`/update-docs`**. 
 ## Build & Run Commands
 
 ```bash
-bun install            # Install dependencies (Bun 1.3+)
+bun install            # Install dependencies (Bun 1.4.2)
 bun run dev            # Sync OpenAPI then start mint dev (live preview)
 bun run sync-openapi   # Manually re-pull api-reference/openapi.json from d-sports-api
 mint broken-links      # Check for broken internal links

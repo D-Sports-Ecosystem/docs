@@ -11,9 +11,10 @@ It covers:
 
 ## Development
 
-1. Install the [Mintlify CLI](https://www.npmjs.com/package/mint): `npm i -g mint`
-2. In this repo root (where `docs.json` is), run: `mint dev`
-3. Open http://localhost:3000 to preview.
+1. Use **Bun 1.4.2** (`bun --version`), then `bun install`
+2. Install the [Mintlify CLI](https://www.npmjs.com/package/mint): `npm i -g mint`
+3. In this repo root (where `docs.json` is), run: `bun run dev` (or `mint dev`)
+4. Open http://localhost:3000 to preview.
 
 Changes are deployed to **docs.d-sports.org** automatically when you push to the default branch (with the Mintlify GitHub app connected).
 
