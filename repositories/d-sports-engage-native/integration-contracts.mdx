@@ -46,6 +46,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder.
 - League metadata and branding come from `/api/leagues`.
 - `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. Rows arrive sorted. Empty rows mean the league cannot be scored honestly.
+- `GET /api/teams/{id}/head-to-head` is public and returns `{ record, meetings }` for the five most recent decided meetings.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
 ## Binder PIN contract
@@ -86,9 +87,10 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - `GET /api/events/schedule` accepts repeatable `teamId` query params.
 - `GET /api/events/realtime` is public Broadcast discovery. Event detail includes a `realtime` pointer without the anon key.
-- Detail, box score, plays, and lineup are public reads under `/api/events/{gameId}`.
+- Detail, box score, player-stats, plays, lineup, top-performer, and win-probability are public reads under `/api/events/{gameId}`.
 - Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
 - Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/v1/engage/rep/earn`.
+- `POST/DELETE /api/events/{gameId}/live-activity` registers or ends an iOS Live Activity. Requires `UserSettings.liveScoreUpdates` consent.
 
 ## User mute and block
 

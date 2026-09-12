@@ -13,6 +13,7 @@ Platform APIs include utility routes that support app infrastructure or cross-do
 - Public sports catalog: `GET /api/config/sports` (see [Teams and leagues](/api-reference/domains/teams-leagues))
 - Public accessibility matrix: `GET /api/accessibility` (used by native and the marketing site)
 - Notifications inbox: `GET /api/notifications`, `POST /api/notifications/{notificationId}/read`, `POST /api/notifications/read-all`, `POST /api/notifications/{notificationId}/archive`. Types include `GAME_ALERT` and `RATING`.
+- Behavioural feed ingest: `POST /api/feed/signals` (authenticated). Dropped when `UserSettings.analyticsPersonalization` is false.
 - Platform status/data surfaces: `/api/dashboard`, `/api/dashboard/stats`, `/api/dashboard/balance`, `/api/dashboard/quests`
 - Maintenance utility: `/api/sync-quest-points`
 - Integration sync references: `/api/webhooks/leagues-sync` (behavior reference), admin sync triggers documented in domain guides

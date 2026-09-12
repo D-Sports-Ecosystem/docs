@@ -8,7 +8,7 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, profile, plus binder, market, quests, and a team-admin hub.
 
-- **App version:** 1.24.4
+- **App version:** 1.25.1
 - **Run:** `infisical login` once, then `bun start` — press `a` for Android or `i` for iOS.
 
 <Warning>
@@ -20,7 +20,7 @@ icon: "smartphone"
 | Category   | Technology                |
 | ---------- | ------------------------- |
 | Framework  | Expo 57, React Native 0.86, React 19.2 |
-| Auth       | Clerk (`@clerk/clerk-expo`) — Google, Apple, email/password, MFA |
+| Auth       | Clerk (`@clerk/expo`) — Google, Apple, email/password, MFA |
 | Payments   | RevenueCat (react-native-purchases) |
 | Web3       | Thirdweb                  |
 | State      | Zustand 5 + MMKV 4        |
@@ -37,7 +37,7 @@ icon: "smartphone"
 - **Market** — Pack store and trading stay on separate screens (`app/market/packs`, `app/market/trading`)
 - **Leaderboard** — Multi-board rankings powered by the quest/points system
 - **Locker room** — Social feed, posts, comments with `@handle` mentions, likes, stars, sport-driven lineups, live/game surfaces
-- **Game Engine** — Shared shell for Daily Pick'em and Daily Trivia (`/(tabs)/locker-room/games/[gameKey]`)
+- **Game Engine** — Shared shell for Pick'em, Trivia, prize wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, and six hockey playfields (`/(tabs)/locker-room/games/[gameKey]`)
 - **Quests** — Team-aware quests, daily quiz sessions, arena check-in, Fan Rep
 - **Profile** — Stats, achievements, featured collectibles, settings, account deletion
 - **Admin hub** — Team-manager surfaces for packs, collectibles, coins, games, moderation, users (`app/(admin)`)
@@ -46,8 +46,10 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- Stack is **Expo 57 / RN 0.86**. App version is **1.24.4**.
-- The [Game Engine](/repositories/game-engine/client) ships Pick'em and Trivia inside one dynamic route. Daily Spin and Guess the Player stay on legacy `/api/games/*` routes.
+- App version is **1.25.1**. iOS `runtimeVersion` is `1.25.1`. Android runtime stays on `1.25.0` for this train.
+- Auth package is **`@clerk/expo`** `4.6.1` (Clerk Core 3 rename from `@clerk/clerk-expo`). The source README may still mention the old package name.
+- The [Game Engine](/repositories/game-engine/client) now registers Pick'em, Trivia, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, and six hockey games on one `[gameKey]` route. How-to-Play walkthroughs are local-only and must not spend a daily attempt.
+- Deep links claim `app.d-sports.org` (iOS Universal Links plus Android App Links for locker-room, profile, market, quests, binder, leaderboard, rate). `api.d-sports.org` mobile callbacks are unchanged.
 - About → Settings includes a manual EAS OTA update check.
 - Locker room can attach sport-driven lineups. The API persists `lineup` on `POST /api/locker-room` and serves real rosters from `GET /api/teams/{id}/roster`.
 - Native safety actions call `/api/user/mutes` and `/api/user/blocks` (distinct from Game Center thread mute).

@@ -17,6 +17,9 @@ icon: "list-checks"
 - `GET /api/crypto-prices`
 - `POST /api/thirdweb-link`
 - `POST /api/thirdweb-proxy`
+- `POST /api/v1/kyc/link-token`
+- `POST /api/v1/kyc/session/complete`
+- `GET /api/v1/user/kyc-status`
 
 ## Runtime behavior highlights
 
@@ -25,6 +28,7 @@ icon: "list-checks"
 - Private-key access route is deprecated. New client work must call PIN-gated `sign-transaction` instead of fetching raw keys.
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.
 - Provider proxy/link routes bridge client flow to external web3 integrations.
+- KYC helpers return status and short-lived Link tokens only. They do not expose vendor dashboard URLs or webhook secrets.
 
 ## Side effects and dependencies
 

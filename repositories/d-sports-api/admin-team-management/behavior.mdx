@@ -27,6 +27,10 @@ Behavior expectations:
 - Upsert member roles under allowed role envelopes
 - Remove members with ownership safety constraints
 
+## Player availability
+
+`PUT /api/admin/players/{playerId}/availability` is platform-admin only. It records manual availability or injury status. Hockey providers do not supply this. Sending a null status clears the player back to available. Do not document provider internals or admin tooling beyond this contract.
+
 ## Error behavior and safeguards
 
 - Unauthorized and forbidden states are explicit and role-driven.

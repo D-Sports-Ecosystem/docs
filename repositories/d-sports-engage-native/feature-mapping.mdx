@@ -5,7 +5,7 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Feature parity with backend/PWA
 
-`d-sports-engage-native` (1.24.4) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
+`d-sports-engage-native` (1.25.1) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
 ## Wallet and pack opening
 
@@ -33,8 +33,9 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - The games surface joins `GET /api/games/catalog` with `GET /api/v1/engage/games/catalog`. See [Game Engine](/repositories/game-engine/index).
 - Legacy keys (daily spin, guess-the-player) still drop when unknown. Engine keys stay visible as **Update required** or **Not in this build**.
-- Shipped engine games: `daily-pickem`, `daily-trivia` on `/(tabs)/locker-room/games/{key}`.
-- Game Center uses `/api/events/*` for hero, lineup, chat, presence, ratings, and Broadcast discovery. Ratings submit through `POST /api/events/{gameId}/ratings`.
+- Shipped engine games on `/(tabs)/locker-room/games/{key}`: `daily-pickem`, `daily-trivia`, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, `deflection`, `iron-trap`, `deke-daily`, `faceoff-frenzy`, `sauce-pass`, `empty-net`.
+- How-to-Play walkthroughs stay local. They must not call session/action/complete.
+- Game Center uses `/api/events/*` for hero, lineup, player-stats, top-performer, win-probability, chat, presence, ratings, Broadcast discovery, and Live Activity. Ratings submit through `POST /api/events/{gameId}/ratings`.
 
 ## Team and leaderboard integration
 

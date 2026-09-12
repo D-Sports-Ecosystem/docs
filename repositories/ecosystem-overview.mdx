@@ -42,8 +42,8 @@ Secrets for API and native local runs go through **Infisical** (`infisical run -
 
 - Mobile OAuth can return a one-time `MobileSession` hex token (fragment preferred). Native exchanges it at `POST /api/mobile/exchange` for a Clerk sign-in ticket.
 - Custodial wallets sign on the server (`POST /api/wallets/{address}/sign-transaction`). `POST /api/wallets/private-key` is deprecated.
-- Featured collectibles, locker-room post CRUD (including persisted lineups), Game Center `/api/events/*`, and the public games catalog are first-class client contracts.
-- The [Game Engine](/repositories/game-engine/index) is a separate additive surface (`/api/v1/engage/games/*`) for new daily mini-games. Native registers playfields; the API owns sessions and awards. Legacy `/api/games/*` play routes and Game Center stay in place.
+- Featured collectibles, locker-room post CRUD (including persisted lineups), Game Center `/api/events/*` (including player-stats, win-probability, and Live Activity), marketplace `/api/v1/marketplace/*`, and the public games catalog are first-class client contracts.
+- The [Game Engine](/repositories/game-engine/index) is a separate additive surface (`/api/v1/engage/games/*`) for daily mini-games. Native 1.25.1 registers Pick'em, Trivia, prize-wheel, guess-the-player, lineup, card trivia, streak scratcher, and six hockey playfields. The API owns sessions and awards. Legacy `/api/games/*` play routes and Game Center stay in place.
 
 ## Public vs internal documentation boundaries
 

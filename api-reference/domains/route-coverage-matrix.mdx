@@ -36,7 +36,7 @@ Route documentation status uses:
 | `/api/teams/{id}/roster` | Publish | Public real-player roster for the lineup builder. |
 | `/api/user/settings` | Publish | Authenticated settings SoT, including per-channel notify flags. |
 | `/api/locker-room/posts/draft`, `/{id}/like`, `/{id}/poll/vote` | Publish | Composer draft, additive likes, and poll votes. |
-| `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, plays, lineup, chat, mute, presence, ratings. |
+| `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, player-stats, plays, lineup, top-performer, win-probability, chat, mute, presence, ratings, live-activity. |
 | `/api/discovery/teams`, `/api/discovery/fans` | Publish | Suggested teams (public) and fans (authenticated). |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
@@ -49,6 +49,9 @@ Route documentation status uses:
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
 | `/api/leagues/{leagueId}/standings` | Publish | Public HQ standings (`rows`, `tiebreakRules`). |
+| `/api/teams/{id}/head-to-head` | Publish | Public HQ series vs an opponent. |
+| `/api/feed/signals` | Publish | Authenticated behavioural ingest. Dropped when `analyticsPersonalization` is false. |
+| `/api/admin/players/{playerId}/availability` | Publish with redaction | Platform admin injury/availability. Null status clears to available. |
 | `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
 | `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |
 | `/api/games/live/by-code/{code}`, `/join`, `/{sessionId}/leaderboard`, `/{sessionId}/score` | Publish | Authenticated live-arena fan routes. |
@@ -72,10 +75,12 @@ Route documentation status uses:
 | `/api/admin/fix-team-ownership` | Exclude | Internal remediation path not for public docs. |
 | `/api/rewards/admin-override` | Exclude | Privileged override operation. |
 | `/api/leaderboard/reset` | Exclude | Internal/privileged maintenance behavior. |
+| `/api/invites/*`, `/api/user/support/*`, `/api/user/follow-requests*`, `/api/upload/*`, `/api/packs/{id}/odds` | Shipped, OpenAPI pending | Public or authenticated client helpers still missing from the spec. Tracked in [d-sports-api#647](https://github.com/D-Sports-Ecosystem/d-sports-api/issues/647). |
+| `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{id}/attestation` | Shipped, OpenAPI pending | Wallet link/reset helpers. |
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations. There is no leftover unversioned public helper set outside that list. Marketplace, KYC, Game Engine, and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` and staff-only `POST /featured` / `POST /promos` stay excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations plus leftover public client helpers (invites, support tickets, uploads, wallet link/reset, pack odds). Marketplace, KYC, Game Engine, Game Center extras, head-to-head, and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` and staff-only `POST /featured` / `POST /promos` stay excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 
