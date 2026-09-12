@@ -84,7 +84,7 @@ Do not retry authorization or eligibility errors as if they were transient netwo
 - `GameSession` — unique on `(userId, gameKey, dayKey)`
 - `GameSessionAction`, `GameRewardIssuance`
 
-Awards go through a currency-agnostic port (points plus Fan / Club / Player Rep). Settlement and crash recovery are server jobs. Do not call `/v1/engage/rep/earn` from the playfield.
+Awards go through a currency-agnostic port (points plus Fan / Club / Player Rep). Settlement and crash recovery are server jobs. Do not call `/api/v1/engage/rep/earn` from the playfield.
 
 ## What this page does not cover
 

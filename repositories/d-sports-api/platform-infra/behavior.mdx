@@ -6,8 +6,11 @@ icon: "list-checks"
 
 ## Representative non-admin platform routes
 
+- `GET /api/health`
 - `GET /api/leaderboard/stream`
 - `GET /api/locker-room/stream`
+- `POST /api/feed/signals` (authenticated; request body is not in the spec yet)
+- `POST /api/upload/banner`, `/api/upload/binder-cover`, `/api/upload/locker-media`, `/api/upload/profile`
 - `POST /api/cron/sync-trends`
 - feature-specific sync routes such as quest/leaderboard synchronization paths
 

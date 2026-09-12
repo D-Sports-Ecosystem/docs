@@ -21,16 +21,16 @@ description: "Backend-facing contracts and behavior expectations for native clie
 ## Quest and reward API contracts
 
 - Quest progression is backend-authoritative for eligibility and completion.
-- Daily quiz sessions use `/v1/engage/quests/{questId}/session`, `/session/{sessionId}/submit`, and `/session/{sessionId}/forfeit`.
-- Arena check-in is `POST /v1/engage/quests/arena-check-in` (once per team per UTC day).
+- Daily quiz sessions use `/api/v1/engage/quests/{questId}/session`, `/session/{sessionId}/submit`, and `/session/{sessionId}/forfeit`.
+- Arena check-in is `POST /api/v1/engage/quests/arena-check-in` (once per team per UTC day).
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
 
 ## Fan Rep contracts
 
-- `GET /v1/engage/rep/breakdown` returns Fan/Club/Player/Direct totals plus `clubRepByTeam`. `dsportsDirectRep` sums `repType = Direct` rows.
-- `GET /v1/engage/rep/ledger` is keyset-paginated. `source` is `fanAmp` | `club` | `playerAmp` | `dsportsDirect`.
-- `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`. Amount and `repType` are server-authoritative. Direct kinds return `403`.
+- `GET /api/v1/engage/rep/breakdown` returns Fan/Club/Player/Direct totals plus `clubRepByTeam`. `dsportsDirectRep` sums `repType = Direct` rows.
+- `GET /api/v1/engage/rep/ledger` is keyset-paginated. `source` is `fanAmp` | `club` | `playerAmp` | `dsportsDirect`.
+- `POST /api/v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`. Amount and `repType` are server-authoritative. Direct kinds return `403`.
 - Do not call `/earn` for arena check-in, daily-quest completion, or admin Direct grants.
 - Direct grants use `POST /api/admin/users/{userId}/rep` (`isAdmin` only). Native Coins UI for this is follow-up.
 
@@ -46,7 +46,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder.
 - League metadata and branding come from `/api/leagues`.
 - `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. Rows arrive sorted. Empty rows mean the league cannot be scored honestly.
-- `GET /api/teams/{id}/head-to-head` is public and returns `{ record, meetings }` for the five most recent decided meetings.
+- Call `GET /api/teams/{id}/head-to-head?opponentId=` for the public series. You get `{ record, meetings }` for the five most recent decided meetings. Omit `opponentId`, or send the same id as `{id}`, and you get `400`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
 ## Binder PIN contract
@@ -87,10 +87,10 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - `GET /api/events/schedule` accepts repeatable `teamId` query params.
 - `GET /api/events/realtime` is public Broadcast discovery. Event detail includes a `realtime` pointer without the anon key.
-- Detail, box score, player-stats, plays, lineup, top-performer, and win-probability are public reads under `/api/events/{gameId}`.
+- Use the public Game Center reads under `/api/events/{gameId}` for detail, box score, player-stats, plays, lineup, top-performer, and win-probability.
 - Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
-- Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/v1/engage/rep/earn`.
-- `POST/DELETE /api/events/{gameId}/live-activity` registers or ends an iOS Live Activity. Requires `UserSettings.liveScoreUpdates` consent.
+- Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/api/v1/engage/rep/earn`.
+- Call `POST/DELETE /api/events/{gameId}/live-activity` to register or end an iOS Live Activity. You must have `UserSettings.liveScoreUpdates` consent first.
 
 ## User mute and block
 

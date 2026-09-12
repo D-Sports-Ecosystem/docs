@@ -9,7 +9,7 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 
 ## Endpoint map
 
-- Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`
+- Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`, `GET /api/packs/{id}/odds`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
 - Featured showcase: `GET/PUT /api/user/featured-collectibles`
 - Binders: `/api/binders*`
@@ -30,7 +30,7 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 - `POST /api/binders/{id}/transfer-card` — move a card to another binder
 - `POST /api/binders/{id}/verify-pin` — binder PIN (not the wallet PIN and not `POST /api/v1/user/verify-pin`)
 
-Cover upload helpers remain implementation-present and are not in the generated spec.
+Cover upload is `POST /api/upload/binder-cover`. Binder-cover library is `GET /api/user/binder-covers`.
 
 ### Binder PIN gate
 

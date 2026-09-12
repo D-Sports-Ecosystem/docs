@@ -15,10 +15,11 @@ Teams/leagues APIs provide team metadata, league metadata, sports catalog, join 
 - `POST /api/teams/{id}/follow` — social follow (`TeamFollow` only)
 - `POST/DELETE /api/teams/{id}/join` — leaderboard membership only (idempotent)
 - `GET /api/teams/{id}/roster` — public real-player roster for the lineup builder
-- `GET /api/teams/{id}/head-to-head` — public series vs an opponent (`record` plus the five most recent decided meetings)
+- `GET /api/teams/{id}/head-to-head?opponentId=` — public series vs an opponent (`record` plus the five most recent decided meetings). `opponentId` is required. Missing or equal to `{id}` returns `400`.
+- `GET /api/teams/{id}/achievements` — public team badges
 - `GET /api/user/teams` — `{ joinedTeamIds, followedTeamIds }`
 
-Search, join, roster, and `GET /api/user/teams` are in the generated OpenAPI.
+Search, join, roster, head-to-head, and `GET /api/user/teams` are in the generated OpenAPI.
 
 ## Sports catalog
 

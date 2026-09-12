@@ -62,15 +62,15 @@ icon: "smartphone"
 
 ## Backend integration surfaces
 
-- Primary API source: `d-sports-api` under `/api/*` and `/v1/engage/*`.
+- Primary API source: `d-sports-api` under `/api/*` and `/api/v1/engage/*`.
 - Native consumes team, league, quest, Fan Rep, reward, wallet, commerce, social, games, and mobile-auth endpoints.
 - Retry/caching logic and auth token injection live in `lib/api/*`. API responses can fall back to MMKV cache.
 
 ## Quest, Fan Rep, and pass UX
 
 - Quest UI reflects team-scoped eligibility and pass-gated progression.
-- Daily quests use the `/v1/engage/quests/*` session API (start, submit, forfeit).
-- Fan Rep screens read `/v1/engage/rep/breakdown` and `/v1/engage/rep/ledger`.
+- Daily quests use the `/api/v1/engage/quests/*` session API (start, submit, forfeit).
+- Fan Rep screens read `/api/v1/engage/rep/breakdown` and `/api/v1/engage/rep/ledger`.
 - Reward presentation differentiates free/unpaid states and claimability.
 - Native progression state must mirror backend eligibility and completion semantics.
 

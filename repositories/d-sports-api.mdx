@@ -45,7 +45,7 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI is **194** paths. New since the last sync: Game Center `player-stats`, `top-performer`, `win-probability`, and iOS `live-activity`; `GET /api/teams/{id}/head-to-head`; `POST /api/feed/signals`; and `PUT /api/admin/players/{playerId}/availability`. Marketplace, KYC, the [Game Engine](/repositories/game-engine/index), leftover `/api/games/*` play routes, realtime discovery, and league standings were already published.
+- OpenAPI is **243** paths. Public and authenticated client helpers from the last inventory are now generated, and quest/Rep operations use the canonical `/api/v1/engage/*` prefix. `POST /api/games/daily-spin/reward` is in the spec as deprecated. `POST /api/v1/engage/player-challenge/complete` is published as retired (`410`).
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.

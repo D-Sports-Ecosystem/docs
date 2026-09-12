@@ -22,7 +22,15 @@ Prefer these over returning raw keys to the client:
 
 `POST /api/wallets/private-key` is **deprecated** in OpenAPI. It still requires a verified 6-digit PIN and remains only until native finishes migrating off it. New client work must call `sign-transaction`.
 
-Related routes that also exist in code but are not generated yet: `/api/wallets/link-external`, `/api/wallets/link-challenge`, `/api/wallets/reset-pin`, `/api/wallets/{id}/attestation`.
+Also in OpenAPI:
+
+- `GET /api/wallets/link-challenge`
+- `POST /api/wallets/link-external`
+- `POST /api/wallets/reset-pin`
+- `GET /api/wallets/{id}/attestation`
+- `POST /api/pregen-wallet`
+- `POST /api/thirdweb-link`
+- `GET/POST /api/thirdweb-proxy`
 
 ## KYC (in OpenAPI)
 

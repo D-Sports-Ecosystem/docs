@@ -19,7 +19,7 @@ One dynamic route plus shared chrome:
 
 Launch path: locker-room Game Site or **This Week's Games** → info modal → `launchRouteForGame` → `/(tabs)/locker-room/games/{gameKey}` for engine games.
 
-Legacy Daily Spin and Guess the Player modal routes still exist. Engine also registers `prize-wheel-spin` and `guess-the-player` on the shared `[gameKey]` route. How-to-Play walkthroughs overlay the live playfield against a fake session and must not call the server.
+You can still open the legacy Daily Spin and Guess the Player modal routes. Engine also registers `prize-wheel-spin` and `guess-the-player` on the shared `[gameKey]` route. How-to-Play walkthroughs overlay the live playfield against a fake session. Do not call the server from a walkthrough.
 
 ## Registry
 
@@ -32,7 +32,7 @@ Each definition supplies:
 - `Component` — playfield only
 - optional `presentOutcome` — cosmetic mapping (animation, HUD copy). It must not decide what happened.
 
-`lib/games/register-shipped.ts` registers Pick'em, Trivia, prize-wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, and the six hockey playfields.
+Native 1.25.1 registers Pick'em, Trivia, prize-wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, and the six hockey playfields in `lib/games/register-shipped.ts`.
 
 ## Catalog join
 

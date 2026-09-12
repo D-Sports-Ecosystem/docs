@@ -32,8 +32,8 @@ Secrets for API and native local runs go through **Infisical** (`infisical run -
 ## Quest, Fan Rep, and pass architecture
 
 - Backend gamification supports **per-team quests** and pass-aware eligibility.
-- Daily quests also expose a `/v1/engage/quests/*` session API (start, submit, forfeit, arena check-in, daily summary).
-- **Fan Rep** is a separate ledger (`RepLedgerEntry`) with Fan, Club, Player, and Direct sources. Read it from `/v1/engage/rep/*`. D-Sports Direct grants use `POST /api/admin/users/{userId}/rep`.
+- Daily quests also expose a `/api/v1/engage/quests/*` session API (start, submit, forfeit, arena check-in, daily summary).
+- **Fan Rep** is a separate ledger (`RepLedgerEntry`) with Fan, Club, Player, and Direct sources. Read it from `/api/v1/engage/rep/*`. D-Sports Direct grants use `POST /api/admin/users/{userId}/rep`.
 - Pass gating includes **global pass** and **event pass** semantics.
 - Reward flows include explicit handling for **free rewards** and **unpaid rewards** states.
 - Native clients render eligibility and progression from backend response truth.
@@ -42,8 +42,8 @@ Secrets for API and native local runs go through **Infisical** (`infisical run -
 
 - Mobile OAuth can return a one-time `MobileSession` hex token (fragment preferred). Native exchanges it at `POST /api/mobile/exchange` for a Clerk sign-in ticket.
 - Custodial wallets sign on the server (`POST /api/wallets/{address}/sign-transaction`). `POST /api/wallets/private-key` is deprecated.
-- Featured collectibles, locker-room post CRUD (including persisted lineups), Game Center `/api/events/*` (including player-stats, win-probability, and Live Activity), marketplace `/api/v1/marketplace/*`, and the public games catalog are first-class client contracts.
-- The [Game Engine](/repositories/game-engine/index) is a separate additive surface (`/api/v1/engage/games/*`) for daily mini-games. Native 1.25.1 registers Pick'em, Trivia, prize-wheel, guess-the-player, lineup, card trivia, streak scratcher, and six hockey playfields. The API owns sessions and awards. Legacy `/api/games/*` play routes and Game Center stay in place.
+- Treat featured collectibles, locker-room post CRUD (including persisted lineups), Game Center `/api/events/*` (including player-stats, win-probability, and Live Activity), marketplace `/api/v1/marketplace/*`, and the public games catalog as first-class client contracts.
+- Use the [Game Engine](/repositories/game-engine/index) (`/api/v1/engage/games/*`) for daily mini-games. Native 1.25.1 registers Pick'em, Trivia, prize-wheel, guess-the-player, lineup, card trivia, streak scratcher, and six hockey playfields. The API owns sessions and awards. Keep calling legacy `/api/games/*` play routes and Game Center.
 
 ## Public vs internal documentation boundaries
 

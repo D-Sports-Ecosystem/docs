@@ -9,6 +9,8 @@ icon: "list-checks"
 - `GET/POST /api/locker-room`
 - `GET/PUT/DELETE /api/locker-room/[id]`
 - `GET/POST /api/locker-room/[id]/comments`
+- `PUT/DELETE /api/locker-room/[id]/comments/[commentId]`
+- `GET/POST /api/locker-room/comments/[commentId]/react`
 - `POST /api/locker-room/[id]/react`
 - `POST /api/locker-room/[id]/like`
 - `POST /api/locker-room/[id]/poll/vote`
@@ -21,6 +23,12 @@ icon: "list-checks"
 - `GET /api/user/search`
 - `GET/POST/DELETE /api/user/mutes`
 - `GET/POST/DELETE /api/user/blocks`
+- `GET /api/user/follow-requests`
+- `DELETE /api/user/follow-requests/[id]`
+- `POST /api/user/follow-requests/[id]/approve`
+- `POST /api/user/follow-requests/[id]/deny`
+- `GET /api/pins`, `GET /api/prompts`, `GET /api/news`, `GET /api/news/[id]`
+- `POST /api/v1/users/contacts/match`
 
 ## Runtime behavior highlights
 
