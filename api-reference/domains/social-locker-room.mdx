@@ -11,12 +11,19 @@ Social APIs power locker room activity and user-to-user interactions.
 
 - Locker room: `/api/locker-room`, `/api/locker-room/stream`, `/api/locker-room/{id}`, `/api/locker-room/{id}/comments`, `/api/locker-room/{id}/react`
 - Likes and polls: `/api/locker-room/{id}/like`, `/api/locker-room/{id}/poll/vote`, `/api/locker-room/comments/{commentId}/like`
+- Comment react and edit: `GET/POST /api/locker-room/comments/{commentId}/react`, `PUT/DELETE /api/locker-room/{id}/comments/{commentId}`
 - Drafts and discovery: `/api/locker-room/posts/draft`, `/api/locker-room/hot-takes`, `/api/discovery/teams`, `/api/discovery/fans`
 - Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+- Follow requests: `GET /api/user/follow-requests`, `DELETE /api/user/follow-requests/{id}`, `POST /api/user/follow-requests/{id}/approve`, `POST /api/user/follow-requests/{id}/deny`
+- Pins and prompts: `GET /api/pins`, `GET /api/prompts`
+- News: `GET /api/news`, `GET /api/news/{id}`
+- Contact match: `POST /api/v1/users/contacts/match` (hashed values only)
 - Safety: `/api/user/mutes`, `/api/user/blocks`
+- Reports: `POST /api/moderation/reports`
 
 ## Per-post contract
 
+- `GET /api/locker-room` is public. Send an optional Bearer token so viewer filters (`analyticsPersonalization`) apply.
 - `GET /api/locker-room/{id}` is public and returns a single post.
 - `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
 - `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).

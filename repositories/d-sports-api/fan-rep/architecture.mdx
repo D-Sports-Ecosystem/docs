@@ -41,14 +41,14 @@ Club rows may store a `targetId`. Only target IDs that resolve to a `Team` appea
 
 ```mermaid
 flowchart LR
-  clientAction[ClientSafeAction] --> earnRoute[POST /v1/engage/rep/earn]
+  clientAction[ClientSafeAction] --> earnRoute[POST /api/v1/engage/rep/earn]
   dedicatedRoute[ArenaCheckInOrDailyQuest] --> dedicatedWrite[DedicatedRepWrite]
   adminGrant[AdminDirectGrant] --> directWrite[recordDirectRepGrant]
   earnRoute --> ledger[RepLedgerEntry]
   dedicatedWrite --> ledger
   directWrite --> ledger
-  ledger --> breakdown[GET /v1/engage/rep/breakdown]
-  ledger --> history[GET /v1/engage/rep/ledger]
+  ledger --> breakdown[GET /api/v1/engage/rep/breakdown]
+  ledger --> history[GET /api/v1/engage/rep/ledger]
 ```
 
 ## Architectural notes

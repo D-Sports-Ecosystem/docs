@@ -22,7 +22,23 @@ Prefer these over returning raw keys to the client:
 
 `POST /api/wallets/private-key` is **deprecated** in OpenAPI. It still requires a verified 6-digit PIN and remains only until native finishes migrating off it. New client work must call `sign-transaction`.
 
-Related routes that also exist in code but are not generated yet: `/api/wallets/link-external`, `/api/wallets/link-challenge`, `/api/wallets/reset-pin`, `/api/wallets/{id}/attestation`.
+Also in OpenAPI:
+
+- `GET /api/wallets/link-challenge`
+- `POST /api/wallets/link-external`
+- `POST /api/wallets/reset-pin`
+- `GET /api/wallets/{id}/attestation`
+- `POST /api/pregen-wallet`
+- `POST /api/thirdweb-link`
+- `GET/POST /api/thirdweb-proxy`
+
+## KYC (in OpenAPI)
+
+Authenticated session helpers. These return status and short-lived Link tokens only. They do not expose vendor dashboard URLs or webhook secrets.
+
+- `POST /api/v1/kyc/link-token`
+- `POST /api/v1/kyc/session/complete` — accepts the local IdentityVerification id or Plaid's `identity_verification_id`
+- `GET /api/v1/user/kyc-status` — status only. Lives under `/api/v1/user`, not marketplace.
 
 ## Integration notes
 
@@ -30,6 +46,7 @@ Related routes that also exist in code but are not generated yet: `/api/wallets/
 - Pair price lookup APIs with freshness indicators on the client side.
 - Native custodial create sends `{ pin, legalTermsVersion }` only.
 - Import/link also requires `pin`, plus `address` and `encryptedPrivateKey` or `privateKey`.
+- `DELETE /api/wallets` needs `{ address, pin }` for custodial wallets. External links need `{ address }` only. Missing or wrong PIN returns `400 VALIDATION_ERROR`.
 
 ## Deep-dive documentation
 

@@ -10,6 +10,7 @@ icon: "list-checks"
 - `GET /api/packs/[id]`
 - `POST /api/packs/[id]/purchase`
 - `POST /api/packs/[id]/open`
+- `GET /api/packs/[id]/odds`
 - `GET /api/user/packs`
 - `GET /api/user/packs/opened`
 - `GET /api/user/collectibles`
@@ -26,7 +27,7 @@ icon: "list-checks"
 - `GET /api/user/packs` status is authoritative (`pending` | `processing` | `opened` | `completed`). Template `isOpenable` is not per-purchase state.
 - User collectible and pack routes expose owned content for client rendering.
 - Featured collectibles expose a public showcase; authenticated replace is capped at 12 slots.
-- Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload helpers are not.
+- Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload is `POST /api/upload/binder-cover`.
 - PIN binders require `x-binder-pin-token` from verify-pin. Without it, `GET /api/binders/[id]` returns `403 PIN_REQUIRED` and metadata only.
 - `GET /api/v1/cards/[id]/provenance` is public and returns `{ card, currentOwners, transfers, mints }`.
 

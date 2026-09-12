@@ -1251,7 +1251,7 @@
           "Events"
         ],
         "summary": "Get game lineup",
-        "description": "Public home/away starters and bench. Slots include playerKey, position, jersey, unit, isStarter.",
+        "description": "Public home/away starters and bench. Slots include playerKey, playerId (stable roster id when linked; null for call-ups/opponent squads — keep the normalised-name fallback), position, jersey, unit, isStarter.",
         "parameters": [
           {
             "name": "gameId",
@@ -1266,6 +1266,392 @@
         "responses": {
           "200": {
             "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/live-activity": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Register a Team HQ Live Activity",
+        "description": "Authenticated. Registers routing/audience data for an iOS Lock Screen / Dynamic Island match card, keyed per user + fixture + club. Requires UserSettings.liveScoreUpdates consent (403 FORBIDDEN otherwise). `activityId` is minted server-side and returned; the client enters it via OneSignal.LiveActivities.enter. `pushToken` is accepted and persisted but inert today — it exists only for a possible future direct-APNs migration and is never read by dispatch.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "registered": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "activityId": {
+                          "type": "string",
+                          "example": "hq:hockey-9001:bos:user_1",
+                          "description": "Per-user (#558): hq:{gameEventId}:{teamId}:{userId}. Minted server-side; pass it verbatim to OneSignal.LiveActivities.enter."
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "registered",
+                        "activityId",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR — teamId missing, or not one of the fixture's two clubs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED — no valid Clerk session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — UserSettings.liveScoreUpdates is not enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND — no such fixture",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "teamId"
+                ],
+                "properties": {
+                  "teamId": {
+                    "type": "string",
+                    "description": "Must be the fixture's homeTeamId or awayTeamId. Decides the card theme and the minted activityId."
+                  },
+                  "platform": {
+                    "type": "string",
+                    "default": "ios",
+                    "description": "iOS only today. Android Live Updates ride ordinary push subscriptions and need no registration."
+                  },
+                  "pushToken": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Accepted and persisted but INERT — never read by dispatch. Exists only for a possible future direct-APNs migration."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "End a Team HQ Live Activity registration",
+        "description": "Authenticated and idempotent. Matches by activityId or pushToken (either optional; omitting both ends every active registration the caller holds for this fixture). Always returns { registered: false }.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Idempotent — always reports registered: false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "registered": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        }
+                      },
+                      "required": [
+                        "registered"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED — no valid Clerk session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Both fields optional. Omitting both ends every active registration the caller holds for this fixture.",
+                "properties": {
+                  "activityId": {
+                    "type": "string"
+                  },
+                  "pushToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1424,6 +1810,28 @@
         "responses": {
           "200": {
             "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/feed/signals": {
+      "post": {
+        "tags": [
+          "Feed"
+        ],
+        "summary": "Ingest behavioural feed signals",
+        "description": "Authenticated. When UserSettings.analyticsPersonalization is false (#614), the payload is dropped at this endpoint and persistBehavioralSignals is never called. Opted-in requests call persist (A3 storage not yet landed). Stop-collection only — no purge of already-collected signals.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { ingested: boolean } }"
+          },
+          "401": {
+            "description": "Unauthenticated"
           }
         }
       }
@@ -2138,7 +2546,7 @@
           "Gamification"
         ],
         "summary": "Get leaderboard",
-        "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global.",
+        "description": "Returns leaderboard entries. Query: leaderboardId (number) or teamId (string); omit for global. The global / D-Sports board ranks each fan's total Fan Rep (same as profile fanRep: lifetime PointsHistory + typed Rep ledger), not a separate seasonal pool. Club team boards remain seasonal.",
         "parameters": [
           {
             "name": "leaderboardId",
@@ -2363,6 +2771,7 @@
           "Locker room"
         ],
         "summary": "Get locker room posts",
+        "description": "Page mode (default): `page` + `hasMore`. Cursor mode (DSE-369): pass opaque `cursor` from a prior `nextCursor`; response includes `nextCursor` (`null` at end). Invalid cursor → 400 (decoded against the request filter before any #614 remap). Filters: trending|latest|following|foryou. When the viewer has UserSettings.analyticsPersonalization=false (#614), trending/foryou are served chronological (`latest` order), a *valid* ranked cursor is dropped after that 400-check, and `ads` is `[]`.",
         "parameters": [
           {
             "name": "page",
@@ -2381,6 +2790,14 @@
             }
           },
           {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque pagination cursor from a previous nextCursor. When set, takes precedence over page. Invalid → 400.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "filter",
             "in": "query",
             "schema": {
@@ -2388,7 +2805,8 @@
               "enum": [
                 "trending",
                 "latest",
-                "following"
+                "following",
+                "foryou"
               ]
             }
           },
@@ -2417,10 +2835,18 @@
             }
           }
         ],
-        "security": [],
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: { posts, hasMore, nextCursor? } }"
+          },
+          "400": {
+            "description": "Invalid cursor (VALIDATION_ERROR)"
           }
         }
       },
@@ -2512,9 +2938,12 @@
           },
           "400": {
             "description": "Content is required"
+          },
+          "403": {
+            "description": "UGC terms not accepted. Envelope: { success: false, code: UGC_TERMS_REQUIRED, error }. Native composers reopen the terms modal on this code."
           }
         },
-        "description": "Create a post. content may be empty when media, poll, collectible, or lineup is present. teamId is the about-tag. authorTeamId / postAsTeamId is who the post is authored as (403 if unauthorized). lineup is persisted: { presetKey, assignments, faces }."
+        "description": "Create a post. content may be empty when media, poll, collectible, or lineup is present. teamId is the about-tag. authorTeamId / postAsTeamId is who the post is authored as (403 if unauthorized). lineup is persisted: { presetKey, assignments, faces }. Rejects with UGC_TERMS_REQUIRED when the caller's ugcTermsVersion is missing or not equal to the current Terms of Use version."
       }
     },
     "/api/locker-room/comments/{commentId}/like": {
@@ -2812,6 +3241,16 @@
                 "properties": {
                   "content": {
                     "type": "string"
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "description": "Parent comment id for nested replies"
+                  },
+                  "mentionedUserIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -2826,8 +3265,12 @@
         "responses": {
           "200": {
             "description": "{ success, data }"
+          },
+          "403": {
+            "description": "UGC terms not accepted. Envelope: { success: false, code: UGC_TERMS_REQUIRED, error }. Native composers reopen the terms modal on this code."
           }
-        }
+        },
+        "description": "Add a comment (or reply via parentId). Body accepts optional mentionedUserIds; responses echo mentions[] per resolved target. Rejects with UGC_TERMS_REQUIRED when the caller's ugcTermsVersion is missing or not equal to the current Terms of Use version."
       }
     },
     "/api/locker-room/{id}/like": {
@@ -3262,7 +3705,7 @@
           "Packs"
         ],
         "summary": "Open pack",
-        "description": "Body: { purchaseId }.",
+        "description": "Body: { purchaseId, packId?, binderId? }. Client-sent rarities are ignored. Success data adds bonus: null | { purchaseId, rarity, requested, awarded, alreadyApplied }.",
         "parameters": [
           {
             "name": "id",
@@ -3281,6 +3724,14 @@
                 "properties": {
                   "purchaseId": {
                     "type": "string"
+                  },
+                  "packId": {
+                    "type": "string",
+                    "description": "Optional. Legacy clients may send path as packId + body.purchaseId."
+                  },
+                  "binderId": {
+                    "type": "string",
+                    "description": "Optional landing binder. Client-sent rarities are ignored."
                   }
                 }
               }
@@ -3294,7 +3745,57 @@
         ],
         "responses": {
           "200": {
-            "description": "{ collectibles, mintedNftIds, landedBinderId }"
+            "description": "{ collectibles, mintedNftIds, landedBinderId, bonus }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "collectibles",
+                        "mintedNftIds",
+                        "landedBinderId",
+                        "bonus"
+                      ],
+                      "properties": {
+                        "collectibles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "mintedNftIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "landedBinderId": {
+                          "type": "string"
+                        },
+                        "bonus": {
+                          "oneOf": [
+                            {
+                              "type": "null"
+                            },
+                            {
+                              "$ref": "#/components/schemas/PackOpenBonusDto"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -3700,7 +4201,7 @@
           "Teams"
         ],
         "summary": "List teams",
-        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }.",
+        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }. Joinability: joinable (boolean), isGlobal (boolean), teamCategory (e.g. dsports_official). D-Sports is joinable:false / isGlobal:true / teamCategory:\"dsports_official\" — not a club membership board. source (dsports = partner club with the full social surface; provider = pulled data-only HQ) and providerId (api-sports team id, the dedupe key) are included per team. ?leagueId= filters, ?search= matches name/slug server-side, ?limit=/?page= paginate (opt-in; omitted returns the whole filtered list with { teams, season, total }).",
         "security": [
           {
             "bearerAuth": []
@@ -3708,7 +4209,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { teams, season } } or { success, data: { team } } when slug is set"
+            "description": "{ success, data: { teams, season, total } } (total always present when filtering/paginating; absent on the unfiltered full-list call) or { success, data: { team } } when slug is set"
           }
         },
         "parameters": [
@@ -3720,8 +4221,246 @@
               "type": "string"
             },
             "description": "Single-team lookup. Returns { team }."
+          },
+          {
+            "name": "leagueId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to one league (relation id or slug)."
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Server-side name/slug match."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Page size 1-100. Pagination is opt-in."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "1-based page."
           }
         ]
+      }
+    },
+    "/api/teams/{id}/head-to-head": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Head-to-head series vs an opponent",
+        "description": "Public. { record: { wins, losses, ties }, meetings: [{ gameId, date, homeAbbr, awayAbbr, homeScore, awayScore }] } from the perspective of {id}. The 5 most recent decided meetings (live games excluded so the list and the record agree). Empty history is a valid 200. 400 without opponentId, 404 for unknown teams.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "opponentId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { record, meetings } }"
+          },
+          "400": {
+            "description": "opponentId missing or equals teamId"
+          },
+          "404": {
+            "description": "Team not found"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/player-stats": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Per-player box score",
+        "description": "Public. { columns: [{ key, label }], players: [{ playerKey, playerId?, name, teamSide, position?, jersey?, didNotPlay?, stats: [{ key, label, value }] }] }. Columns are server-driven (hockey: G/A/PTS/PIM). playerKey matches LineupSlot.playerKey when linkable. { columns: [], players: [] } is a valid 200 for games with no player data.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { columns, players } }"
+          },
+          "404": {
+            "description": "Game not found"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/win-probability": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Odds-implied win probability",
+        "description": "Public. { home, away } always sums to 100; model is final (decided game) | odds-implied (bookmaker winner market) | even (no usable market — honest 50/50). Same poll cadence as box-score stats.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { home, away, model, bookmaker? } }"
+          },
+          "404": {
+            "description": "Game not found"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/top-performer": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Top performer per side",
+        "description": "Public. { home: { playerKey, playerId, name, pos, jersey, avatar, statLine } | null, away: ... | null }. playerKey is the Game Center identity (same key space as LineupSlot.playerKey); playerId is the linked roster id or null. statLine is sport-formatted server-side (hockey: \"2G 1A\"). Null per side when there is no candidate.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { home, away } }"
+          },
+          "404": {
+            "description": "Game not found"
+          }
+        }
+      }
+    },
+    "/api/admin/players/{playerId}/availability": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Set player availability",
+        "description": "Platform admin. Manual availability/injury entry (no hockey provider supplies this). Null status clears back to available.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "out",
+                      "day-to-day",
+                      "injured-reserve",
+                      "suspended",
+                      "questionable",
+                      null
+                    ]
+                  },
+                  "detail": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "expectedReturn": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { id } }"
+          },
+          "400": {
+            "description": "Invalid status/date"
+          },
+          "404": {
+            "description": "Player not found"
+          }
+        }
       }
     },
     "/api/teams/followed": {
@@ -3841,7 +4580,7 @@
           "Teams"
         ],
         "summary": "Follow team",
-        "description": "Body optional: { type?: 'followed' | 'fan' }.",
+        "description": "Body optional: { type?: 'followed' | 'fan' }. Platform / non-joinable teams (D-Sports slug, joinable:false, isGlobal, teamCategory dsports_official / platform) return 409 CONFLICT and do not write TeamFollow.",
         "parameters": [
           {
             "name": "id",
@@ -3878,6 +4617,9 @@
         "responses": {
           "200": {
             "description": "{ success }"
+          },
+          "409": {
+            "description": "CONFLICT — platform / non-joinable team cannot be followed. No TeamFollow write."
           }
         }
       },
@@ -3914,7 +4656,7 @@
           "Teams"
         ],
         "summary": "Join team leaderboard",
-        "description": "Idempotent leaderboard membership only. Does not write TeamFollow. Returns { joinedTeamIds, followedTeamIds }.",
+        "description": "Idempotent leaderboard membership only. Does not write TeamFollow. Returns { joinedTeamIds, followedTeamIds }. Joining a platform / non-joinable team (D-Sports slug, joinable:false, isGlobal, dsports_official) returns 409 CONFLICT before any board or entry write.",
         "parameters": [
           {
             "name": "id",
@@ -3933,6 +4675,9 @@
         "responses": {
           "200": {
             "description": "{ success, data }"
+          },
+          "409": {
+            "description": "CONFLICT — platform / non-joinable team cannot be joined. No board or entry write."
           }
         }
       },
@@ -3941,7 +4686,7 @@
           "Teams"
         ],
         "summary": "Leave team leaderboard",
-        "description": "Idempotent. Removes only the leaderboard entry. Social follow stays in place. Returns { joinedTeamIds, followedTeamIds }.",
+        "description": "Idempotent. Removes only the club leaderboard entry. Social follow stays in place. Leave on a platform / non-joinable team (D-Sports slug, joinable:false, isGlobal, dsports_official) is a no-op (no entry write). Returns { joinedTeamIds, followedTeamIds }.",
         "parameters": [
           {
             "name": "id",
@@ -3970,7 +4715,7 @@
           "Teams"
         ],
         "summary": "Get team roster",
-        "description": "Public real-player roster for the lineup builder. { players: [{ id, name, jersey, position, role, duty }] }. 404 if team is missing.",
+        "description": "Public real-player roster for the lineup builder. { players: [{ id, name, jersey, position, role, duty, photo? }] }. `photo` is omitted when the player has no art. `availability?` ({ status: out|day-to-day|injured-reserve|suspended|questionable, detail?, expectedReturn?, updatedAt? }) is a player-level field, omitted entirely when the player is available. 404 if team is missing.",
         "parameters": [
           {
             "name": "id",
@@ -4026,7 +4771,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read.",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read. Self payload also includes optional `config` (DSE-368 feed control plane: feedRanking, signalsEnabled, signalSampleRate, adsEnabled, experiments). When UserSettings.analyticsPersonalization is false (#614), config is forced to legacy / signals off / sample 0 / ads off regardless of env. Omitted for other profiles / signed-out — clients use safe defaults (legacy / signals off / sample 0 / ads off).",
         "parameters": [
           {
             "name": "suggest",
@@ -4794,7 +5539,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { isComplete } }"
+            "description": "{ success, data: { isComplete, freePackId } }. `freePackId` is the granted PackPurchase.id of the still-unopened onboarding welcome pack, or null."
           }
         }
       },
@@ -4803,7 +5548,7 @@
           "User"
         ],
         "summary": "Complete onboarding",
-        "description": "Optional body `{ interests?: string[] }` is persisted and stamps `interestsCapturedAt` when present.",
+        "description": "Optional body `{ interests?: string[] }` is persisted and stamps `interestsCapturedAt` when present. Response data is `{ completed: true, freePackId }` where `freePackId` is the granted PackPurchase.id (open via POST /api/packs/{id}/open) or null if the grant degraded.",
         "security": [
           {
             "bearerAuth": []
@@ -4811,7 +5556,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { completed } }"
+            "description": "{ success, data: { completed, freePackId } } (freePackId is the granted PackPurchase.id, or null if the grant degraded)"
           }
         }
       }
@@ -5159,7 +5904,7 @@
           "User"
         ],
         "summary": "Get user settings",
-        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, and liveScoreUpdates (opt-in, default false) for OS live score surfaces.",
+        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, liveScoreUpdates (opt-in, default false) for OS live score surfaces, and analyticsPersonalization (opt-out, default true) for feed ranking / ads / behavioural signals (#614).",
         "security": [
           {
             "bearerAuth": []
@@ -5176,7 +5921,7 @@
           "User"
         ],
         "summary": "Update user settings",
-        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity, and liveScoreUpdates (opt-in Live Activity / ongoing notification consent) separately. Do not write preferences.privacy.",
+        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity, liveScoreUpdates (opt-in Live Activity / ongoing notification consent), and analyticsPersonalization (opt-out; default true) separately. Do not write preferences.privacy.",
         "security": [
           {
             "bearerAuth": []
@@ -5241,7 +5986,7 @@
           "Teams"
         ],
         "summary": "List joined and followed team IDs",
-        "description": "Returns { joinedTeamIds, followedTeamIds } for the authenticated user.",
+        "description": "Returns { joinedTeamIds, followedTeamIds } for the authenticated user. joinedTeamIds are club boards only (Leaderboard.isGlobal:false) — D-Sports is never included.",
         "security": [
           {
             "bearerAuth": []
@@ -5429,7 +6174,7 @@
           "Engage"
         ],
         "summary": "Start or resume a daily game session",
-        "description": "Starts or resumes the caller's daily slot for gameKey. Optional X-Client-Version is checked against minClientVersion.",
+        "description": "Starts or resumes the caller's daily slot for gameKey. Optional X-Client-Version is checked against minClientVersion. prize-wheel-spin and guess-the-player bind teamId/leaderboardId at start (not swappable mid-session). A terminal guess-the-player slot returns 409 GAME_ALREADY_PLAYED.",
         "security": [
           {
             "bearerAuth": []
@@ -5488,7 +6233,7 @@
             "description": "GAME_UNKNOWN"
           },
           "409": {
-            "description": "GAME_DAILY_NOT_ELIGIBLE"
+            "description": "GAME_DAILY_NOT_ELIGIBLE, GAME_ALREADY_PLAYED"
           }
         }
       }
@@ -5501,7 +6246,7 @@
           "Engage"
         ],
         "summary": "Submit a server-authoritative game action",
-        "description": "Applies input to the session. Outcome is computed on the server.",
+        "description": "Applies input to the session. Outcome is computed on the server. prize-wheel-spin accepts { type: \"spin\" } only; the client never chooses the segment. A sixth daily spin returns 409 GAME_ATTEMPTS_EXHAUSTED. guess-the-player accepts { playerId: string }; the answer is server-held and never returned in the first session scenario. A sixth guess returns 409 GAME_ATTEMPTS_EXHAUSTED. Terminal sessions return 409 GAME_ALREADY_PLAYED on restart.",
         "security": [
           {
             "bearerAuth": []
@@ -5535,7 +6280,19 @@
                   "input"
                 ],
                 "properties": {
-                  "input": {},
+                  "input": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/PrizeWheelSpinActionInput"
+                      },
+                      {
+                        "$ref": "#/components/schemas/GuessThePlayerActionInput"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  },
                   "sequenceNumber": {
                     "type": "integer",
                     "minimum": 1
@@ -5547,7 +6304,32 @@
         },
         "responses": {
           "200": {
-            "description": "{ outcome, session }"
+            "description": "{ outcome, session }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "outcome": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/PrizeWheelSpinActionOutcome"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GuessThePlayerActionOutcome"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "session": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "VALIDATION_ERROR"
@@ -5559,7 +6341,7 @@
             "description": "NOT_FOUND"
           },
           "409": {
-            "description": "CONFLICT"
+            "description": "CONFLICT, GAME_ATTEMPTS_EXHAUSTED"
           }
         }
       }
@@ -6145,7 +6927,8 @@
           "Marketplace",
           "Commerce and purchases"
         ],
-        "summary": "Add a product to the cart",
+        "summary": "Add a shop catalog item to the cart",
+        "description": "Accepts a Product id, Product slug, or Pack id from GET /api/products. Pack ids are resolved to the mirrored Product row (cart FK is Product).",
         "security": [
           {
             "bearerAuth": []
@@ -7868,14 +8651,24 @@
           "Wallet and web3"
         ],
         "summary": "Remove wallet",
+        "description": "Custodial delete requires `{ address, pin }` (6 digits) in the same request. External links need only `{ address }`. Clerk lastActiveAt is not a gate. Last wallet may be deleted. Wrong/missing PIN is 400 VALIDATION_ERROR.",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "address"
+                ],
                 "properties": {
                   "address": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "0x-prefixed 40-hex Ethereum address"
+                  },
+                  "pin": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$",
+                    "description": "Required for CUSTODIAL wallets. Omit for EXTERNAL links."
                   }
                 }
               }
@@ -7890,6 +8683,15 @@
         "responses": {
           "200": {
             "description": "{ message }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (invalid address, missing/wrong PIN, PIN reset required)"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "NOT_FOUND (wallet missing or not owned by the caller)"
           }
         }
       }
@@ -8178,13 +8980,14 @@
         }
       }
     },
-    "/v1/engage/quests/arena-check-in": {
+    "/api/v1/engage/quests/arena-check-in": {
       "post": {
         "tags": [
           "Quests",
           "Engage"
         ],
-        "summary": "Arena check-in once per team per UTC day",
+        "summary": "Claim arena check-in",
+        "description": "Daily arena check-in for one team. Body: { teamId }. Revalidates the leaderboard tag on success.",
         "security": [
           {
             "bearerAuth": []
@@ -8192,24 +8995,25 @@
         ],
         "responses": {
           "200": {
-            "description": "{ pointsAwarded, earn }"
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "teamId is required"
           },
           "401": {
             "description": "Authentication required"
-          },
-          "403": {
-            "description": "Must follow team"
           }
         }
       }
     },
-    "/v1/engage/quests/daily-summary": {
+    "/api/v1/engage/quests/daily-summary": {
       "get": {
         "tags": [
           "Quests",
           "Engage"
         ],
-        "summary": "Daily quest checklist per followed team",
+        "summary": "Daily quest summary",
+        "description": "Per-followed-team daily checklist (no question/options).",
         "security": [
           {
             "bearerAuth": []
@@ -8217,90 +9021,19 @@
         ],
         "responses": {
           "200": {
-            "description": "{ rows, streak, globalRank, total, doneCount, arenaClaimedTeamIds }"
-          },
-          "401": {
-            "description": "Authentication required"
+            "description": "{ success, data }"
           }
         }
       }
     },
-    "/v1/engage/quests/session/{sessionId}/forfeit": {
+    "/api/v1/engage/quests/{questId}/session": {
       "post": {
         "tags": [
           "Quests",
           "Engage"
         ],
-        "summary": "Forfeit a quest session (burns the UTC day attempt)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "sessionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ ok: true }"
-          },
-          "401": {
-            "description": "Authentication required"
-          }
-        }
-      }
-    },
-    "/v1/engage/quests/session/{sessionId}/submit": {
-      "post": {
-        "tags": [
-          "Quests",
-          "Engage"
-        ],
-        "summary": "Submit an answer for a quest session",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "sessionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ correct, pointsAwarded, streak, earn? }"
-          },
-          "401": {
-            "description": "Authentication required"
-          }
-        }
-      }
-    },
-    "/v1/engage/quests/{questId}/session": {
-      "post": {
-        "tags": [
-          "Quests",
-          "Engage"
-        ],
-        "summary": "Start a timed daily-quest quiz session",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
+        "summary": "Open daily quiz session",
+        "description": "Opens a locked daily quiz session (question + options only).",
         "parameters": [
           {
             "name": "questId",
@@ -8311,27 +9044,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "QuestSession (no correctIndex)"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Not eligible / already attempted"
-          }
-        }
-      }
-    },
-    "/v1/engage/rep/breakdown": {
-      "get": {
-        "tags": [
-          "Rep",
-          "Engage"
-        ],
-        "summary": "Fan Rep totals split by source plus per-team Club Rep subtotals",
-        "description": "Sums RepLedgerEntry by repType. fanAmp=Fan, club=Club, playerAmp=Player, dsportsDirect=Direct. questsAndGames is the PointsHistory sum (quests, daily spin, guess-the-player, mini-games) — a separate ledger, unified here at the read layer only. totalFanRep is the sum of all five.",
         "security": [
           {
             "bearerAuth": []
@@ -8339,22 +9051,79 @@
         ],
         "responses": {
           "200": {
-            "description": "{ totalFanRep, fanAmpRep, dsportsDirectRep, clubRep, playerAmpRep, questsAndGamesRep, clubRepByTeam[] }"
-          },
-          "401": {
-            "description": "Authentication required"
+            "description": "{ success, data }"
           }
         }
       }
     },
-    "/v1/engage/rep/earn": {
+    "/api/v1/engage/quests/session/{sessionId}/submit": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Submit quiz answer",
+        "description": "Body: { answerIndex: number }.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/quests/session/{sessionId}/forfeit": {
+      "post": {
+        "tags": [
+          "Quests",
+          "Engage"
+        ],
+        "summary": "Forfeit quiz session",
+        "description": "Forfeits an open daily quiz session.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/rep/earn": {
       "post": {
         "tags": [
           "Rep",
           "Engage"
         ],
-        "summary": "Record a client-safe Rep earn (reaction/message/pollVote/share only)",
-        "description": "Amount and repType are server-authoritative. Arena check-in and daily-quest Rep use their dedicated routes. Direct kinds (adminGrant, referralBonus, eventReward) are rejected with 403.",
+        "summary": "Record client Rep earn",
+        "description": "Body: { earnKind, idempotencyKey, targetId? }.",
         "security": [
           {
             "bearerAuth": []
@@ -8362,56 +9131,1571 @@
         ],
         "responses": {
           "200": {
-            "description": "{ earn: { amount, repType, capped } }"
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
           },
           "401": {
             "description": "Authentication required"
-          },
-          "403": {
-            "description": "earnKind not allowed from client"
           }
         }
       }
     },
-    "/v1/engage/rep/ledger": {
+    "/api/v1/engage/rep/me": {
       "get": {
         "tags": [
           "Rep",
           "Engage"
         ],
-        "summary": "Paginated Rep ledger (Fan, Club, Player, and Direct sources)",
-        "description": "Keyset pagination on (createdAt DESC, id DESC). source is fanAmp | club | playerAmp | dsportsDirect. playerChallenge maps to source=playerAmp; Direct grants map to dsportsDirect.",
+        "summary": "My Club Rep per team",
+        "description": "Club Rep progress ({ teamId, points, level, pct }) for the given teams. Repeatable teamId param.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Repeatable. Team to report Rep for."
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/rep/player/me": {
+      "get": {
+        "tags": [
+          "Rep",
+          "Engage"
+        ],
+        "summary": "My Player Rep per player",
+        "description": "Player Rep progress ({ playerId, points, level, pct }) for the given players. Parallel to Club Rep; kept separate. Repeatable playerId param.",
         "parameters": [
           {
-            "name": "cursor",
+            "name": "playerId",
             "in": "query",
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "Opaque base64url JSON {createdAt, id}"
-          },
+            "description": "Repeatable. Player to report Rep for."
+          }
+        ],
+        "security": [
           {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            }
+            "bearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "{ entries: [{ id, source, amount, timestamp, reason }], nextCursor? }"
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/player-challenge/complete": {
+      "post": {
+        "tags": [
+          "Games",
+          "Engage"
+        ],
+        "summary": "Player challenge complete (retired)",
+        "description": "Retired anti-farming removal: client-asserted wins are no longer accepted. Always 410 GONE; Rep is awarded server-side on verified Guess-the-Player wins.",
+        "security": [],
+        "responses": {
+          "410": {
+            "description": "Retired; Rep is awarded automatically"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/chat/read": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Persist chat read cursor",
+        "description": "Persists the viewer's read cursor for the NEW divider. Body: { messageId? }.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/events/{gameId}/chat/{messageId}/react": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Toggle chat reaction",
+        "description": "Body: { emoji }. Toggles the viewer's reaction on a game-thread message.",
+        "parameters": [
+          {
+            "name": "gameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/locker-room/comments/{commentId}/react": {
+      "get": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Get comment reactions",
+        "description": "Reaction summary for one locker-room comment.",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Toggle comment reaction",
+        "description": "Toggles the viewer's reaction on a locker-room comment.",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/locker-room/{id}/comments/{commentId}": {
+      "put": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Edit comment",
+        "description": "Edits the caller's own comment. Body: { content, mentionedUserIds?: string[] }. Omitting mentionedUserIds (or sending null) leaves existing mentions untouched; send an explicit [] to clear them. Responses echo mentions[].",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "Delete comment",
+        "description": "Deletes the caller's own comment (or by moderation).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/moderation/reports": {
+      "post": {
+        "tags": [
+          "Moderation and reporting"
+        ],
+        "summary": "File moderation report",
+        "description": "Body: report type (INAPPROPRIATE_NAME, INAPPROPRIATE_CONTENT, SPAM, HARASSMENT, …) plus target.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
           },
           "400": {
-            "description": "Invalid cursor or limit"
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/invites/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get-or-create my referral code",
+        "description": "Any authenticated user. First tap of Invite friends creates the row.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Create my referral code",
+        "description": "Same as GET — first tap of Invite friends creates the row.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/invites/{code}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Validate invite code",
+        "description": "Public validate. Never leaks VIP issuer identity.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/invites/{code}/redeem": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Redeem invite code",
+        "description": "Clerk-authenticated. New signups only.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/news": {
+      "get": {
+        "tags": [
+          "Feed"
+        ],
+        "summary": "List news articles",
+        "description": "Public list of published news articles (newest first).",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to one team."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Max rows."
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include demo rows."
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/news/{id}": {
+      "get": {
+        "tags": [
+          "Feed"
+        ],
+        "summary": "Get news article",
+        "description": "Single published news article. Public.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/pins": {
+      "get": {
+        "tags": [
+          "Locker room"
+        ],
+        "summary": "List pin rail",
+        "description": "Public locker-room pin rail (moderator-curated).",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to one team."
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include demo rows."
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/prompts": {
+      "get": {
+        "tags": [
+          "Feed"
+        ],
+        "summary": "List prompt catalog",
+        "description": "Public prompt catalog for in-feed engagement questions.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to one team."
+          },
+          {
+            "name": "includeDemo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include demo rows."
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/binder-covers": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List my binder covers",
+        "description": "The caller's binder-cover library (newest first). Persist real https URLs only.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/data-export": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List my data exports",
+        "description": "The caller's data-export requests (newest first).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Request data export",
+        "description": "Creates a data-export request for the caller.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/follow-requests": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List incoming follow requests",
+        "description": "Pending follow requests for the authenticated (private) account owner. Supports page/limit.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "1-based page."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Page size."
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/follow-requests/{id}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Withdraw follow request",
+        "description": "Requester withdraws a pending request.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/follow-requests/{id}/approve": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Approve follow request",
+        "description": "Idempotent.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/follow-requests/{id}/deny": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Deny follow request",
+        "description": "Denies a pending follow request.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/nfts/pending": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List pending NFT mints",
+        "description": "The caller's unminted NFT queue.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Batch-mint pending NFTs",
+        "description": "Body: { recipientAddress }. Mints the caller's pending queue.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/packs/{purchaseId}": {
+      "patch": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Set pack binder target",
+        "description": "Set or clear Open Later targetBinderId on an unopened pack purchase. Body: { targetBinderId: string | null }.",
+        "parameters": [
+          {
+            "name": "purchaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/points-history": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Points history",
+        "description": "Ledger rows ({ id, points, completedAt, reason, questId }) for the caller.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/push-subscriptions": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List push subscriptions",
+        "description": "The caller's push subscriptions (newest first).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Create push subscription",
+        "description": "Registers a push subscription for the caller.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Delete push subscription",
+        "description": "Removes the caller's push subscription.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/user/support/tickets": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List support tickets",
+        "description": "The caller's support tickets.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Open support ticket",
+        "description": "Body: category (support/bug/…) plus message. Sends confirmation email when configured.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/user/support/tickets/{id}/messages": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List ticket messages",
+        "description": "Messages on the caller's ticket.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Post ticket message",
+        "description": "Appends a message to the caller's ticket.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/teams/{id}/achievements": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Get team achievements",
+        "description": "Public. Returns the team's achievements/badges.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/commerce": {
+      "get": {
+        "tags": [
+          "Commerce and purchases"
+        ],
+        "summary": "Team commerce block",
+        "description": "Team tickets / merch / sponsors / promoted block. Public. ?teamId= or ?team=slug.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team id."
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team slug."
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/dsports-cash/ledger": {
+      "get": {
+        "tags": [
+          "D-Sports Cash",
+          "Commerce and purchases"
+        ],
+        "summary": "Cash movement history",
+        "description": "Coin movement history (?limit=, default 50). Balance source of truth remains GET /api/dsports-cash.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Max rows (default 50)."
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/market/promos": {
+      "get": {
+        "tags": [
+          "Marketplace",
+          "Commerce and purchases"
+        ],
+        "summary": "Market promos",
+        "description": "Thin alias of GET /api/v1/marketplace/promos — same eligibility logic.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/packs/{id}/odds": {
+      "get": {
+        "tags": [
+          "Packs",
+          "Collectibles and packs"
+        ],
+        "summary": "Pack pull odds",
+        "description": "Per-rarity pull odds plus guarantee for one pack. Public.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exchange-rate": {
+      "get": {
+        "tags": [
+          "D-Sports Cash",
+          "Commerce and purchases"
+        ],
+        "summary": "CHF exchange rate",
+        "description": "CHF <-> D-Sports Cash rate for the mobile BuyConfirmSheet. User-facing (not the admin revenue-fx route).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/product_entitlement_mapping": {
+      "get": {
+        "tags": [
+          "Commerce and purchases"
+        ],
+        "summary": "Entitlement mapping",
+        "description": "Entitlement mapping generated from D-Sports Cash tiers. Public.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/v1/user/set-pin": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "Set listing PIN",
+        "description": "Sets (or replaces) the caller's 6-digit marketplace listing PIN. Body: { pin }.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/user/verify-pin": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "Verify listing PIN",
+        "description": "Verifies the caller's listing PIN; returns a short-lived X-Listing-Pin-Token. 404 PIN_NOT_SET until set-pin. Body: { pin }.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/users/contacts/match": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Match contacts",
+        "description": "Body: { hashes: string[] } — sha256 digests only, never persisted. Max 100 matches.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { matches } }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/pregen-wallet": {
+      "post": {
+        "tags": [
+          "Wallet and web3"
+        ],
+        "summary": "Pregenerate in-app wallet",
+        "description": "Triggers pregeneration of the caller's in-app wallet. Optional body: { userId } (admin use).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/thirdweb-link": {
+      "post": {
+        "tags": [
+          "Wallet and web3"
+        ],
+        "summary": "Create thirdweb link",
+        "description": "Body: { payload }. Returns { userId, email } plus a session header; 401 without a session.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ userId, email } + session header"
+          },
+          "400": {
+            "description": "Payload missing"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/thirdweb-proxy": {
+      "get": {
+        "tags": [
+          "Wallet and web3"
+        ],
+        "summary": "Proxy thirdweb RPC",
+        "description": "Proxies GET to an allowlisted thirdweb origin via ?url=. 400 for missing/non-allowlisted urls.",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Upstream URL (allowlisted origins only)."
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Upstream body"
+          },
+          "400": {
+            "description": "Invalid or missing url"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Wallet and web3"
+        ],
+        "summary": "Proxy thirdweb POST",
+        "description": "POST counterpart of the allowlisted thirdweb proxy.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upstream body"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/wallets/link-challenge": {
+      "get": {
+        "tags": [
+          "Wallets"
+        ],
+        "summary": "Create wallet-link challenge",
+        "description": "One-time SIWE-style message for linking an external wallet.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/wallets/link-external": {
+      "post": {
+        "tags": [
+          "Wallets"
+        ],
+        "summary": "Link external wallet",
+        "description": "Body: { challengeId, message, signature }.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/wallets/reset-pin": {
+      "post": {
+        "tags": [
+          "Wallets"
+        ],
+        "summary": "Reset wallet PIN",
+        "description": "Reverification-gated wallet PIN reset.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/wallets/{id}/attestation": {
+      "get": {
+        "tags": [
+          "Wallets"
+        ],
+        "summary": "Get wallet attestation",
+        "description": "Returns the D-Sports-signed wallet attestation JWS.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/upload/binder-cover": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Upload binder cover",
+        "description": "Multipart image (jpeg/png/webp/gif, max 10 MB) for binder covers.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/upload/locker-media": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Upload locker-room media",
+        "description": "Multipart media for locker-room posts (UGC terms gated).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/upload/profile": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Upload profile photo",
+        "description": "Multipart image; replaces the caller's photo (old blob deleted, thumbhash computed).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/mobile/version": {
+      "get": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Mobile version gate",
+        "description": "Version-gate + invite flags for native clients (60s cached). Public.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/mobile/wallet-callback": {
+      "get": {
+        "tags": [
+          "Mobile auth"
+        ],
+        "summary": "Wallet callback redirect",
+        "description": "Universal/App Link target for the Coinbase Wallet SDK; redirects to the engagenative:// scheme. Reads no input.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Redirect to engagenative://wallet-callback"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Platform and infrastructure"
+        ],
+        "summary": "Liveness probe",
+        "description": "Deliberately trivial: no database, no auth. Answers only whether the runtime booted. Public.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data }"
+          }
+        }
+      }
+    },
+    "/api/games/daily-spin/reward": {
+      "post": {
+        "deprecated": true,
+        "tags": [
+          "Games"
+        ],
+        "summary": "Daily-spin reward (deprecated)",
+        "description": "Compat adapter: client-asserted awards are retired (points issue at engine time). Native must not call this; slated for 410 after the force-update minimum passes Wave 0.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data } (legacy)"
           },
           "401": {
             "description": "Authentication required"
@@ -8434,6 +10718,131 @@
       }
     },
     "schemas": {
+      "PackOpenBonusDto": {
+        "type": "object",
+        "description": "Idempotent pack-open rarity bonus. Null on the envelope when no rarity matched three. Replay returns the same payload with alreadyApplied true.",
+        "required": [
+          "purchaseId",
+          "rarity",
+          "requested",
+          "awarded",
+          "alreadyApplied"
+        ],
+        "properties": {
+          "purchaseId": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string"
+          },
+          "requested": {
+            "type": "integer"
+          },
+          "awarded": {
+            "type": "integer",
+            "description": "Fan Rep actually credited. May be below requested when the Fan cap applies."
+          },
+          "alreadyApplied": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PrizeWheelSpinActionInput": {
+        "type": "object",
+        "description": "prize-wheel-spin action input. The client never chooses the segment.",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["spin"]
+          }
+        },
+        "additionalProperties": true
+      },
+      "GuessThePlayerActionInput": {
+        "type": "object",
+        "description": "guess-the-player action input. The answer is server-held.",
+        "required": ["playerId"],
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "PrizeWheelSpinActionOutcome": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "segmentId",
+          "kind",
+          "pointsAwarded",
+          "collected",
+          "weeklyBonusClaimed",
+          "spinsUsed",
+          "spinsRemaining",
+          "presentOutcome"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "segmentId": { "type": "string" },
+          "kind": { "type": "string", "enum": ["coin", "collect"] },
+          "pointsAwarded": { "type": "integer" },
+          "collected": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "weeklyBonusAwarded": { "type": "integer" },
+          "weeklyBonusClaimed": { "type": "boolean" },
+          "spinsUsed": { "type": "integer" },
+          "spinsRemaining": { "type": "integer" },
+          "presentOutcome": {
+            "type": "object",
+            "required": ["angle", "segmentId"],
+            "properties": {
+              "angle": { "type": "number" },
+              "segmentId": { "type": "string" }
+            }
+          }
+        }
+      },
+      "GuessThePlayerActionOutcome": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "correct",
+          "attemptsUsed",
+          "clues",
+          "status"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string", "enum": ["correct", "incorrect"] },
+          "correct": { "type": "boolean" },
+          "attemptsUsed": { "type": "integer" },
+          "clues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label", "value", "revealed"],
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" },
+                "value": { "type": "string" },
+                "revealed": { "type": "boolean" }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "WON", "LOST"]
+          },
+          "pointsAwarded": { "type": "integer" }
+        }
+      },
       "UserSearchUser": {
         "type": "object",
         "description": "Public search row. Image URL is `profileUrl` (not `avatar`). There is no `level`. `handle` may be null on the default scope; `scope=mention` only returns non-empty handles. `location` is a profile field on every row — only the default scope also matches and ranks on it.",

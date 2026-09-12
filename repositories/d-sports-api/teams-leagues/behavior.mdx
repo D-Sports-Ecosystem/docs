@@ -26,8 +26,10 @@ Both routes require privileged authorization and return structured sync summarie
 - `GET /api/config/sports` groups leagues by `League.sport`. There is no second hardcoded catalog.
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
 - `POST/DELETE /api/teams/{id}/join` mutates leaderboard membership only and is idempotent. `TeamFollow` is unchanged.
-- `GET /api/teams/{id}/roster` is public and returns active `Player` rows for the lineup builder.
+- `GET /api/teams/{id}/roster` is public and returns active `Player` rows for the lineup builder. Each player may include `photo` and `availability`; both are omitted when empty or available.
 - `/api/leagues` returns league metadata and color/logo payloads.
+- `GET /api/teams/{id}/head-to-head?opponentId=` is public and returns `{ record, meetings }` for the five most recent decided meetings from the team's perspective. Missing `opponentId` or `opponentId` equal to `{id}` returns `400`.
+- `GET /api/teams/{id}/achievements` is public and returns the team's badges.
 - `GET /api/leagues/{leagueId}/standings` returns already-sorted `{ rows, tiebreakRules }`. Prefer unique vendor rank; otherwise points, wins, then goal difference.
 - Client apps should tolerate propagation delay immediately after sync events.
 

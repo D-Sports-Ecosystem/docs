@@ -52,9 +52,13 @@ These public and authenticated Game Center routes are in OpenAPI:
 - `GET /api/events/realtime` — public Broadcast discovery (URL, anon key, channel template `events:{gameId}`). Polling and ETag remain the hydrate and reconnect path.
 - `GET /api/events/{gameId}` — event detail, including a `realtime` pointer (no anon key)
 - `GET /api/events/{gameId}/stats`, `/plays`, `/lineup`
-- `GET/POST /api/events/{gameId}/chat` and authenticated `POST/DELETE /chat/mute`
+- `GET /api/events/{gameId}/player-stats` — per-player box score with server-driven columns
+- `GET /api/events/{gameId}/top-performer` — home/away `statLine` (sport-formatted). Each side includes `playerKey` (Game Center identity) and `playerId` (linked roster id, or null).
+- `GET /api/events/{gameId}/win-probability` — `{ home, away }` always sums to 100
+- `GET/POST /api/events/{gameId}/chat`, authenticated `POST/DELETE /chat/mute`, `PUT /chat/read`, and `POST /chat/{messageId}/react`
 - `GET/POST /api/events/{gameId}/presence`
-- `GET/POST /api/events/{gameId}/ratings` — submit may award Club Rep. Do not call `/v1/engage/rep/earn` for this.
+- `GET/POST /api/events/{gameId}/ratings` — submit may award Club Rep. Do not call `/api/v1/engage/rep/earn` for this.
+- `POST/DELETE /api/events/{gameId}/live-activity` — iOS Live Activity registration. Requires `UserSettings.liveScoreUpdates` consent.
 
 In-app inbox types include `GAME_ALERT` and `RATING` on `GET /api/notifications`.
 

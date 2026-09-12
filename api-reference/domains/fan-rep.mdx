@@ -9,19 +9,21 @@ Fan Rep is an append-only ledger (`RepLedgerEntry`) separate from quest points a
 
 ## Endpoint map
 
-- `GET /v1/engage/rep/breakdown` — totals by source plus per-team Club Rep subtotals
-- `GET /v1/engage/rep/ledger` — keyset-paginated ledger
-- `POST /v1/engage/rep/earn` — client-safe earn (`reaction`, `message`, `pollVote`, `share` only)
+- `GET /api/v1/engage/rep/breakdown` — totals by source plus per-team Club Rep subtotals
+- `GET /api/v1/engage/rep/ledger` — keyset-paginated ledger
+- `POST /api/v1/engage/rep/earn` — client-safe earn (`reaction`, `message`, `pollVote`, `share` only)
+- `GET /api/v1/engage/rep/me` — Club Rep per team
+- `GET /api/v1/engage/rep/player/me` — Player Rep per player
 - `POST /api/admin/users/{userId}/rep` — platform-admin D-Sports Direct grant (redacted internals)
 
 Related routes that write Rep themselves (do not also call `/earn`):
 
-- `POST /v1/engage/quests/arena-check-in`
-- Daily-quest session complete paths under `/v1/engage/quests/*`
+- `POST /api/v1/engage/quests/arena-check-in`
+- Daily-quest session complete paths under `/api/v1/engage/quests/*`
 
 ## Breakdown contract
 
-`GET /v1/engage/rep/breakdown` returns:
+`GET /api/v1/engage/rep/breakdown` returns:
 
 | Field | Meaning |
 | --- | --- |
@@ -43,7 +45,7 @@ Amount and `repType` are server-authoritative. Clients must not invent source sp
 
 ## Earn contract
 
-- `POST /v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`.
+- `POST /api/v1/engage/rep/earn` accepts only `reaction`, `message`, `pollVote`, and `share`.
 - Direct kinds (`adminGrant`, `referralBonus`, `eventReward`) on `/earn` return `403`.
 - Arena check-in and daily-quest Rep use their dedicated routes.
 - Unauthorized requests return `401`.

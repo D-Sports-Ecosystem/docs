@@ -10,7 +10,7 @@ icon: "server"
 
 - **Default port:** 3004
 - **Run:** `infisical login` once, then `bun dev`
-- **App version:** 0.1.16
+- **App version:** 0.2.0
 
 ## Tech stack
 
@@ -18,7 +18,7 @@ icon: "server"
 | ---------- | ----------------------------- |
 | Framework  | Next.js 16, React 19          |
 | Database   | PostgreSQL, Prisma 7.9        |
-| Auth       | Clerk 6.x                     |
+| Auth       | Clerk 7.x (`@clerk/nextjs`)   |
 | Styling    | Tailwind CSS 4, Radix UI, shadcn/ui |
 | Web3       | Thirdweb, Viem                |
 | Payments   | RevenueCat (purchases-js)     |
@@ -45,7 +45,7 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI is **187** paths. New generated surfaces include `/api/v1/marketplace/*`, KYC (`/api/v1/kyc/*`, `/api/v1/user/kyc-status`), the [Game Engine](/repositories/game-engine/index), leftover public `/api/games/*` play routes, `GET /api/events/realtime`, and `GET /api/leagues/{leagueId}/standings`.
+- OpenAPI is **243** paths. Public and authenticated client helpers from the last inventory are now generated, and quest/Rep operations use the canonical `/api/v1/engage/*` prefix. `POST /api/games/daily-spin/reward` is in the spec as deprecated. `POST /api/v1/engage/player-challenge/complete` is published as retired (`410`).
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.

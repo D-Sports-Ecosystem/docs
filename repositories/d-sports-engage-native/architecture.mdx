@@ -29,10 +29,10 @@ The native app is structured around Expo Router screens, feature-oriented compon
 
 ## Auth and deep-link entry
 
-- Clerk (`@clerk/clerk-expo`) owns the session after login.
+- Clerk (`@clerk/expo`) owns the session after login.
 - Login supports Google OAuth, Apple Sign In, email/password, and MFA (TOTP, SMS, or email code).
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
-- Android App Links cover `api.d-sports.org` mobile callbacks.
+- Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`). iOS also claims `applinks:app.d-sports.org`.
 
 ## Wallet signing
 

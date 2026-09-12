@@ -38,14 +38,18 @@ This is a different surface from the older `/api/games/*` play routes (daily spi
 
 | Surface | Engine? | Keys / routes |
 | --- | --- | --- |
-| Daily Pick'em | Yes | `daily-pickem` → `/(tabs)/locker-room/games/daily-pickem` |
-| Daily Trivia | Yes | `daily-trivia` → `/(tabs)/locker-room/games/daily-trivia` |
-| Prize Wheel / Daily Spin | No (legacy) | `/api/games/daily-spin/*` |
-| Guess the Player | No (legacy) | `/api/games/guess-player/session/*` |
+| Daily Pick'em | Yes | `daily-pickem` |
+| Daily Trivia | Yes | `daily-trivia` |
+| Prize Wheel | Yes (also legacy `/api/games/daily-spin/*`) | `prize-wheel-spin` |
+| Guess the Player | Yes (also legacy `/api/games/guess-player/*`) | `guess-the-player` |
+| Daily Lineup | Yes | `daily-lineup` |
+| Card Trivia | Yes | `card-trivia` |
+| Login Streak Scratcher | Yes | `login-streak-scratcher` |
+| Hockey playfields | Yes | `deflection`, `iron-trap`, `deke-daily`, `faceoff-frenzy`, `sauce-pass`, `empty-net` |
 | Arena Live | No (legacy) | `/api/games/live/*` |
 | Game Center | No (sports events) | `/api/events/*` |
 
-Native v1 registers Pick'em and Trivia only. The server catalog can list additional keys. An unknown key is a first-class **Update required** / **Not in this build** state, not a crash.
+Native 1.25.1 registers the keys above in `lib/games/register-shipped.ts`. The server catalog can still list additional keys. An unknown key is a first-class **Update required** / **Not in this build** state, not a crash. How-to-Play walkthroughs stay local and must not spend a daily attempt.
 
 <Note>
   Engine routes are in generated OpenAPI under the `Game Engine` tag. Use the [API guide](/api-reference/domains/game-engine) plus the **Endpoints** playground for the HTTP surface.

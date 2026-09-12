@@ -10,7 +10,7 @@ Gamification APIs include quest progression, daily quiz sessions, leaderboard re
 ## Endpoint map
 
 - Legacy quests: `/api/quests`, `/api/quests/start`, `/api/quests/complete-step`, `/api/quests/daily-visit`, `/api/quests/check-progress`
-- Engage daily quests: `/v1/engage/quests/{questId}/session`, `/v1/engage/quests/session/{sessionId}/submit`, `/v1/engage/quests/session/{sessionId}/forfeit`, `/v1/engage/quests/daily-summary`, `/v1/engage/quests/arena-check-in`
+- Engage daily quests: `/api/v1/engage/quests/{questId}/session`, `/api/v1/engage/quests/session/{sessionId}/submit`, `/api/v1/engage/quests/session/{sessionId}/forfeit`, `/api/v1/engage/quests/daily-summary`, `/api/v1/engage/quests/arena-check-in`
 - Leaderboard: `/api/leaderboard`, `/api/leaderboard/stream`, `/api/leaderboard/search`, `/api/leaderboard/seasons`, `/api/leaderboard/winners`, `/api/leaderboard/stats`
 - Rewards: `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem`
 - User quest history: `/api/user/completed-quests`
@@ -19,12 +19,12 @@ Fan Rep lives on a separate ledger. See [Fan Rep](/api-reference/domains/fan-rep
 
 ## Daily quest session contract
 
-- `POST /v1/engage/quests/{questId}/session` starts a timed daily-quest quiz session.
-- `POST /v1/engage/quests/session/{sessionId}/submit` records an answer.
-- `POST /v1/engage/quests/session/{sessionId}/forfeit` burns the UTC-day attempt.
-- `GET /v1/engage/quests/daily-summary` returns the per-followed-team checklist.
-- `POST /v1/engage/quests/arena-check-in` is once per team per UTC day.
-- Amount and Rep type for arena check-in and daily-quest completion are server-authoritative. Do not send those through `POST /v1/engage/rep/earn`.
+- `POST /api/v1/engage/quests/{questId}/session` starts a timed daily-quest quiz session.
+- `POST /api/v1/engage/quests/session/{sessionId}/submit` records an answer. Send `{ answerIndex: number }`. The generated spec describes that body in prose and does not yet declare a `requestBody` schema.
+- `POST /api/v1/engage/quests/session/{sessionId}/forfeit` burns the UTC-day attempt.
+- `GET /api/v1/engage/quests/daily-summary` returns the per-followed-team checklist.
+- `POST /api/v1/engage/quests/arena-check-in` is once per team per UTC day.
+- Amount and Rep type for arena check-in and daily-quest completion are server-authoritative. Do not send those through `POST /api/v1/engage/rep/earn`.
 
 ## Revamped quest endpoint map
 

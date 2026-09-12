@@ -25,8 +25,8 @@ Route documentation status uses:
 | `/api/locker-room*` | Publish | Includes per-post GET/PUT/DELETE. |
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
 | `/api/quests*` | Publish | Core quest progression contracts and side effects. |
-| `/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. |
-| `/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, and client-safe earn. Direct kinds on `/earn` return 403. |
+| `/api/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. Canonical `/api` prefix. |
+| `/api/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, me/player-me, and client-safe earn. Direct kinds on `/earn` return 403. |
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
 | `/api/teams`, `/api/teams/followed`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. |
@@ -36,7 +36,7 @@ Route documentation status uses:
 | `/api/teams/{id}/roster` | Publish | Public real-player roster for the lineup builder. |
 | `/api/user/settings` | Publish | Authenticated settings SoT, including per-channel notify flags. |
 | `/api/locker-room/posts/draft`, `/{id}/like`, `/{id}/poll/vote` | Publish | Composer draft, additive likes, and poll votes. |
-| `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, plays, lineup, chat, mute, presence, ratings. |
+| `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, player-stats, plays, lineup, top-performer, win-probability, chat, mute, presence, ratings, live-activity. |
 | `/api/discovery/teams`, `/api/discovery/fans` | Publish | Suggested teams (public) and fans (authenticated). |
 | `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
@@ -49,12 +49,15 @@ Route documentation status uses:
 | `/api/games/guess-player/session/start`, `/guess` | Publish | Authenticated Guess the Player session. |
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
 | `/api/leagues/{leagueId}/standings` | Publish | Public HQ standings (`rows`, `tiebreakRules`). |
+| `/api/teams/{id}/head-to-head` | Publish | Public HQ series vs an opponent. |
+| `/api/feed/signals` | Publish | Authenticated behavioral ingest. Dropped when `analyticsPersonalization` is false. No request body in the spec; persist is not live yet. |
+| `/api/admin/players/{playerId}/availability` | Publish with redaction | Platform admin injury/availability. Null status clears to available. |
 | `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
 | `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |
 | `/api/games/live/by-code/{code}`, `/join`, `/{sessionId}/leaderboard`, `/{sessionId}/score` | Publish | Authenticated live-arena fan routes. |
 | `/api/games/live/start`, `/api/games/live/{sessionId}/end` | Publish with redaction | Team-manager start/end. Document RBAC only. |
 | `/api/games/pick-em/players` | Publish | Leftover roster helper. Engine Pick'em does not use this path. |
-| `/api/games/daily-spin/reward` | Exclude | Deprecated client-claimed reward. New clients use `POST /api/games/daily-spin/spin`. |
+| `/api/games/daily-spin/reward` | Publish | Deprecated compat adapter in OpenAPI. New clients use `POST /api/games/daily-spin/spin`. |
 | `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
 | `/api/v1/marketplace/*` | Publish | Expanded catch-all. Native `listings/mine` aliases `me/listings`. Create requires `x-listing-pin-token`. Pack listing can return `409 PACK_NOT_LISTABLE` or `PACK_ALREADY_OPENED`. See [Commerce](/api-reference/domains/commerce). |
@@ -72,10 +75,16 @@ Route documentation status uses:
 | `/api/admin/fix-team-ownership` | Exclude | Internal remediation path not for public docs. |
 | `/api/rewards/admin-override` | Exclude | Privileged override operation. |
 | `/api/leaderboard/reset` | Exclude | Internal/privileged maintenance behavior. |
+| `/api/invites/*`, `/api/user/support/*`, `/api/user/follow-requests*`, `/api/upload/*`, `/api/packs/{id}/odds` | Publish | Invites, support tickets, follow requests, uploads, and public pack odds. |
+| `/api/v1/user/set-pin`, `/api/v1/user/verify-pin`, `/api/v1/users/contacts/match` | Publish | Marketplace listing PIN and hashed contact match. |
+| `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{id}/attestation` | Publish | Wallet link/reset helpers. |
+| `/api/health`, `/api/mobile/version`, `/api/mobile/wallet-callback` | Publish | Liveness and mobile helpers. |
+| `/api/news*`, `/api/pins`, `/api/prompts`, `/api/commerce` | Publish | Public CMS/commerce reads. |
+| `/api/v1/engage/player-challenge/complete` | Publish | Retired. Returns `410`. |
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations. There is no leftover unversioned public helper set outside that list. Marketplace, KYC, Game Engine, and leftover public `/api/games/*` play routes are published. Deprecated `POST /api/games/daily-spin/reward` and staff-only `POST /featured` / `POST /promos` stay excluded. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations, catch-alls, and staff-only `POST /featured` / `POST /promos`. Public and authenticated client routes are published, including canonical `/api/v1/engage` quest and Rep paths. `POST /api/games/daily-spin/reward` is in the spec as deprecated. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 
