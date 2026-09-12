@@ -19,6 +19,8 @@ This guide covers authentication and onboarding-related API routes for user-faci
 
 Favorite teams on the user profile are capped at **5**. `d-sports` and `house-of-doge` do not count toward that cap. `GET /api/user` includes `claimedRewardsCount`.
 
+`POST /api/user/onboarding` returns `{ completed, freePackId }`. `freePackId` is the granted `PackPurchase.id`, or `null` if the grant degraded.
+
 See generated endpoint pages in the Endpoints section for full request/response schemas.
 
 ## Mobile exchange contract

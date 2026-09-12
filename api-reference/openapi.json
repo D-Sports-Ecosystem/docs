@@ -2835,7 +2835,12 @@
             }
           }
         ],
-        "security": [],
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "{ success, data: { posts, hasMore, nextCursor? } }"
@@ -3265,7 +3270,7 @@
             "description": "UGC terms not accepted. Envelope: { success: false, code: UGC_TERMS_REQUIRED, error }. Native composers reopen the terms modal on this code."
           }
         },
-        "description": "Add a comment (or reply via parentId). Rejects with UGC_TERMS_REQUIRED when the caller's ugcTermsVersion is missing or not equal to the current Terms of Use version."
+        "description": "Add a comment (or reply via parentId). Body accepts optional mentionedUserIds; responses echo mentions[] per resolved target. Rejects with UGC_TERMS_REQUIRED when the caller's ugcTermsVersion is missing or not equal to the current Terms of Use version."
       }
     },
     "/api/locker-room/{id}/like": {
@@ -4204,7 +4209,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { teams, season } } or { success, data: { team } } when slug is set"
+            "description": "{ success, data: { teams, season, total } } (total always present when filtering/paginating; absent on the unfiltered full-list call) or { success, data: { team } } when slug is set"
           }
         },
         "parameters": [
@@ -4360,7 +4365,7 @@
           "Events"
         ],
         "summary": "Top performer per side",
-        "description": "Public. { home: { playerId, name, pos, jersey, avatar, statLine } | null, away: ... | null }. statLine is sport-formatted server-side (hockey: \"2G 1A\"). Null per side when there is no candidate.",
+        "description": "Public. { home: { playerKey, playerId, name, pos, jersey, avatar, statLine } | null, away: ... | null }. playerKey is the Game Center identity (same key space as LineupSlot.playerKey); playerId is the linked roster id or null. statLine is sport-formatted server-side (hockey: \"2G 1A\"). Null per side when there is no candidate.",
         "parameters": [
           {
             "name": "gameId",
@@ -4710,7 +4715,7 @@
           "Teams"
         ],
         "summary": "Get team roster",
-        "description": "Public real-player roster for the lineup builder. { players: [{ id, name, jersey, position, role, duty, photo? }] }. `photo` is omitted when the player has no art. `availability` ({ status: out|day-to-day|injured-reserve|suspended|questionable, detail?, expectedReturn?, updatedAt? }) is omitted entirely when the player is available. 404 if team is missing.",
+        "description": "Public real-player roster for the lineup builder. { players: [{ id, name, jersey, position, role, duty, photo? }] }. `photo` is omitted when the player has no art. `availability?` ({ status: out|day-to-day|injured-reserve|suspended|questionable, detail?, expectedReturn?, updatedAt? }) is a player-level field, omitted entirely when the player is available. 404 if team is missing.",
         "parameters": [
           {
             "name": "id",
@@ -4766,7 +4771,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read. Self payload also includes optional `config` (DSE-368 feed control plane: feedRanking, signalsEnabled, signalSampleRate, adsEnabled, experiments). When UserSettings.analyticsPersonalization is false (#614), config is forced to legacy / signals off / sample 0 / ads off regardless of env. Omitted for other profiles / signed-out — clients use safe defaults (legacy / signals off / sample 0 / ads off). See docs/analytics-feed/D-A5-control-plane.md.",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read. Self payload also includes optional `config` (DSE-368 feed control plane: feedRanking, signalsEnabled, signalSampleRate, adsEnabled, experiments). When UserSettings.analyticsPersonalization is false (#614), config is forced to legacy / signals off / sample 0 / ads off regardless of env. Omitted for other profiles / signed-out — clients use safe defaults (legacy / signals off / sample 0 / ads off).",
         "parameters": [
           {
             "name": "suggest",
@@ -5551,7 +5556,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { completed } }"
+            "description": "{ success, data: { completed, freePackId } } (freePackId is the granted PackPurchase.id, or null if the grant degraded)"
           }
         }
       }
@@ -6276,7 +6281,7 @@
                 ],
                 "properties": {
                   "input": {
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "$ref": "#/components/schemas/PrizeWheelSpinActionInput"
                       },
@@ -6306,7 +6311,7 @@
                   "type": "object",
                   "properties": {
                     "outcome": {
-                      "oneOf": [
+                      "anyOf": [
                         {
                           "$ref": "#/components/schemas/PrizeWheelSpinActionOutcome"
                         },
@@ -9339,7 +9344,7 @@
           "Locker room"
         ],
         "summary": "Edit comment",
-        "description": "Edits the caller's own comment.",
+        "description": "Edits the caller's own comment. Body: { content, mentionedUserIds?: string[] }. Omitting mentionedUserIds (or sending null) leaves existing mentions untouched; send an explicit [] to clear them. Responses echo mentions[].",
         "parameters": [
           {
             "name": "id",

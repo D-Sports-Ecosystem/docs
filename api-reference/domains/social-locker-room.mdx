@@ -23,6 +23,7 @@ Social APIs power locker room activity and user-to-user interactions.
 
 ## Per-post contract
 
+- `GET /api/locker-room` is public. Send an optional Bearer token so viewer filters (`analyticsPersonalization`) apply.
 - `GET /api/locker-room/{id}` is public and returns a single post.
 - `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
 - `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).

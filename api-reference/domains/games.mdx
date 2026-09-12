@@ -53,7 +53,7 @@ These public and authenticated Game Center routes are in OpenAPI:
 - `GET /api/events/{gameId}` — event detail, including a `realtime` pointer (no anon key)
 - `GET /api/events/{gameId}/stats`, `/plays`, `/lineup`
 - `GET /api/events/{gameId}/player-stats` — per-player box score with server-driven columns
-- `GET /api/events/{gameId}/top-performer` — home/away `statLine` (sport-formatted)
+- `GET /api/events/{gameId}/top-performer` — home/away `statLine` (sport-formatted). Each side includes `playerKey` (Game Center identity) and `playerId` (linked roster id, or null).
 - `GET /api/events/{gameId}/win-probability` — `{ home, away }` always sums to 100
 - `GET/POST /api/events/{gameId}/chat`, authenticated `POST/DELETE /chat/mute`, `PUT /chat/read`, and `POST /chat/{messageId}/react`
 - `GET/POST /api/events/{gameId}/presence`

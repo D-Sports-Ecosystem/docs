@@ -41,7 +41,7 @@ Brand or promotional teams stay out of this file. Do not invent placeholder play
 
 ## Runtime consumption
 
-`d-sports-api` exposes the live roster through public `GET /api/teams/{id}/roster`. That route reads `Player` rows in Postgres (`isActive: true`) and returns `{ players: [{ id, name, jersey, position, role, duty }] }`.
+`d-sports-api` exposes the live roster through public `GET /api/teams/{id}/roster`. That route reads `Player` rows in Postgres (`isActive: true`) and returns `{ players: [{ id, name, jersey, position, role, duty, photo?, availability? }] }`. `availability` is omitted when the player is available.
 
 Treat `leagues/teams/rosters.json` as the editorial source. Treat the API as runtime truth after sync or seed.
 

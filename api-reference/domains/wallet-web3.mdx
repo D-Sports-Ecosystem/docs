@@ -46,6 +46,7 @@ Authenticated session helpers. These return status and short-lived Link tokens o
 - Pair price lookup APIs with freshness indicators on the client side.
 - Native custodial create sends `{ pin, legalTermsVersion }` only.
 - Import/link also requires `pin`, plus `address` and `encryptedPrivateKey` or `privateKey`.
+- `DELETE /api/wallets` needs `{ address, pin }` for custodial wallets. External links need `{ address }` only. Missing or wrong PIN returns `400 VALIDATION_ERROR`.
 
 ## Deep-dive documentation
 

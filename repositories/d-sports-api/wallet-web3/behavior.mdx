@@ -7,6 +7,7 @@ icon: "list-checks"
 ## Main non-admin routes
 
 - `GET /api/wallets`
+- `DELETE /api/wallets`
 - `POST /api/pregen-wallet`
 - `POST /api/wallets/set-pin`
 - `POST /api/wallets/verify-pin`
@@ -24,6 +25,7 @@ icon: "list-checks"
 ## Runtime behavior highlights
 
 - Wallet routes return or provision user wallet context depending on prior state.
+- `DELETE /api/wallets` requires `{ address, pin }` for custodial wallets and `{ address }` only for external links. Missing or wrong PIN returns `400 VALIDATION_ERROR`.
 - PIN routes establish and verify credential gates before private-key access.
 - Private-key access route is deprecated. New client work must call PIN-gated `sign-transaction` instead of fetching raw keys.
 - Coin/crypto price routes provide market data used by wallet and checkout experiences.

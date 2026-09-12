@@ -11,7 +11,8 @@ Commerce APIs cover checkout initiation/verification, catalog reads, marketplace
 
 - Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`
 - Cash balance: `/api/dsports-cash`, `/api/dsports-cash/ledger`
-- Public reads: `/api/commerce`, `/api/packs/{id}/odds`, `/api/v1/product_entitlement_mapping`, `/api/v1/exchange-rate`
+- Public reads: `/api/commerce`, `/api/packs/{id}/odds`, `/api/v1/product_entitlement_mapping`
+- Authenticated rate: `GET /api/v1/exchange-rate` — CHF ↔ D-Sports Cash for the mobile buy sheet. Requires a Clerk session (`401` without one).
 - Catalog: `/api/products` (retired Frontline Pack / Frontline Pass rows are hidden even if they remain in the database)
 - Revenue webhooks (platform integration): `/api/webhooks/revenuecat`
 - Card provenance: `GET /api/v1/cards/{id}/provenance` (public; in OpenAPI)

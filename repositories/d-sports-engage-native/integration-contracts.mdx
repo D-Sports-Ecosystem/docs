@@ -43,7 +43,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `POST /api/teams/{id}/follow` is social only (`TeamFollow`).
 - `POST/DELETE /api/teams/{id}/join` is leaderboard membership only. Both are idempotent.
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
-- `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder.
+- `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder. Read optional `photo` and `availability` on each player. `availability` is omitted when the player is available.
 - League metadata and branding come from `/api/leagues`.
 - `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. Rows arrive sorted. Empty rows mean the league cannot be scored honestly.
 - Call `GET /api/teams/{id}/head-to-head?opponentId=` for the public series. You get `{ record, meetings }` for the five most recent decided meetings. Omit `opponentId`, or send the same id as `{id}`, and you get `400`.
@@ -87,7 +87,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - `GET /api/events/schedule` accepts repeatable `teamId` query params.
 - `GET /api/events/realtime` is public Broadcast discovery. Event detail includes a `realtime` pointer without the anon key.
-- Use the public Game Center reads under `/api/events/{gameId}` for detail, box score, player-stats, plays, lineup, top-performer, and win-probability.
+- Use the public Game Center reads under `/api/events/{gameId}` for detail, box score, player-stats, plays, lineup, top-performer, and win-probability. Top-performer sides include `playerKey` (same key space as `LineupSlot.playerKey`) and `playerId` (linked roster id, or null).
 - Chat mute is `POST/DELETE /api/events/{gameId}/chat/mute` with either `userId` or `thread: true`, not both.
 - Ratings submit is `POST /api/events/{gameId}/ratings`. Do not also call `/api/v1/engage/rep/earn`.
 - Call `POST/DELETE /api/events/{gameId}/live-activity` to register or end an iOS Live Activity. You must have `UserSettings.liveScoreUpdates` consent first.
@@ -106,6 +106,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Custodial send: PIN gate, then `POST /api/wallets/{address}/sign-transaction`.
 - Seed reveal: PIN-gated `POST /api/wallets/{address}/export`.
 - Do not call deprecated `POST /api/wallets/private-key` for new work.
+- `DELETE /api/wallets` needs `{ address, pin }` for custodial wallets. External links need `{ address }` only. Missing or wrong PIN returns `400 VALIDATION_ERROR`.
 
 ## Featured collectibles
 

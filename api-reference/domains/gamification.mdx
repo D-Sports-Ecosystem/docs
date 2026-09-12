@@ -20,7 +20,7 @@ Fan Rep lives on a separate ledger. See [Fan Rep](/api-reference/domains/fan-rep
 ## Daily quest session contract
 
 - `POST /api/v1/engage/quests/{questId}/session` starts a timed daily-quest quiz session.
-- `POST /api/v1/engage/quests/session/{sessionId}/submit` records an answer.
+- `POST /api/v1/engage/quests/session/{sessionId}/submit` records an answer. Send `{ answerIndex: number }`. The generated spec describes that body in prose and does not yet declare a `requestBody` schema.
 - `POST /api/v1/engage/quests/session/{sessionId}/forfeit` burns the UTC-day attempt.
 - `GET /api/v1/engage/quests/daily-summary` returns the per-followed-team checklist.
 - `POST /api/v1/engage/quests/arena-check-in` is once per team per UTC day.

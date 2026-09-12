@@ -50,7 +50,7 @@ Route documentation status uses:
 | `/api/games/live/active` | Publish | Public-ish live-now summary for a team. |
 | `/api/leagues/{leagueId}/standings` | Publish | Public HQ standings (`rows`, `tiebreakRules`). |
 | `/api/teams/{id}/head-to-head` | Publish | Public HQ series vs an opponent. |
-| `/api/feed/signals` | Publish | Authenticated behavioral ingest. Dropped when `analyticsPersonalization` is false. Request body is not in the spec yet. |
+| `/api/feed/signals` | Publish | Authenticated behavioral ingest. Dropped when `analyticsPersonalization` is false. No request body in the spec; persist is not live yet. |
 | `/api/admin/players/{playerId}/availability` | Publish with redaction | Platform admin injury/availability. Null status clears to available. |
 | `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
 | `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |

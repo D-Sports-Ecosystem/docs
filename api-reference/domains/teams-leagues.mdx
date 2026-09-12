@@ -51,9 +51,9 @@ This catalog route is in the generated OpenAPI.
 ## Client integration notes
 
 - `/api/teams` payload includes enriched team context (ranking/count, league-link metadata, and never-null `sport`).
-- `GET /api/teams?slug=` is the single-team lookup. Archived-team slug checks are case-insensitive.
+- `GET /api/teams` returns `{ teams, season, total }` when you filter or paginate. The unfiltered full list omits `total`. `?slug=` returns `{ team }`. Archived-team slug checks are case-insensitive.
 - `/api/leagues` payloads include branding/color metadata used in client visual theming.
-- `GET /api/teams/{id}/roster` returns `{ players: [{ id, name, jersey, position, role, duty }] }` from active `Player` rows. Editorial snapshots live in `leagues/teams/rosters.json`.
+- `GET /api/teams/{id}/roster` returns `{ players: [{ id, name, jersey, position, role, duty, photo?, availability? }] }` from active `Player` rows. `photo` is omitted when there is no art. `availability` is omitted when the player is available. Editorial snapshots live in `leagues/teams/rosters.json`.
 - After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.
 - Users can favorite at most 5 teams. Official `d-sports` and `house-of-doge` do not count toward that cap.
 

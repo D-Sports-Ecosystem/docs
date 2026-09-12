@@ -21,7 +21,7 @@ These operations are in generated OpenAPI under the `Game Engine` tag (also tagg
 | --- | --- | --- | --- |
 | `GET` | `/api/v1/engage/games/catalog` | Public | Query `teamId` or `teamSlug`. Omit both for the platform catalogue. `X-Client-Version` is optional on the wire. Returns `{ daily, weekly }` groups of catalog rows that include `playable` and `reason`. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session` | Bearer | Start or resume the current UTC day slot (`dayKey`). Body `{ teamId?, leaderboardId? }`. |
-| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session? }`. If `session` is omitted, keep the session you already have. |
+| `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/action` | Bearer | `{ input, sequenceNumber? }`. Server returns `{ outcome, session? }`. If `session` is omitted, keep the session you already have. OpenAPI models `input` and `outcome` as `anyOf` (named prize-wheel / guess-the-player schemas plus a generic object). |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Settles awarded points / Rep, or returns `PENDING_RESOLUTION` when the result is still outstanding. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
 
