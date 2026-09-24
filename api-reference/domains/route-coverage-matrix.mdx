@@ -18,7 +18,7 @@ Route documentation status uses:
 | --- | --- | --- |
 | `/api/auth/*` | Publish | Core auth/session contracts for all clients. |
 | `/api/mobile/start`, `/callback`, `/verify`, `/exchange` | Publish | Native OAuth + one-time MobileSession ticket exchange. |
-| `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
+| `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. Includes `GET /api/user/all` (community directory). |
 | `/api/user/check-username` | Publish | Public handle availability check. |
 | `/api/user/mutes`, `/api/user/blocks` | Publish | Authenticated one-way mute and stronger block; handle or User.id refs. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
@@ -29,16 +29,17 @@ Route documentation status uses:
 | `/api/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, me/player-me, and client-safe earn. Direct kinds on `/earn` return 403. |
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
-| `/api/teams`, `/api/teams/followed`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. |
+| `/api/teams`, `/api/teams/followed`, `/api/teams/{id}`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. `GET /api/teams/{id}` resolves id, then slug. |
 | `/api/config/sports` | Publish | Public sports + leagues catalog derived from `League.sport`. |
 | `/api/teams/search`, `/api/teams?slug=` | Publish | Search (`q`/`sport`/`league`/`cursor`/`limit`/`sort`) and single-team slug lookup. |
+| `/api/me/starred-teams`, `/api/me/starred-teams/{teamId}` | Publish | HQ bookmarks. Not follows. 50-club cap. |
 | `/api/teams/{id}/join`, `/api/user/teams` | Publish | Leaderboard join/leave vs social follow. Returns `{ joinedTeamIds, followedTeamIds }`. |
 | `/api/teams/{id}/roster` | Publish | Public real-player roster for the lineup builder. |
 | `/api/user/settings` | Publish | Authenticated settings SoT, including per-channel notify flags. |
 | `/api/locker-room/posts/draft`, `/{id}/like`, `/{id}/poll/vote` | Publish | Composer draft, additive likes, and poll votes. |
 | `/api/events/*` | Publish | Game Center schedule, realtime discovery, detail, stats, player-stats, plays, lineup, top-performer, win-probability, chat, mute, presence, ratings, live-activity. |
 | `/api/discovery/teams`, `/api/discovery/fans` | Publish | Suggested teams (public) and fans (authenticated). |
-| `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. |
+| `/api/products`, `/api/packs*`, `/api/checkout*`, `/api/dsports-cash` | Publish | Commerce and pack-opening core contracts. `PUT /api/packs/{id}/purchase` is deprecated and returns `410`. |
 | `/api/wallets*`, `/api/crypto-prices` | Publish | Wallet and pricing client contracts in OpenAPI. |
 | `/api/wallets/{address}/sign-transaction`, `/export` | Publish | Custodial server-side sign/export. `private-key` is deprecated. |
 | `/api/feedback/*` | Publish | User-facing reporting channels. |
@@ -52,7 +53,7 @@ Route documentation status uses:
 | `/api/teams/{id}/head-to-head` | Publish | Public HQ series vs an opponent. |
 | `/api/feed/signals` | Publish | Authenticated behavioral ingest. Dropped when `analyticsPersonalization` is false. No request body in the spec; persist is not live yet. |
 | `/api/admin/players/{playerId}/availability` | Publish with redaction | Platform admin injury/availability. Null status clears to available. |
-| `/api/v1/engage/games/*` | Publish | Game Engine catalog + session/action/complete/forfeit. See [Game Engine API](/api-reference/domains/game-engine). |
+| `/api/v1/engage/games/*` | Publish | Game Engine catalog, session verbs, and the locker-singularity idle ledger. See [Game Engine API](/api-reference/domains/game-engine). |
 | `/api/games/guess-player/players`, `/session/invalidate` | Publish | Authenticated Guess the Player autocomplete and session invalidate. |
 | `/api/games/live/by-code/{code}`, `/join`, `/{sessionId}/leaderboard`, `/{sessionId}/score` | Publish | Authenticated live-arena fan routes. |
 | `/api/games/live/start`, `/api/games/live/{sessionId}/end` | Publish with redaction | Team-manager start/end. Document RBAC only. |
@@ -75,16 +76,18 @@ Route documentation status uses:
 | `/api/admin/fix-team-ownership` | Exclude | Internal remediation path not for public docs. |
 | `/api/rewards/admin-override` | Exclude | Privileged override operation. |
 | `/api/leaderboard/reset` | Exclude | Internal/privileged maintenance behavior. |
+| `/api/team-access/*` | Exclude | Frozen separately in `openapi/team-access.v1.json`. Not part of the public Engage spec. |
+| `/api/events/alerts/season-start` | Exclude | Not in the public spec. Native season reminders opt in through OneSignal. |
 | `/api/invites/*`, `/api/user/support/*`, `/api/user/follow-requests*`, `/api/upload/*`, `/api/packs/{id}/odds` | Publish | Invites, support tickets, follow requests, uploads, and public pack odds. |
 | `/api/v1/user/set-pin`, `/api/v1/user/verify-pin`, `/api/v1/users/contacts/match` | Publish | Marketplace listing PIN and hashed contact match. |
-| `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{id}/attestation` | Publish | Wallet link/reset helpers. |
+| `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{address}/attestation` | Publish | Wallet link/reset helpers. Attestation path value is the wallet database id. |
 | `/api/health`, `/api/mobile/version`, `/api/mobile/wallet-callback` | Publish | Liveness and mobile helpers. |
 | `/api/news*`, `/api/pins`, `/api/prompts`, `/api/commerce` | Publish | Public CMS/commerce reads. |
 | `/api/v1/engage/player-challenge/complete` | Publish | Retired. Returns `410`. |
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations, catch-alls, and staff-only `POST /featured` / `POST /promos`. Public and authenticated client routes are published, including canonical `/api/v1/engage` quest and Rep paths. `POST /api/games/daily-spin/reward` is in the spec as deprecated. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations, the separate team-access freeze, catch-alls, and staff-only `POST /featured` / `POST /promos`. Public and authenticated client routes are published, including `GET /api/user/all`, starred HQ teams, the locker-singularity ledger, and canonical `/api/v1/engage` quest and Rep paths. `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`). `POST /api/games/daily-spin/reward` is in the spec as deprecated. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 

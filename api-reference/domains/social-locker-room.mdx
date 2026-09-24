@@ -13,7 +13,7 @@ Social APIs power locker room activity and user-to-user interactions.
 - Likes and polls: `/api/locker-room/{id}/like`, `/api/locker-room/{id}/poll/vote`, `/api/locker-room/comments/{commentId}/like`
 - Comment react and edit: `GET/POST /api/locker-room/comments/{commentId}/react`, `PUT/DELETE /api/locker-room/{id}/comments/{commentId}`
 - Drafts and discovery: `/api/locker-room/posts/draft`, `/api/locker-room/hot-takes`, `/api/discovery/teams`, `/api/discovery/fans`
-- Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/recommended`, `/api/user/top-users`
+- Social graph: `/api/user/follow`, `/api/user/followers`, `/api/user/search`, `/api/user/all`, `/api/user/recommended`, `/api/user/top-users`
 - Follow requests: `GET /api/user/follow-requests`, `DELETE /api/user/follow-requests/{id}`, `POST /api/user/follow-requests/{id}/approve`, `POST /api/user/follow-requests/{id}/deny`
 - Pins and prompts: `GET /api/pins`, `GET /api/prompts`
 - News: `GET /api/news`, `GET /api/news/{id}`
@@ -40,6 +40,7 @@ Social APIs power locker room activity and user-to-user interactions.
 - `GET/PUT/DELETE /api/locker-room/posts/draft` is the authenticated composer draft. GET is `404` when none exists. DELETE is `204` even if none existed.
 - Comment create may include `mentionedUserIds`. Responses echo `mentions[]`. Edit must send `mentionedUserIds: []` to clear; omitting the field leaves mentions unchanged.
 - `GET /api/user/search` is authenticated. Send required `q`. Default scope matches handle, name, and (when `q` is at least 2 characters) location. `scope=mention` matches handle and name only and drops users without a handle. `limit` is 1–50 (default 20). Each row uses `profileUrl` (not `avatar`) and has no `level`.
+- `GET /api/user/all` is the authenticated community directory (newest onboarded users, excluding the caller). `limit` is 1–100 (default 50). `excludeFollowing=true` also drops people you already follow. `total` is the returned count. The response is `Cache-Control: no-store`, and the route allows 30 requests per minute.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
 
 ## Mute vs block

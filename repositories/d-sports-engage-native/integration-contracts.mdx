@@ -36,12 +36,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## Team and league API contracts
 
-- Team lists and team metadata come from `/api/teams`. Use `?slug=` for a single team.
+- Team lists and team metadata come from `/api/teams`. Use `?slug=` for a single team, or public `GET /api/teams/{id}` when you have an id or slug (id is tried first). Archived teams return `404`.
 - `GET /api/teams/search` accepts `q`, `sport`, `league`, `cursor`, `limit`, and `sort` (`rank` | `name` | `fans`).
 - Sports chips come from public `GET /api/config/sports`. On `500`, fall back to a local cache. Do not hardcode a second catalog.
 - Team `sport` and `leagueInfo.sport` are never null. Unknown values are `"other"`.
 - `POST /api/teams/{id}/follow` is social only (`TeamFollow`).
 - `POST/DELETE /api/teams/{id}/join` is leaderboard membership only. Both are idempotent.
+- HQ stars are bookmarks, not follows. `GET /api/me/starred-teams` lists them. `PUT` and `DELETE /api/me/starred-teams/{teamId}` star and unstar. Optional `PUT` body `{ slug?, name?, logo? }` stores a display snapshot. A new star past 50 clubs returns `409 STARRED_TEAMS_LIMIT`. `POST /api/me/starred-teams` is the one-time additive merge (`skipped` and `rejected`, not a hard failure).
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
 - `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder. Read optional `photo` and `availability` on each player. `availability` is omitted when the player is available.
 - League metadata and branding come from `/api/leagues`.
@@ -66,6 +67,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
+- The community directory is `GET /api/user/all` (onboarded users, excluding you, `limit` 1–100). Suggested fans should prefer `GET /api/discovery/fans` and use `/api/user/all` as the fallback list.
 
 ## Marketplace contracts
 
@@ -82,6 +84,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Responses are cacheable (`Cache-Control: public, max-age=60, stale-while-revalidate=300`); short-lived staleness after a team changes its selection is expected.
 - Unknown teams return `404`; a missing `teamId`/`teamSlug` returns `400`.
 - Native also calls `GET /api/v1/engage/games/catalog` and joins the two lists. Engine session verbs, HUD rules, and update-required behavior live in [Game Engine](/repositories/game-engine/index). Do not ignore unknown engine keys.
+- `locker-singularity` does not use session verbs. Read and mutate `/api/v1/engage/games/locker-singularity/ledger`. Send `X-Client-Version`. Mutations need a UUID `idempotencyKey` the client already holds. Send tap counts, never buzz values. Boost claim stays `410 BOOST_DISABLED`.
 
 ## Game Center contracts
 
@@ -106,6 +109,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Custodial send: PIN gate, then `POST /api/wallets/{address}/sign-transaction`.
 - Seed reveal: PIN-gated `POST /api/wallets/{address}/export`.
 - Do not call deprecated `POST /api/wallets/private-key` for new work.
+- Attestation is `GET /api/wallets/{address}/attestation`. The path segment is the wallet database id, not the on-chain address.
 - `DELETE /api/wallets` needs `{ address, pin }` for custodial wallets. External links need `{ address }` only. Missing or wrong PIN returns `400 VALIDATION_ERROR`.
 
 ## Featured collectibles

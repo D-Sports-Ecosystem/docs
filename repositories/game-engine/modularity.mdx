@@ -13,7 +13,7 @@ The engine is built so a new daily game is a **registration**, not a framework f
 - No new Expo Router file per game. Engine games share `app/(tabs)/locker-room/games/[gameKey].tsx`.
 - The playfield does not score, award Rep, or decide win/loss.
 - The playfield does not render chrome, HUD, or safe-area wrappers.
-- v1 does not include a game loop, remote game logic, or realtime. Physics stays outside engine core.
+- Session games do not include a game loop, remote game logic, or realtime. Physics stays outside engine core. `locker-singularity` is the exception: progression is the idle ledger, not a UTC day slot.
 
 ## Add a game on native
 

@@ -9,7 +9,7 @@ Commerce APIs cover checkout initiation/verification, catalog reads, marketplace
 
 ## Endpoint map
 
-- Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`
+- Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`. `POST /api/checkout/crypto/verify` confirms pack purchases. `PUT /api/packs/{id}/purchase` is `410 GONE`.
 - Cash balance: `/api/dsports-cash`, `/api/dsports-cash/ledger`
 - Public reads: `/api/commerce`, `/api/packs/{id}/odds`, `/api/v1/product_entitlement_mapping`
 - Authenticated rate: `GET /api/v1/exchange-rate` — CHF ↔ D-Sports Cash for the mobile buy sheet. Requires a Clerk session (`401` without one).

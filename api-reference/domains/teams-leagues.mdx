@@ -10,8 +10,13 @@ Teams/leagues APIs provide team metadata, league metadata, sports catalog, join 
 ## Teams endpoints
 
 - `GET /api/teams` — list, or `?slug=` for a single team
+- `GET /api/teams/{id}` — public fetch by id or slug (id is tried first). Same team shape as a list entry, plus `teamRecord`, `foundedDate`, and `viewerCanPostAsTeam`. Archived teams return `404`.
 - `GET /api/teams/search` — `q`, `sport`, `league`, `cursor`, `limit` (1–50), `sort` (`rank` | `name` | `fans`)
 - `GET /api/teams/followed`
+- `GET /api/me/starred-teams` — authenticated HQ bookmarks (not follows)
+- `PUT /api/me/starred-teams/{teamId}` — star a club (idempotent)
+- `DELETE /api/me/starred-teams/{teamId}` — unstar a club (idempotent)
+- `POST /api/me/starred-teams` — additive snapshot merge for the one-time client migration
 - `POST /api/teams/{id}/follow` — social follow (`TeamFollow` only)
 - `POST/DELETE /api/teams/{id}/join` — leaderboard membership only (idempotent)
 - `GET /api/teams/{id}/roster` — public real-player roster for the lineup builder
@@ -19,7 +24,7 @@ Teams/leagues APIs provide team metadata, league metadata, sports catalog, join 
 - `GET /api/teams/{id}/achievements` — public team badges
 - `GET /api/user/teams` — `{ joinedTeamIds, followedTeamIds }`
 
-Search, join, roster, head-to-head, and `GET /api/user/teams` are in the generated OpenAPI.
+Search, join, roster, head-to-head, `GET /api/teams/{id}`, starred teams, and `GET /api/user/teams` are in the generated OpenAPI.
 
 ## Sports catalog
 
@@ -48,6 +53,15 @@ This catalog route is in the generated OpenAPI.
 - `DELETE /api/teams/{id}/join` removes only the leaderboard entry. Social follow stays in place.
 - Both join and leave are idempotent and return the same `{ joinedTeamIds, followedTeamIds }` shape as `GET /api/user/teams`.
 
+## Starred HQ teams
+
+A star is a bookmark. It does not write `TeamFollow` and it does not grant a social surface, so provider clubs that have no synced `Team` row are allowed.
+
+- `GET /api/me/starred-teams` returns `{ teams }` for the caller. Each entry is `{ id, slug, name, logo, source, providerId, starredAt }`. `slug`, `name`, and `logo` resolve live from `Team` when a row exists and otherwise fall back to the stored client snapshot. All three can be null. `source` and `providerId` are null when no `Team` row exists.
+- `PUT /api/me/starred-teams/{teamId}` is idempotent. Optional body `{ slug?, name?, logo? }` stores the display snapshot. Re-starring refreshes only the keys you send. An explicit `null` clears a stored value. A new id past the 50-club cap returns `409 STARRED_TEAMS_LIMIT`.
+- `DELETE /api/me/starred-teams/{teamId}` is idempotent. A missing star still returns `{ starred: false }`.
+- `POST /api/me/starred-teams` is an additive merge, not a replace. Body is `{ teams: [{ id, slug?, name?, logo? }] }`. Existing ids refresh their snapshot. New ids star until the cap. Entries past the cap are counted in `skipped`, with per-entry detail in `rejected` (`reason` is `invalid` or `over_cap`). The route returns `{ teams, added, skipped, rejected }`.
+
 ## Client integration notes
 
 - `/api/teams` payload includes enriched team context (ranking/count, league-link metadata, and never-null `sport`).
@@ -55,7 +69,7 @@ This catalog route is in the generated OpenAPI.
 - `/api/leagues` payloads include branding/color metadata used in client visual theming.
 - `GET /api/teams/{id}/roster` returns `{ players: [{ id, name, jersey, position, role, duty, photo?, availability? }] }` from active `Player` rows. `photo` is omitted when there is no art. `availability` is omitted when the player is available. Editorial snapshots live in `leagues/teams/rosters.json`.
 - After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.
-- Users can favorite at most 5 teams. Official `d-sports` and `house-of-doge` do not count toward that cap.
+- Users can favorite at most 5 teams. Official `d-sports` and `house-of-doge` do not count toward that cap. HQ stars are a separate bookmark list with a 50-club cap.
 
 ## Related docs
 
