@@ -22,6 +22,8 @@ Both routes require privileged authorization and return structured sync summarie
 
 - `/api/teams` returns enriched team payloads (counts, ranking context, league linkage, never-null `sport`).
 - `GET /api/teams?slug=` returns a single team. Archived-team slug checks are case-insensitive.
+- `GET /api/teams/{id}` is public and resolves id first, then slug. The payload matches a list entry plus `teamRecord`, `foundedDate`, and `viewerCanPostAsTeam`. Archived or unknown teams return `404`. A missing id returns `400`.
+- Starred HQ teams (`/api/me/starred-teams`) are bookmarks, not follows. The cap is 50 clubs. `PUT` is idempotent and returns `409 STARRED_TEAMS_LIMIT` for a new id past the cap. `POST` merges a client snapshot and reports `skipped` plus `rejected` instead of failing the batch.
 - `GET /api/teams/search` filters by `q` (max 64), `sport`, `league`, `cursor`, `limit` (1–50), and `sort` (`rank` | `name` | `fans`).
 - `GET /api/config/sports` groups leagues by `League.sport`. There is no second hardcoded catalog.
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
@@ -30,7 +32,7 @@ Both routes require privileged authorization and return structured sync summarie
 - `/api/leagues` returns league metadata and color/logo payloads.
 - `GET /api/teams/{id}/head-to-head?opponentId=` is public and returns `{ record, meetings }` for the five most recent decided meetings from the team's perspective. Missing `opponentId` or `opponentId` equal to `{id}` returns `400`.
 - `GET /api/teams/{id}/achievements` is public and returns the team's badges.
-- `GET /api/leagues/{leagueId}/standings` returns already-sorted `{ rows, tiebreakRules }`. Prefer unique vendor rank; otherwise points, wins, then goal difference.
+- `GET /api/leagues/{leagueId}/standings` returns `{ rows, tiebreakRules, tables }`. `rows` is one team each (division, else conference, else league). `tables` lists every remaining scope. Prefer unique vendor rank inside a table; otherwise points, wins, then goal difference. `tiebreakRules` names that fallback only.
 - Client apps should tolerate propagation delay immediately after sync events.
 
 ## Troubleshooting checklist

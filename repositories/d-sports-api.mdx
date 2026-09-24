@@ -16,8 +16,8 @@ icon: "server"
 
 | Category   | Technology                    |
 | ---------- | ----------------------------- |
-| Framework  | Next.js 16, React 19          |
-| Database   | PostgreSQL, Prisma 7.9        |
+| Framework  | Next.js 16.3, React 19        |
+| Database   | PostgreSQL, Prisma 7.9.1      |
 | Auth       | Clerk 7.x (`@clerk/nextjs`)   |
 | Styling    | Tailwind CSS 4, Radix UI, shadcn/ui |
 | Web3       | Thirdweb, Viem                |
@@ -39,20 +39,21 @@ icon: "server"
 - **Digital collectibles** — Rarity-tiered collectibles, pack opening, inventory, featured showcase
 - **Shop** — Product catalog, cart, RevenueCat and crypto checkout, D-Sports Cash
 - **Wallet** — Custodial Thirdweb wallets, PIN gates, server-side transaction signing
-- **Interactive games** — Team-selected catalog (daily spin, guess-the-player, live games) plus the [Game Engine](/repositories/game-engine/index) for Pick'em and Trivia
+- **Interactive games** — Team-selected catalog (daily spin, guess-the-player, live games) plus the [Game Engine](/repositories/game-engine/index) for Pick'em, Trivia, air hockey, and the locker-singularity idle ledger
 - **Team manager dashboard** — Collectible creation, bulk upload, packs, analytics, revenue
 - **Admin** — Impersonation, roles (SuperAdmin, Admin, TeamManager), user management
 
 ## What changed since last docs sync
 
-- OpenAPI is **243** paths. Public and authenticated client helpers from the last inventory are now generated, and quest/Rep operations use the canonical `/api/v1/engage/*` prefix. `POST /api/games/daily-spin/reward` is in the spec as deprecated. `POST /api/v1/engage/player-challenge/complete` is published as retired (`410`).
+- OpenAPI is **252** paths, synced from `d-sports-api` `main` (`e9a8d95`). New published surfaces: HQ starred teams, `GET /api/teams/{id}`, the locker-singularity idle ledger, and wallet attestation at `/api/wallets/{address}/attestation` (the path value is the wallet database id). `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`); confirm with `POST /api/checkout/crypto/verify`. `GET /api/user/all` stays out of this spec until [d-sports-api#738](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/738) merges.
+- HQ stars (`/api/me/starred-teams`) are bookmarks, not follows, with a 50-club cap.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
 - Marketplace pack listing rejects `processing` purchases with `409 PACK_NOT_LISTABLE`. Native `listings/mine` aliases `me/listings`.
 - Unknown `/api/*` paths return JSON `404`, not the HTML app 404.
 - Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.
-- Prisma is **7.9** (the repo README badge may still say 6 — trust `package.json`).
+- Prisma is **7.9.1**.
 - Custodial wallets sign on the server. `POST /api/wallets/private-key` is deprecated and PIN-gated.
 - Fan Rep is a first-class ledger. `dsportsDirectRep` sums `repType = Direct` rows from admin grants.
 

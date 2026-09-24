@@ -46,10 +46,12 @@ This is a different surface from the older `/api/games/*` play routes (daily spi
 | Card Trivia | Yes | `card-trivia` |
 | Login Streak Scratcher | Yes | `login-streak-scratcher` |
 | Hockey playfields | Yes | `deflection`, `iron-trap`, `deke-daily`, `faceoff-frenzy`, `sauce-pass`, `empty-net` |
+| Air hockey | Yes | `air-hockey` |
+| Locker Singularity | Yes (idle ledger, not day-slot sessions) | `locker-singularity` |
 | Arena Live | No (legacy) | `/api/games/live/*` |
 | Game Center | No (sports events) | `/api/events/*` |
 
-Native 1.25.1 registers the keys above in `lib/games/register-shipped.ts`. The server catalog can still list additional keys. An unknown key is a first-class **Update required** / **Not in this build** state, not a crash. How-to-Play walkthroughs stay local and must not spend a daily attempt.
+Native 1.25.9 registers the keys above in `lib/games/register-shipped.ts`. The server catalog can still list additional keys. An unknown key is a first-class **Update required** / **Not in this build** state, not a crash. How-to-Play walkthroughs stay local and must not spend a daily attempt. `locker-singularity` spends buzz on its ledger routes instead of a daily session.
 
 <Note>
   Engine routes are in generated OpenAPI under the `Game Engine` tag. Use the [API guide](/api-reference/domains/game-engine) plus the **Endpoints** playground for the HTTP surface.

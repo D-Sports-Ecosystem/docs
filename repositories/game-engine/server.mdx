@@ -19,6 +19,8 @@ Base path: `/api/v1/engage/games`. Catalog is public. Session verbs require a Cl
 | `POST` | `/{gameKey}/session/{sessionId}/complete` | Clerk | Bank the session. |
 | `POST` | `/{gameKey}/session/{sessionId}/forfeit` | Clerk | Forfeit. Body: `{ reason }`. |
 
+`locker-singularity` is registered on the client with `sessionMode: "idle-ledger"`. It does not call session, action, complete, or forfeit. The server owns the loop at `/api/v1/engage/games/locker-singularity/ledger` (read, taps, buy, upgrades, prestige). Claim-boost is reserved and always returns `410 BOOST_DISABLED` in v1. Offline accrual uses the server `lastSeenAt` (8 hour cap, 50% efficiency). The client never sends a timestamp and never sends buzz amounts — taps are a count, and the server clamps each call at 100.
+
 These routes are published in OpenAPI (`Game Engine` tag). See the [API guide](/api-reference/domains/game-engine) and the generated **Endpoints** pages.
 
 ## Catalog rules
@@ -73,6 +75,12 @@ Pick'em and Trivia send `{ optionKey }` from 2–6 `{ key, label }` options. The
 | --- | --- |
 | `GAME_UPDATE_REQUIRED` | Same update UI as a registry miss. |
 | `GAME_DAILY_NOT_ELIGIBLE` | Already-played state. |
+| `IDLE_TAP_RATE_LIMITED` | Back off using `Retry-After`. |
+| `IDLE_INSUFFICIENT_BUZZ` | Not enough buzz or Playbooks. No partial write. |
+| `IDLE_GENERATOR_LOCKED` | Unlock threshold not met. |
+| `IDLE_PRESTIGE_NOT_ELIGIBLE` | `lifetimeBuzz` is below 1,000,000. |
+| `IDLE_MAX_PER_CALL` | Buy `quantity` is outside 1–100. |
+| `BOOST_DISABLED` | v1 boost claim. Always `410`. |
 
 Do not retry authorization or eligibility errors as if they were transient network failures.
 

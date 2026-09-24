@@ -8,7 +8,7 @@ icon: "smartphone"
 
 **d-sports-engage-native** (package name: `engage-native`) is the native mobile app for D-Sports. It mirrors the core PWA experience on iOS and Android: wallet, shop, leaderboard, locker room, profile, plus binder, market, quests, and a team-admin hub.
 
-- **App version:** 1.25.1
+- **App version:** 1.25.9
 - **Run:** `infisical login` once, then `bun start` — press `a` for Android or `i` for iOS.
 
 <Warning>
@@ -37,7 +37,7 @@ icon: "smartphone"
 - **Market** — Pack store and trading stay on separate screens (`app/market/packs`, `app/market/trading`)
 - **Leaderboard** — Multi-board rankings powered by the quest/points system
 - **Locker room** — Social feed, posts, comments with `@handle` mentions, likes, stars, sport-driven lineups, live/game surfaces
-- **Game Engine** — Shared shell for Pick'em, Trivia, prize wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, and six hockey playfields (`/(tabs)/locker-room/games/[gameKey]`)
+- **Game Engine** — Shared shell for Pick'em, Trivia, prize wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, six hockey playfields, air hockey, and locker-singularity (`/(tabs)/locker-room/games/[gameKey]`)
 - **Quests** — Team-aware quests, daily quiz sessions, arena check-in, Fan Rep
 - **Profile** — Stats, achievements, featured collectibles, settings, account deletion
 - **Admin hub** — Team-manager surfaces for packs, collectibles, coins, games, moderation, users (`app/(admin)`)
@@ -46,9 +46,10 @@ icon: "smartphone"
 
 ## What changed since last docs sync
 
-- App version is **1.25.1**. iOS `runtimeVersion` is `1.25.1`. Android runtime stays on `1.25.0` for this train.
+- App version is **1.25.9**. iOS and Android `runtimeVersion` are both **1.25.9**.
 - Auth package is **`@clerk/expo`** `4.6.1` (Clerk Core 3 rename from `@clerk/clerk-expo`). The source README may still mention the old package name.
-- The [Game Engine](/repositories/game-engine/client) now registers Pick'em, Trivia, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, and six hockey games on one `[gameKey]` route. How-to-Play walkthroughs are local-only and must not spend a daily attempt.
+- HQ starred clubs sync through `/api/me/starred-teams`. A star is a bookmark, not a follow.
+- The [Game Engine](/repositories/game-engine/client) registers `air-hockey` and `locker-singularity` alongside Pick'em, Trivia, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, and six hockey games. Locker Singularity uses the idle ledger, not session verbs. How-to-Play walkthroughs are local-only and must not spend a daily attempt.
 - Deep links claim `app.d-sports.org` (iOS Universal Links plus Android App Links for locker-room, profile, market, quests, binder, leaderboard, rate). `api.d-sports.org` mobile callbacks are unchanged.
 - About → Settings includes a manual EAS OTA update check.
 - Locker room can attach sport-driven lineups. The API persists `lineup` on `POST /api/locker-room` and serves real rosters from `GET /api/teams/{id}/roster`.
@@ -78,7 +79,7 @@ icon: "smartphone"
 
 - Team discovery, favorite-team interactions, and leaderboard context are integrated across locker room and profile surfaces.
 - Team and league metadata is sourced from backend sync pipelines fed by the `leagues` repository.
-- The games tab joins `GET /api/games/catalog` with `GET /api/v1/engage/games/catalog`. Engine rows stay visible when the legacy catalog omits them. Unknown engine keys show **Update required**, they are not ignored.
+- The games tab joins `GET /api/games/catalog` with `GET /api/v1/engage/games/catalog`. Engine rows stay visible when the legacy catalog omits them. Unknown engine keys show **Update required**, they are not ignored. `locker-singularity` progress uses the idle ledger routes.
 
 ## Compliance and legal: pack opening odds
 

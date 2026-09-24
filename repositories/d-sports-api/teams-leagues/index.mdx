@@ -23,12 +23,13 @@ Core runtime objects:
 
 ## Route surface
 
-- Public reads: `/api/teams`, `/api/teams?slug=`, `/api/teams/search`, `/api/teams/{id}/roster`, `/api/teams/{id}/head-to-head?opponentId=`, `/api/teams/{id}/achievements`, `/api/leagues`, `/api/leagues/{leagueId}/standings`, `/api/config/sports`
+- Public reads: `/api/teams`, `/api/teams?slug=`, `/api/teams/{id}`, `/api/teams/search`, `/api/teams/{id}/roster`, `/api/teams/{id}/head-to-head?opponentId=`, `/api/teams/{id}/achievements`, `/api/leagues`, `/api/leagues/{leagueId}/standings`, `/api/config/sports`
 - Authenticated membership: `/api/user/teams`, `/api/teams/{id}/join`, `/api/teams/{id}/follow`
+- HQ bookmarks: `GET/POST /api/me/starred-teams`, `PUT/DELETE /api/me/starred-teams/{teamId}`
 - Admin sync triggers: `/api/admin/teams/sync`, `/api/admin/leagues/sync`
 - Webhook sync trigger: `/api/webhooks/leagues-sync`
 
-Search, join, roster, head-to-head, user-teams, leagues, standings, and the sports catalog are in the generated OpenAPI.
+Search, single-team fetch, join, roster, head-to-head, user-teams, starred teams, leagues, standings, and the sports catalog are in the generated OpenAPI.
 
 ## Deep dives
 

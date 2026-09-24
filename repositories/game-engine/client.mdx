@@ -32,7 +32,7 @@ Each definition supplies:
 - `Component` — playfield only
 - optional `presentOutcome` — cosmetic mapping (animation, HUD copy). It must not decide what happened.
 
-Native 1.25.1 registers Pick'em, Trivia, prize-wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, and the six hockey playfields in `lib/games/register-shipped.ts`.
+Native 1.25.9 registers Pick'em, Trivia, prize-wheel, guess-the-player, daily lineup, card trivia, login-streak scratcher, the six hockey playfields, `air-hockey`, and `locker-singularity` in `lib/games/register-shipped.ts`. `locker-singularity` uses `sessionMode: "idle-ledger"` and talks to `/api/v1/engage/games/locker-singularity/ledger` instead of the session verbs.
 
 ## Catalog join
 

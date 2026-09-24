@@ -1139,7 +1139,7 @@
           "Events"
         ],
         "summary": "List game chat",
-        "description": "Game-thread messages, hasMore, and onlineCount. Each message includes authorId (User.id or null) so mute/block can persist server-side.",
+        "description": "Game-thread messages, hasMore, and onlineCount. Each message includes authorId (User.id or null) so mute/block can persist server-side, and side (home/away/null) server-stamped per fixture from the two clubs' Club Rep top-100 leaderboards — null renders as Spectator; dual-membership ties break on the author's favorite team(s).",
         "parameters": [
           {
             "name": "gameId",
@@ -1166,7 +1166,7 @@
           "Events"
         ],
         "summary": "Send game chat message",
-        "description": "Authenticated message in the game thread.",
+        "description": "Authenticated message in the game thread. The created message includes authorId and the server-stamped side (home/away/null) like GET.",
         "parameters": [
           {
             "name": "gameId",
@@ -1276,7 +1276,7 @@
           "Events"
         ],
         "summary": "Register a Team HQ Live Activity",
-        "description": "Authenticated. Registers routing/audience data for an iOS Lock Screen / Dynamic Island match card, keyed per user + fixture + club. Requires UserSettings.liveScoreUpdates consent (403 FORBIDDEN otherwise). `activityId` is minted server-side and returned; the client enters it via OneSignal.LiveActivities.enter. `pushToken` is accepted and persisted but inert today — it exists only for a possible future direct-APNs migration and is never read by dispatch.",
+        "description": "Authenticated. Registers routing/audience data for an iOS Lock Screen / Dynamic Island match card, keyed per user + fixture + club. Requires UserSettings.liveScoreUpdates consent (403 FORBIDDEN otherwise). `activityId` is minted server-side and returned; the client enters it via OneSignal.LiveActivities.enter. `pushToken` is accepted and persisted but inert today — it exists only for a possible future direct-APNs migration and is never read by dispatch. Android (#697) returns success-nothing-to-register (`{ registered: true, platform: \"android\", activityId: null, expiresAt: null }`, no row written) after the same game/team/consent checks — Android Live Updates ride ordinary push subscriptions (OneSignal Create-message + NotificationServiceExtension) and need no registration.",
         "parameters": [
           {
             "name": "gameId",
@@ -1294,7 +1294,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Registered",
+            "description": "Registered (iOS), or success-nothing-to-register (Android, platform android + null activityId/expiresAt, no row written)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1307,28 +1307,63 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "registered": {
-                          "type": "boolean",
-                          "enum": [
-                            true
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "iOS registration",
+                          "properties": {
+                            "registered": {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            },
+                            "activityId": {
+                              "type": "string",
+                              "example": "hq:hockey-9001:bos:user_1",
+                              "description": "Per-user (#558): hq:{gameEventId}:{teamId}:{userId}. Minted server-side; pass it verbatim to OneSignal.LiveActivities.enter."
+                            },
+                            "expiresAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "registered",
+                            "activityId",
+                            "expiresAt"
                           ]
                         },
-                        "activityId": {
-                          "type": "string",
-                          "example": "hq:hockey-9001:bos:user_1",
-                          "description": "Per-user (#558): hq:{gameEventId}:{teamId}:{userId}. Minted server-side; pass it verbatim to OneSignal.LiveActivities.enter."
-                        },
-                        "expiresAt": {
-                          "type": "string",
-                          "format": "date-time"
+                        {
+                          "type": "object",
+                          "description": "Android success-nothing-to-register (#697): no row written",
+                          "properties": {
+                            "registered": {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": [
+                                "android"
+                              ]
+                            },
+                            "activityId": {
+                              "type": "null"
+                            },
+                            "expiresAt": {
+                              "type": "null"
+                            }
+                          },
+                          "required": [
+                            "registered",
+                            "platform",
+                            "activityId",
+                            "expiresAt"
+                          ]
                         }
-                      },
-                      "required": [
-                        "registered",
-                        "activityId",
-                        "expiresAt"
                       ]
                     }
                   },
@@ -1503,7 +1538,7 @@
                   "platform": {
                     "type": "string",
                     "default": "ios",
-                    "description": "iOS only today. Android Live Updates ride ordinary push subscriptions and need no registration."
+                    "description": "ios writes a LiveActivityRegistration row and returns activityId/expiresAt. android returns 200 success-nothing-to-register (platform android, null activityId/expiresAt, no row written) after the same game/team/consent checks — Android Live Updates ride ordinary push subscriptions and need no registration. Any other value is 400 VALIDATION_ERROR."
                   },
                   "pushToken": {
                     "type": [
@@ -1739,7 +1774,7 @@
           "Events"
         ],
         "summary": "Get game ratings",
-        "description": "Lineup plus community averages and the viewer's ratings.",
+        "description": "Lineup plus community averages and the viewer's ratings. data.lineupAvailable reports whether any lineup slots exist — vendor-synced hockey finals seed their lineup on read (#672), so a final with an upstream roster returns slots here instead of an empty lineup.",
         "parameters": [
           {
             "name": "gameId",
@@ -1766,7 +1801,7 @@
           "Events"
         ],
         "summary": "Submit game ratings",
-        "description": "Authenticated ratings submit. Server may award Club Rep. Do not call /v1/engage/rep/earn for this.",
+        "description": "Authenticated ratings submit. Server may award Club Rep. Do not call /v1/engage/rep/earn for this. Requires at least one lineup slot — finals whose vendor roster could not be seeded return 409 LINEUP_UNAVAILABLE.",
         "parameters": [
           {
             "name": "gameId",
@@ -1784,7 +1819,19 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: { saved, allStartersRated, repEarned } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR — ratings array is required, or a playerKey/score is invalid"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "NOT_FOUND — unknown game"
+          },
+          "409": {
+            "description": "CONFLICT — ratings window is closed; LINEUP_UNAVAILABLE — no lineup rows to rate"
           }
         }
       }
@@ -1820,7 +1867,7 @@
           "Feed"
         ],
         "summary": "Ingest behavioural feed signals",
-        "description": "Authenticated. When UserSettings.analyticsPersonalization is false (#614), the payload is dropped at this endpoint and persistBehavioralSignals is never called. Opted-in requests call persist (A3 storage not yet landed). Stop-collection only — no purge of already-collected signals.",
+        "description": "Authenticated. When UserSettings.analyticsPersonalization is false (#614), the payload is dropped at this endpoint and never persisted. Opted-in bodies are validated (zod) and stored as FeedSignal rows (#685): at most 50 events per request plus a 64KB body ceiling enforced before JSON parsing; unknown kind/filter rejected per event; dwellMs must be a finite positive number (booleans/numeric strings rejected), minimum normalized 1, clamped to 60s; opted-in writes are capped at 30 batches/min/user (429 RATE_LIMITED); client `at` clamped into the previous 24 hours ending at createdAt (future pinned to now). `accepted` counts the rows that survived validation (0 on the opt-out path). Rows older than FEED_SIGNAL_RETENTION_DAYS (default 90) are hard-deleted by the daily /api/cron/feed-signal-retention cron.",
         "security": [
           {
             "bearerAuth": []
@@ -1828,10 +1875,16 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { ingested: boolean } }"
+            "description": "{ success, data: { ingested: boolean, accepted: number } }"
           },
           "401": {
             "description": "Unauthenticated"
+          },
+          "413": {
+            "description": "Body exceeds the 64KB ingest ceiling (PAYLOAD_TOO_LARGE)"
+          },
+          "429": {
+            "description": "Per-user batch rate limit exceeded (RATE_LIMITED)"
           }
         }
       }
@@ -2742,7 +2795,7 @@
           "Leagues"
         ],
         "summary": "Get league standings",
-        "description": "HQ Standings tab. Public. Rows are already sorted. Prefer unique vendor rank; otherwise points, wins, then goal difference. tiebreakRules names that fallback only. 404 if the league id/slug is missing. Empty rows when the league cannot be scored honestly.",
+        "description": "HQ Standings tab. Public. rows is one team each (division, else conference, else league). Empty duplicate groupings are dropped. tables lists every remaining scope. Prefer unique vendor rank inside a table; otherwise points, wins, then goal difference. tiebreakRules names that fallback only. 404 if the league id/slug is missing. Empty rows when the league cannot be scored honestly.",
         "parameters": [
           {
             "name": "leagueId",
@@ -2757,7 +2810,7 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "{ success, data: { rows, tiebreakRules } }"
+            "description": "{ success, data: { rows, tiebreakRules, tables } }"
           },
           "404": {
             "description": "League not found"
@@ -2771,7 +2824,7 @@
           "Locker room"
         ],
         "summary": "Get locker room posts",
-        "description": "Page mode (default): `page` + `hasMore`. Cursor mode (DSE-369): pass opaque `cursor` from a prior `nextCursor`; response includes `nextCursor` (`null` at end). Invalid cursor → 400 (decoded against the request filter before any #614 remap). Filters: trending|latest|following|foryou. When the viewer has UserSettings.analyticsPersonalization=false (#614), trending/foryou are served chronological (`latest` order), a *valid* ranked cursor is dropped after that 400-check, and `ads` is `[]`.",
+        "description": "Page mode (default): `page` + `hasMore`. Cursor mode (DSE-369): pass opaque `cursor` from a prior `nextCursor`; response includes `nextCursor` (`null` at end). Both modes return `nextCursor` (#689) — a page-1 request has no cursor to send, so page mode is where a client obtains its first one; the only exception is a viewer whose filter was remapped by #614, where a cursor would 400 on the next request and is withheld. Invalid cursor → 400 (decoded against the request filter before any #614 remap). Cursors are scope-keyed (#660): a cursor issued for one `teamId` / `phase` / `postType` / `authorTeamId` / `authorId` / `includeDemo=false` scope 400s when resumed under another scope — always restart from page 1 when the scope changes. Filters: trending|latest|following|foryou. `teamId` narrows to the per-team feed (about-tagged OR authored-as for that team); `authorTeamId` narrows to officially-as-team posts; both compose with `following` as AND. NULL-matches-any: rows with unset `channel` / `teamId` match any `phase` / `teamId` filter, so untagged posts stay in scoped feeds. When the viewer has UserSettings.analyticsPersonalization=false (#614), trending/foryou are served chronological (`latest` order) and a *valid* ranked cursor is dropped after that 400-check. Ranked filters (trending/foryou) additionally carry `rank` (absolute 0-based position, continuing across pages) and `reason` ({ code, label?, subjectId? }) per post, plus `rankVersion` on the envelope (#686) — chronological filters and opted-out viewers carry none of the three. `ads` is `[]` only when inventory is switched off; an opted-out viewer takes the contextual fill path (#687).",
         "parameters": [
           {
             "name": "page",
@@ -2792,7 +2845,7 @@
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque pagination cursor from a previous nextCursor. When set, takes precedence over page. Invalid → 400.",
+            "description": "Opaque pagination cursor from a previous nextCursor. When set, takes precedence over page. Invalid, or issued for a different filter/scope (teamId/phase/postType/authorTeamId/authorId/includeDemo) → 400.",
             "schema": {
               "type": "string"
             }
@@ -2833,6 +2886,39 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "in": "query",
+            "description": "Per-team feed scope: posts about-tagged with this team, posts authored as this team, plus untagged (NULL teamId) posts per the NULL-matches-any rule. Composes with following as AND.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "description": "Game-phase scope (pre|live|post), matched against the post channel. Unset channel matches any phase per the NULL-matches-any rule. Unknown values are ignored.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pre",
+                "live",
+                "post"
+              ]
+            }
+          },
+          {
+            "name": "postType",
+            "in": "query",
+            "description": "Post-type filter (standard|hottake). hottake matches posts with isHotTake or postType=hottake; standard excludes them. Unknown values are ignored.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "hottake"
+              ]
+            }
           }
         ],
         "security": [
@@ -2843,10 +2929,10 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { posts, hasMore, nextCursor? } }"
+            "description": "{ success, data: { posts, hasMore, nextCursor?, rankVersion? } } — posts on ranked filters also carry `rank` and `reason` (#686)"
           },
           "400": {
-            "description": "Invalid cursor (VALIDATION_ERROR)"
+            "description": "Invalid cursor — malformed, filter mismatch, or scope mismatch (teamId/phase/postType/authorTeamId/authorId/includeDemo changed between pages). Restart from page 1. A cursor whose anchor post was deleted or aged out of the ranking window is NOT a 400: the ranked filters resume from the anchor's own sort position instead. (VALIDATION_ERROR)"
           }
         }
       },
@@ -3750,11 +3836,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
+                  "required": [
+                    "success",
+                    "data"
+                  ],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "enum": [
+                        true
+                      ]
                     },
                     "data": {
                       "type": "object",
@@ -3850,8 +3941,9 @@
         "tags": [
           "Packs"
         ],
-        "summary": "Complete pack purchase",
-        "description": "Body: { purchaseId, paymentIntentId?, transactionHash? }.",
+        "summary": "Complete pack purchase (removed)",
+        "description": "Removed in v0.2.0 (#709 Gap 1): always 410 GONE. Purchase confirmation moved to checkout verify (POST /api/checkout/crypto/verify). Kept as 410 (not 405) for one release so stale clients get a routable error.",
+        "deprecated": true,
         "parameters": [
           {
             "name": "id",
@@ -3884,8 +3976,8 @@
         },
         "security": [],
         "responses": {
-          "200": {
-            "description": "{ success }"
+          "410": {
+            "description": "{ error, code: GONE } — use POST /api/checkout/crypto/verify"
           }
         }
       }
@@ -3908,6 +4000,23 @@
           {
             "name": "teamId",
             "in": "query",
+            "description": "Team id or slug.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Product or pack id or slug. 404 when it does not resolve.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "query",
+            "description": "Product or pack slug (same resolution as id).",
             "schema": {
               "type": "string"
             }
@@ -3915,6 +4024,7 @@
           {
             "name": "rarity",
             "in": "query",
+            "description": "Canonical rarity (common, rare, epic, legendary, mythic) or the stored string. Cuid values match nothing.",
             "schema": {
               "type": "string"
             }
@@ -3938,6 +4048,9 @@
         "responses": {
           "200": {
             "description": "Products and packs"
+          },
+          "404": {
+            "description": "id or slug did not resolve to a product or pack"
           }
         }
       }
@@ -4262,6 +4375,37 @@
             "description": "1-based page."
           }
         ]
+      }
+    },
+    "/api/teams/{id}": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Get team by id or slug",
+        "description": "Public. Fetch a single team by id or slug (id is tried first). Same shape as an entry in GET /api/teams plus teamRecord, foundedDate and viewerCanPostAsTeam. Archived teams 404. 400 without an id, 404 for unknown teams.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { team } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "404": {
+            "description": "Team not found"
+          }
+        }
       }
     },
     "/api/teams/{id}/head-to-head": {
@@ -4771,7 +4915,7 @@
           "User"
         ],
         "summary": "Get user or suggestions",
-        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read. Self payload also includes optional `config` (DSE-368 feed control plane: feedRanking, signalsEnabled, signalSampleRate, adsEnabled, experiments). When UserSettings.analyticsPersonalization is false (#614), config is forced to legacy / signals off / sample 0 / ads off regardless of env. Omitted for other profiles / signed-out — clients use safe defaults (legacy / signals off / sample 0 / ads off).",
+        "description": "suggest=1: suggested users (auth). No id: current user (auth). id and/or handle: public profile. Current-user payload always includes `interests` (array; empty means none) and `interestsCapturedAt` (ISO 8601 or null if never captured). Rep: `trophies` is the PointsHistory sum only and never changes meaning — old clients read it. `fanRep` is the combined total (PointsHistory + RepLedgerEntry) and is what new clients should read. Self payload also includes optional `config` (DSE-368 feed control plane: feedRanking, signalsEnabled, signalSampleRate, adsEnabled, adsPersonalized, experiments). `adsEnabled` is ad inventory (first-party, defaults on); `adsPersonalized` is whether that inventory may be selected from behavioural signals (#687) — the two are separate and only the second is consent-governed. When UserSettings.analyticsPersonalization is false (#614), config is forced to legacy / signals off / sample 0 / targeting off, while `adsEnabled` passes through. Omitted for other profiles / signed-out — clients use safe defaults (legacy / signals off / sample 0 / inventory on / targeting off).",
         "parameters": [
           {
             "name": "suggest",
@@ -5904,7 +6048,7 @@
           "User"
         ],
         "summary": "Get user settings",
-        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, liveScoreUpdates (opt-in, default false) for OS live score surfaces, and analyticsPersonalization (opt-out, default true) for feed ranking / ads / behavioural signals (#614).",
+        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, liveScoreUpdates (opt-in, default false) for OS live score surfaces, analyticsPersonalization (opt-out, default true) for feed ranking / ads / behavioural signals (#614), and hqTextMode (marquee | expand | wrap, default expand) for HQ long-text display (#702).",
         "security": [
           {
             "bearerAuth": []
@@ -5921,7 +6065,7 @@
           "User"
         ],
         "summary": "Update user settings",
-        "description": "Boolean fields only plus appearanceTheme. Persist notifyTeams, notifyMilestones, notifyCommunity, liveScoreUpdates (opt-in Live Activity / ongoing notification consent), and analyticsPersonalization (opt-out; default true) separately. Do not write preferences.privacy.",
+        "description": "Boolean fields only plus appearanceTheme and hqTextMode (marquee | expand | wrap, default expand; unknown values 400). Persist notifyTeams, notifyMilestones, notifyCommunity, liveScoreUpdates (opt-in Live Activity / ongoing notification consent), and analyticsPersonalization (opt-out; default true) separately. Do not write preferences.privacy.",
         "security": [
           {
             "bearerAuth": []
@@ -6461,6 +6605,516 @@
           },
           "409": {
             "description": "CONFLICT"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger": {
+      "get": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Read the caller's locker-singularity idle ledger",
+        "description": "First-ever read creates the ledger row. Otherwise credits offline accrual from the server lastSeenAt only (8h cap at 50% efficiency; client timestamps are never accepted) and returns { ledger, accruedBuzz, cappedHours, lastSeenAt }. Toy currencies only: zero writes to DSC balances, Rep, PointsHistory, pack inventory, or marketplace state (d-sports-api#682). The locker-singularity Game row ships as LIVE: the catalog marks it playable=true. Ledger routes serve COMING_SOON rows normally; an absent Game row returns 404 GAME_UNKNOWN with the ledger untouched. Optional X-Client-Version is checked against minClientVersion; below-minimum returns 403 GAME_UPDATE_REQUIRED. Native mirror: locker-singularity spec on the native soft-idle-mini-game branch.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ ledger, accruedBuzz, cappedHours, lastSeenAt }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ledger",
+                    "accruedBuzz",
+                    "cappedHours",
+                    "lastSeenAt"
+                  ],
+                  "properties": {
+                    "ledger": {
+                      "$ref": "#/components/schemas/LedgerState"
+                    },
+                    "accruedBuzz": {
+                      "type": "string",
+                      "description": "BigInt serialized as decimal string."
+                    },
+                    "cappedHours": {
+                      "type": "number"
+                    },
+                    "lastSeenAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger/taps": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Submit batched buzz taps",
+        "description": "The client sends intent, never values. tapCount is an integer >= 1 with no wire max; values above 100 are clamped server-side (acceptedTaps=100, clampedTaps=tapCount-100). Non-integer or non-positive counts return 400 VALIDATION_ERROR. Sustained abuse returns 429 IDLE_TAP_RATE_LIMITED with a Retry-After header. Mutations carry a UUID v4 idempotencyKey: replaying the same key returns the stored response verbatim, while the same key with a mutated body returns 400 VALIDATION_ERROR with no second credit. Optional X-Client-Version below minClientVersion returns 403 GAME_UPDATE_REQUIRED.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tapCount",
+                  "idempotencyKey"
+                ],
+                "properties": {
+                  "tapCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "No wire max; clamped to 100 per call server-side."
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ ledger, acceptedTaps, clampedTaps, tapValue }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ledger",
+                    "acceptedTaps",
+                    "clampedTaps",
+                    "tapValue"
+                  ],
+                  "properties": {
+                    "ledger": {
+                      "$ref": "#/components/schemas/LedgerState"
+                    },
+                    "acceptedTaps": {
+                      "type": "integer"
+                    },
+                    "clampedTaps": {
+                      "type": "integer"
+                    },
+                    "tapValue": {
+                      "type": "string",
+                      "description": "BigInt serialized as decimal string."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          },
+          "429": {
+            "description": "IDLE_TAP_RATE_LIMITED with Retry-After header"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger/buy": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Buy generator units with buzz",
+        "description": "quantity is an integer 1-100, else 400 IDLE_MAX_PER_CALL. Unknown generatorId returns 400 VALIDATION_ERROR. Locked generators (unlock thresholds unmet) return 409 IDLE_GENERATOR_LOCKED. Insufficient buzz returns 409 IDLE_INSUFFICIENT_BUZZ with no partial write. Crossing 25/50 owned per generator appends milestones and grants +1 Playbook each (max 8 per run). Idempotent per idempotencyKey. Optional X-Client-Version below minClientVersion returns 403 GAME_UPDATE_REQUIRED.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "generatorId",
+                  "quantity",
+                  "idempotencyKey"
+                ],
+                "properties": {
+                  "generatorId": {
+                    "type": "string",
+                    "enum": [
+                      "rookie-card",
+                      "foam-finger-stand",
+                      "zamboni-fleet",
+                      "banner-press"
+                    ]
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ ledger, costPaid, playbooksGranted }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ledger",
+                    "costPaid",
+                    "playbooksGranted"
+                  ],
+                  "properties": {
+                    "ledger": {
+                      "$ref": "#/components/schemas/LedgerState"
+                    },
+                    "costPaid": {
+                      "type": "string",
+                      "description": "BigInt serialized as decimal string."
+                    },
+                    "playbooksGranted": {
+                      "type": "integer",
+                      "description": "0 when no milestone threshold was crossed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR, IDLE_MAX_PER_CALL"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          },
+          "409": {
+            "description": "IDLE_GENERATOR_LOCKED, IDLE_INSUFFICIENT_BUZZ"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger/prestige": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Prestige the ledger for rings",
+        "description": "Requires lifetimeBuzz >= 1,000,000, else 409 IDLE_PRESTIGE_NOT_ELIGIBLE with no state change. Grants marginal rings: max(0, floor(sqrt(cumulativeBuzz / 1e6)) - totalRingsGranted), so repeat prestiges with no new buzz grant 0. Resets buzz, lifetimeBuzz, generators, milestones, playbooks, and upgrades; rings, totalRings, multiplier, and prestigeCount persist. Idempotent per idempotencyKey. Optional X-Client-Version below minClientVersion returns 403 GAME_UPDATE_REQUIRED.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idempotencyKey"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ ledger, ringsGranted }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ledger",
+                    "ringsGranted"
+                  ],
+                  "properties": {
+                    "ledger": {
+                      "$ref": "#/components/schemas/LedgerState"
+                    },
+                    "ringsGranted": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          },
+          "409": {
+            "description": "IDLE_PRESTIGE_NOT_ELIGIBLE"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger/upgrades": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Buy a playbook upgrade node",
+        "description": "Unknown nodeId returns 400 VALIDATION_ERROR. Already-owned nodes return 400 VALIDATION_ERROR (stale client state; never the already-played screen). Insufficient Playbooks returns 409 IDLE_INSUFFICIENT_BUZZ. Costs 1-3 Playbooks per the frozen node table. Idempotent per idempotencyKey. Optional X-Client-Version below minClientVersion returns 403 GAME_UPDATE_REQUIRED.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Native client semver. Below minClientVersion returns 403 GAME_UPDATE_REQUIRED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nodeId",
+                  "idempotencyKey"
+                ],
+                "properties": {
+                  "nodeId": {
+                    "type": "string",
+                    "enum": [
+                      "locker-room-10",
+                      "packs-25",
+                      "hockey-dailies-10",
+                      "micd-up-25",
+                      "locker-room-global-5",
+                      "micd-up-global-5"
+                    ]
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ ledger }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ledger"
+                  ],
+                  "properties": {
+                    "ledger": {
+                      "$ref": "#/components/schemas/LedgerState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "GAME_UPDATE_REQUIRED"
+          },
+          "404": {
+            "description": "GAME_UNKNOWN"
+          },
+          "409": {
+            "description": "IDLE_INSUFFICIENT_BUZZ"
+          }
+        }
+      }
+    },
+    "/api/v1/engage/games/locker-singularity/ledger/boosts/claim": {
+      "post": {
+        "tags": [
+          "Games",
+          "Game Engine",
+          "Engage"
+        ],
+        "summary": "Claim a DSC boost (disabled in v1)",
+        "description": "Disabled in v1: the shape is validated, then the route always answers 410 BOOST_DISABLED without touching the ledger (no Game row load, no version gate, no service call). The frozen response shape is reserved for v2 boost rails.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "paymentId",
+                  "idempotencyKey"
+                ],
+                "properties": {
+                  "paymentId": {
+                    "type": "string"
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "410": {
+            "description": "BOOST_DISABLED. Boosts are disabled in v1."
           }
         }
       }
@@ -9435,6 +10089,186 @@
         }
       }
     },
+    "/api/me/starred-teams": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "List starred HQ teams",
+        "description": "The authenticated user's starred clubs — bookmarks, not follows. Each entry: { id, slug, name, logo, source, providerId, starredAt }. slug/name/logo resolve live from Team when a row exists and fall back to the stored client snapshot, so provider clubs without a synced Team row still render — and all three are nullable (snapshot-less rows and unresolved provider clubs can carry nulls). source/providerId are null when no Team row exists.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { teams: StarredTeamInfo[] } }"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Merge starred teams snapshot",
+        "description": "Additive bulk merge — the one-time MMKV migration path for engage-native. Existing ids refresh their stored snapshot; new ids are starred until the 50-club cap; entries past the cap are counted in `skipped` rather than failing, with per-entry detail in `rejected` ([{ id, reason }], reason 'invalid' | 'over_cap', input order; `skipped` semantics unchanged). Body: { teams: [{ id, slug?, name?, logo? }] }.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "teams"
+                ],
+                "properties": {
+                  "teams": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "logo": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { teams, added, skipped, rejected: [{ id: string | null, reason: 'invalid' | 'over_cap' }] } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR — teams must be an array"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/me/starred-teams/{teamId}": {
+      "put": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Star a team",
+        "description": "Idempotent bookmark — a star is not a follow and grants no social surface, so provider clubs are allowed. teamId need not resolve to a Team row yet. Optional body { slug?, name?, logo? } stores the client display snapshot; re-starring refreshes only the keys sent, and an explicit null clears a stored value. New stars past the 50-club cap return 409 STARRED_TEAMS_LIMIT.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slug": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "logo": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { starred: true, team } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR — teamId is required"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "409": {
+            "description": "STARRED_TEAMS_LIMIT — 50-club cap reached for a new id"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Unstar a team",
+        "description": "Idempotent — deleting a star that does not exist still returns success.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success, data: { starred: false } }"
+          },
+          "400": {
+            "description": "VALIDATION_ERROR — teamId is required"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
     "/api/invites/me": {
       "get": {
         "tags": [
@@ -9449,7 +10283,24 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: InviteMeView }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteMeSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
           }
         }
       },
@@ -9466,7 +10317,24 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: InviteMeView }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteMeSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
           }
         }
       }
@@ -9478,20 +10346,47 @@
         ],
         "summary": "Validate invite code",
         "description": "Public validate. Never leaks VIP issuer identity.",
+        "security": [],
         "parameters": [
           {
-            "name": "code",
-            "in": "path",
-            "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
           }
         ],
-        "security": [],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: InvitePublicView }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitePublicSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invite code is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invite code not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
           }
         }
       }
@@ -9503,24 +10398,81 @@
         ],
         "summary": "Redeem invite code",
         "description": "Clerk-authenticated. New signups only.",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemInviteBody"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: InviteRedeemView }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteRedeemSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invite code or user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already redeemed, revoked, expired, or exhausted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
           }
         }
       }
@@ -9790,11 +10742,11 @@
           "200": {
             "description": "{ success, data }"
           },
-          "404": {
-            "description": "Not found"
-          },
           "401": {
             "description": "Authentication required"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -9825,11 +10777,11 @@
           "200": {
             "description": "{ success, data }"
           },
-          "404": {
-            "description": "Not found"
-          },
           "401": {
             "description": "Authentication required"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -9860,11 +10812,11 @@
           "200": {
             "description": "{ success, data }"
           },
-          "404": {
-            "description": "Not found"
-          },
           "401": {
             "description": "Authentication required"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -10166,6 +11118,15 @@
               "type": "string"
             },
             "description": "Team slug."
+          },
+          {
+            "name": "placement",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Thin selector over the same sponsor inventory (e.g. below-headline, link-top)."
           }
         ],
         "security": [],
@@ -10332,11 +11293,11 @@
           "200": {
             "description": "{ success, data }"
           },
-          "404": {
-            "description": "Not found"
-          },
           "401": {
             "description": "Authentication required"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -10531,16 +11492,16 @@
         }
       }
     },
-    "/api/wallets/{id}/attestation": {
+    "/api/wallets/{address}/attestation": {
       "get": {
         "tags": [
           "Wallets"
         ],
         "summary": "Get wallet attestation",
-        "description": "Returns the D-Sports-signed wallet attestation JWS.",
+        "description": "Returns the D-Sports-signed wallet attestation JWS. The path value is the wallet database ID (not the on-chain address).",
         "parameters": [
           {
-            "name": "id",
+            "name": "address",
             "in": "path",
             "required": true,
             "schema": {
@@ -10645,7 +11606,34 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "{ success, data }"
+            "description": "{ success, data: MobileVersionData }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileVersionSuccess"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App version config not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to load app version config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchGateError"
+                }
+              }
+            }
           }
         }
       }
@@ -10750,11 +11738,15 @@
       "PrizeWheelSpinActionInput": {
         "type": "object",
         "description": "prize-wheel-spin action input. The client never chooses the segment.",
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["spin"]
+            "enum": [
+              "spin"
+            ]
           }
         },
         "additionalProperties": true
@@ -10762,7 +11754,9 @@
       "GuessThePlayerActionInput": {
         "type": "object",
         "description": "guess-the-player action input. The answer is server-held.",
-        "required": ["playerId"],
+        "required": [
+          "playerId"
+        ],
         "properties": {
           "playerId": {
             "type": "string",
@@ -10785,25 +11779,56 @@
           "presentOutcome"
         ],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "segmentId": { "type": "string" },
-          "kind": { "type": "string", "enum": ["coin", "collect"] },
-          "pointsAwarded": { "type": "integer" },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "segmentId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coin",
+              "collect"
+            ]
+          },
+          "pointsAwarded": {
+            "type": "integer"
+          },
           "collected": {
             "type": "object",
-            "additionalProperties": { "type": "integer" }
+            "additionalProperties": {
+              "type": "integer"
+            }
           },
-          "weeklyBonusAwarded": { "type": "integer" },
-          "weeklyBonusClaimed": { "type": "boolean" },
-          "spinsUsed": { "type": "integer" },
-          "spinsRemaining": { "type": "integer" },
+          "weeklyBonusAwarded": {
+            "type": "integer"
+          },
+          "weeklyBonusClaimed": {
+            "type": "boolean"
+          },
+          "spinsUsed": {
+            "type": "integer"
+          },
+          "spinsRemaining": {
+            "type": "integer"
+          },
           "presentOutcome": {
             "type": "object",
-            "required": ["angle", "segmentId"],
+            "required": [
+              "angle",
+              "segmentId"
+            ],
             "properties": {
-              "angle": { "type": "number" },
-              "segmentId": { "type": "string" }
+              "angle": {
+                "type": "number"
+              },
+              "segmentId": {
+                "type": "string"
+              }
             }
           }
         }
@@ -10819,28 +11844,59 @@
           "status"
         ],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string", "enum": ["correct", "incorrect"] },
-          "correct": { "type": "boolean" },
-          "attemptsUsed": { "type": "integer" },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "correct",
+              "incorrect"
+            ]
+          },
+          "correct": {
+            "type": "boolean"
+          },
+          "attemptsUsed": {
+            "type": "integer"
+          },
           "clues": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "label", "value", "revealed"],
+              "required": [
+                "id",
+                "label",
+                "value",
+                "revealed"
+              ],
               "properties": {
-                "id": { "type": "string" },
-                "label": { "type": "string" },
-                "value": { "type": "string" },
-                "revealed": { "type": "boolean" }
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "revealed": {
+                  "type": "boolean"
+                }
               }
             }
           },
           "status": {
             "type": "string",
-            "enum": ["ACTIVE", "WON", "LOST"]
+            "enum": [
+              "ACTIVE",
+              "WON",
+              "LOST"
+            ]
           },
-          "pointsAwarded": { "type": "integer" }
+          "pointsAwarded": {
+            "type": "integer"
+          }
         }
       },
       "UserSearchUser": {
@@ -10921,6 +11977,427 @@
                 "type": "integer"
               }
             }
+          }
+        }
+      },
+      "IdleLedgerGeneratorState": {
+        "type": "object",
+        "required": [
+          "generatorId",
+          "owned"
+        ],
+        "properties": {
+          "generatorId": {
+            "type": "string",
+            "enum": [
+              "rookie-card",
+              "foam-finger-stand",
+              "zamboni-fleet",
+              "banner-press"
+            ]
+          },
+          "owned": {
+            "type": "integer"
+          }
+        }
+      },
+      "LedgerState": {
+        "type": "object",
+        "description": "locker-singularity idle ledger wire state. Buzz counters are BigInt serialized as decimal strings. Additive-only wire evolution (d-sports-api#682).",
+        "required": [
+          "buzz",
+          "lifetimeBuzz",
+          "cumulativeBuzz",
+          "playbooks",
+          "generators",
+          "milestonesClaimed",
+          "upgrades",
+          "rings",
+          "totalRings",
+          "prestigeCount",
+          "multiplier",
+          "prestigeUnlocked",
+          "version",
+          "lastSeenAt"
+        ],
+        "properties": {
+          "buzz": {
+            "type": "string",
+            "description": "BigInt serialized as decimal string."
+          },
+          "lifetimeBuzz": {
+            "type": "string",
+            "description": "BigInt serialized as decimal string."
+          },
+          "cumulativeBuzz": {
+            "type": "string",
+            "description": "BigInt serialized as decimal string."
+          },
+          "playbooks": {
+            "type": "integer"
+          },
+          "generators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdleLedgerGeneratorState"
+            }
+          },
+          "milestonesClaimed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "upgrades": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rings": {
+            "type": "integer",
+            "description": "Most recent prestige grant (informational); totalRings is the cumulative balance."
+          },
+          "totalRings": {
+            "type": "integer"
+          },
+          "prestigeCount": {
+            "type": "integer"
+          },
+          "multiplier": {
+            "type": "number"
+          },
+          "prestigeUnlocked": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MobileVersionSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MobileVersionData"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "MobileVersionData": {
+        "type": "object",
+        "properties": {
+          "latestVersion": {
+            "type": "string"
+          },
+          "iosStoreUrl": {
+            "type": "string"
+          },
+          "iosLatestVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iosTestflightUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iosAppleId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iosStoreEnabled": {
+            "type": "boolean"
+          },
+          "androidStoreUrl": {
+            "type": "string"
+          },
+          "androidStoreEnabled": {
+            "type": "boolean"
+          },
+          "androidTestingUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "messageForce": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "messageSoft": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "androidApkUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "androidApkReleaseUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "androidApkVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "androidApkBuildId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "androidApkPublishedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "teamHqEnabled": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "inviteRequiredFrom": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inviteRequiredUntil": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inviteRequired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "latestVersion",
+          "iosStoreUrl",
+          "iosLatestVersion",
+          "iosTestflightUrl",
+          "iosAppleId",
+          "iosStoreEnabled",
+          "androidStoreUrl",
+          "androidStoreEnabled",
+          "androidTestingUrl",
+          "messageForce",
+          "messageSoft",
+          "androidApkUrl",
+          "androidApkReleaseUrl",
+          "androidApkVersion",
+          "androidApkBuildId",
+          "androidApkPublishedAt",
+          "teamHqEnabled",
+          "updatedAt",
+          "inviteRequiredFrom",
+          "inviteRequiredUntil",
+          "inviteRequired"
+        ]
+      },
+      "LaunchGateError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "InviteMeSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/InviteMeView"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InviteMeView": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "usedCount": {
+            "type": "integer"
+          },
+          "nextThreshold": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "url",
+          "usedCount",
+          "nextThreshold",
+          "grants"
+        ]
+      },
+      "InvitePublicSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvitePublicView"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InvitePublicView": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/InviteKind"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "valid",
+          "kind",
+          "label",
+          "expiresAt"
+        ]
+      },
+      "InviteKind": {
+        "type": "string",
+        "enum": [
+          "CAMPAIGN",
+          "VIP",
+          "REFERRAL"
+        ]
+      },
+      "InviteRedeemSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/InviteRedeemView"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InviteRedeemView": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/InviteKind"
+          },
+          "alreadyRedeemed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "kind",
+          "alreadyRedeemed"
+        ]
+      },
+      "RedeemInviteBody": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
           }
         }
       }

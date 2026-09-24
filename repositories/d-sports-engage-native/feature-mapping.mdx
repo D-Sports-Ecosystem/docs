@@ -5,13 +5,13 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 ## Feature parity with backend/PWA
 
-`d-sports-engage-native` (1.25.1) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
+`d-sports-engage-native` (1.25.9) targets high parity with `d-sports-api` feature behavior while optimizing for mobile UX patterns.
 
 ## Wallet and pack opening
 
 - Wallet screens consume balances, token data, and PIN-gated custodial flows from backend APIs.
 - Sends use server-side `sign-transaction`, not on-device private-key signing.
-- Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior.
+- Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior. Start a pack purchase with `POST /api/packs/{id}/purchase`. Do not call `PUT` on that path (`410 GONE`). Confirm crypto checkout with `POST /api/checkout/crypto/verify`.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
 ## Binder and market
@@ -33,7 +33,8 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - The games surface joins `GET /api/games/catalog` with `GET /api/v1/engage/games/catalog`. See [Game Engine](/repositories/game-engine/index).
 - Legacy keys (daily spin, guess-the-player) still drop when unknown. Engine keys stay visible as **Update required** or **Not in this build**.
-- Shipped engine games on `/(tabs)/locker-room/games/{key}`: `daily-pickem`, `daily-trivia`, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, `deflection`, `iron-trap`, `deke-daily`, `faceoff-frenzy`, `sauce-pass`, `empty-net`.
+- Shipped engine games on `/(tabs)/locker-room/games/{key}`: `daily-pickem`, `daily-trivia`, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, `deflection`, `iron-trap`, `deke-daily`, `faceoff-frenzy`, `sauce-pass`, `empty-net`, `air-hockey`, `locker-singularity`.
+- `locker-singularity` uses the idle ledger (`/api/v1/engage/games/locker-singularity/ledger`), not session/action/complete. Send `X-Client-Version` and a client-held UUID `idempotencyKey` on mutations. The client sends tap counts, never buzz amounts.
 - How-to-Play walkthroughs stay local. They must not call session/action/complete.
 - Game Center uses `/api/events/*` for hero, lineup, player-stats, top-performer, win-probability, chat, presence, ratings, Broadcast discovery, and Live Activity. Ratings submit through `POST /api/events/{gameId}/ratings`.
 
@@ -41,7 +42,8 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 
 - Teams and leagues metadata are consumed from backend `/api/teams` and `/api/leagues`.
 - Sports catalog comes from `GET /api/config/sports`. Team search uses `GET /api/teams/search`.
-- Joining a team (`POST /api/teams/{id}/join`) is leaderboard membership. Following a team is a separate social action.
+- Joining a team (`POST /api/teams/{id}/join`) is leaderboard membership. Following a team is a separate social action. Starring an HQ club (`PUT /api/me/starred-teams/{teamId}`) is a bookmark, capped at 50, and is neither a join nor a follow.
+- Fetch one team with public `GET /api/teams/{id}` (id first, then slug). Archived teams return `404`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
 

@@ -9,7 +9,7 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 
 ## Endpoint map
 
-- Packs: `/api/packs`, `/api/packs/{id}`, `/api/packs/{id}/purchase`, `/api/packs/{id}/open`, `GET /api/packs/{id}/odds`
+- Packs: `/api/packs`, `/api/packs/{id}`, `POST /api/packs/{id}/purchase`, `/api/packs/{id}/open`, `GET /api/packs/{id}/odds`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
 - Featured showcase: `GET/PUT /api/user/featured-collectibles`
 - Binders: `/api/binders*`
@@ -54,7 +54,8 @@ Card league labels on binder contents come from `Team.leagueRelation`, not a cli
 
 ## Integration notes
 
-- Pack purchase and open are separate phases; preserve returned identifiers between calls.
+- Pack purchase and open are separate phases. `POST /api/packs/{id}/purchase` starts a purchase (`{ paymentMethod: 'crypto' | 'dsports-cash' }`) and returns `{ purchaseId }`.
+- `PUT /api/packs/{id}/purchase` is removed. It always returns `410` with code `GONE`. Confirm crypto purchases with `POST /api/checkout/crypto/verify`.
 - Free packs are limited to **3 purchases per user per UTC day** (resets 00:00 UTC). Over the limit returns `400`.
 - `GET /api/user/packs` instance status is authoritative (`pending` | `processing` | `opened` | `completed`). Do not treat pack-template `isOpenable` as per-purchase state.
 - Inventory endpoints should be refreshed after successful open/purchase mutations.

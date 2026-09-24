@@ -17,7 +17,7 @@ Authentication, quests, Fan Rep, leaderboards, collectibles, shop, wallet, and g
 
 This API Reference uses a hybrid model:
 
-- **OpenAPI endpoints** for broad, generated route coverage (243 paths in the current spec).
+- **OpenAPI endpoints** for broad, generated route coverage (252 paths in the current spec).
 - **Domain API guides** for workflow notes, caveats, and implementation context by backend domain.
 - **Coverage matrix** for explicit publish/redact/exclude boundaries.
 
@@ -28,7 +28,7 @@ Use the **API Fundamentals** section for authentication and error handling guida
 - Public contributor docs prioritize integration-critical routes.
 - Sensitive admin internals, debug/dev-only, and cron/ops endpoints are intentionally excluded.
 - Selected admin/team-management routes are documented with redaction where contributor context is needed.
-- Remaining OpenAPI gaps are admin/debug/internal operations. Public and authenticated client routes are in the generated spec, including canonical `/api/v1/engage` quest and Rep paths. `POST /api/games/daily-spin/reward` is published as deprecated. Staff-only `POST /featured` / `POST /promos` stay excluded. See the [route coverage matrix](/api-reference/domains/route-coverage-matrix).
+- Remaining OpenAPI gaps are admin/debug/internal operations and the separate team-access freeze. Public and authenticated client routes are in the generated spec, including canonical `/api/v1/engage` quest, Rep, and locker-singularity ledger paths. `PUT /api/packs/{id}/purchase` is published as removed (`410`). `POST /api/games/daily-spin/reward` is published as deprecated. Staff-only `POST /featured` / `POST /promos` stay excluded. See the [route coverage matrix](/api-reference/domains/route-coverage-matrix).
 
 ## Exclusion policy
 

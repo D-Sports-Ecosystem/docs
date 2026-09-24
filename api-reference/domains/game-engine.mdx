@@ -25,7 +25,24 @@ These operations are in generated OpenAPI under the `Game Engine` tag (also tagg
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/complete` | Bearer | Settles awarded points / Rep, or returns `PENDING_RESOLUTION` when the result is still outstanding. |
 | `POST` | `/api/v1/engage/games/{gameKey}/session/{sessionId}/forfeit` | Bearer | `{ reason }`. |
 
-Send `Authorization: Bearer <Clerk token>` on session verbs.
+`locker-singularity` does not use those session verbs. Its progression is an idle ledger under `/api/v1/engage/games/locker-singularity/ledger`. The catalog still lists the game (`playable: true` while the `Game` row is `LIVE`). Ledger routes serve a `COMING_SOON` row normally. A missing `Game` row returns `404 GAME_UNKNOWN` and does not create a ledger.
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/engage/games/locker-singularity/ledger` | Bearer | First read creates the row. Later reads credit offline buzz from the server `lastSeenAt` only (8 hour cap at 50% efficiency). Client timestamps are ignored. Returns `{ ledger, accruedBuzz, cappedHours, lastSeenAt }`. |
+| `POST` | `.../ledger/taps` | Bearer | `{ tapCount, idempotencyKey }`. `tapCount` is an integer ≥ 1. Values above 100 are clamped (`acceptedTaps` 100). Abuse returns `429 IDLE_TAP_RATE_LIMITED` with `Retry-After`. |
+| `POST` | `.../ledger/buy` | Bearer | `{ generatorId, quantity, idempotencyKey }`. `quantity` is 1–100. Generators: `rookie-card`, `foam-finger-stand`, `zamboni-fleet`, `banner-press`. |
+| `POST` | `.../ledger/upgrades` | Bearer | `{ nodeId, idempotencyKey }`. Costs 1–3 Playbooks. Unknown or already-owned nodes return `400`. Insufficient Playbooks return `409 IDLE_INSUFFICIENT_BUZZ`. |
+| `POST` | `.../ledger/prestige` | Bearer | `{ idempotencyKey }`. Requires `lifetimeBuzz` ≥ 1,000,000 or `409 IDLE_PRESTIGE_NOT_ELIGIBLE`. |
+| `POST` | `.../ledger/boosts/claim` | Bearer | Disabled in v1. Valid body still returns `410 BOOST_DISABLED` and does not touch the ledger. |
+
+Buzz counters on the wire are decimal strings. These routes write toy currencies only. They do not change DSC balances, Rep, `PointsHistory`, pack inventory, or marketplace state.
+
+Mutations require a UUID v4 `idempotencyKey`. Replaying the same key returns the stored response. The same key with a different body returns `400` and does not credit twice.
+
+Send optional `X-Client-Version` on ledger reads and on taps, buy, upgrades, and prestige. Below `minClientVersion` those routes return `403 GAME_UPDATE_REQUIRED`. The boost claim route does not apply that gate.
+
+Send `Authorization: Bearer <Clerk token>` on session verbs and on ledger routes.
 
 `X-Client-Version` is optional in OpenAPI. If you build a supported Engage native client, send it on every engine call. If a game has `minClientVersion` and the header is missing or unparseable, the catalog marks the row `UPDATE_REQUIRED` and session start returns `403 GAME_UPDATE_REQUIRED`. If `minClientVersion` is unset, an absent header does not block play.
 

@@ -27,7 +27,7 @@ Also in OpenAPI:
 - `GET /api/wallets/link-challenge`
 - `POST /api/wallets/link-external`
 - `POST /api/wallets/reset-pin`
-- `GET /api/wallets/{id}/attestation`
+- `GET /api/wallets/{address}/attestation` — D-Sports-signed attestation JWS. The path parameter is named `address`, but the value is the wallet database id, not the on-chain address.
 - `POST /api/pregen-wallet`
 - `POST /api/thirdweb-link`
 - `GET/POST /api/thirdweb-proxy`
