@@ -38,7 +38,7 @@ This catalog route is in the generated OpenAPI.
 ## Leagues endpoints
 
 - `GET /api/leagues`
-- `GET /api/leagues/{leagueId}/standings` — public HQ standings. `leagueId` is the Prisma `League.id` or slug (not a vendor NHL id). Response is `{ rows, tiebreakRules }`. Rows arrive sorted. `404` if the league is missing. Empty `rows` when the league cannot be scored honestly.
+- `GET /api/leagues/{leagueId}/standings` — public HQ standings. `leagueId` is the Prisma `League.id` or slug (not a vendor NHL id). Response is `{ rows, tiebreakRules, tables }`. `rows` is one team each (division, else conference, else league). `tables` lists every remaining scope. `tiebreakRules` names the fallback only. `404` if the league is missing. Empty `rows` when the league cannot be scored honestly.
 
 ## Sync-trigger endpoints
 

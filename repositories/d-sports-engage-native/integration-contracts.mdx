@@ -46,7 +46,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `GET /api/user/teams` returns `{ joinedTeamIds, followedTeamIds }`.
 - `GET /api/teams/{id}/roster` is public and returns `{ players }` for the formation builder. Read optional `photo` and `availability` on each player. `availability` is omitted when the player is available.
 - League metadata and branding come from `/api/leagues`.
-- `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. Rows arrive sorted. Empty rows mean the league cannot be scored honestly.
+- `GET /api/leagues/{leagueId}/standings` is public HQ standings. `leagueId` is the Prisma id or slug. The response is `{ rows, tiebreakRules, tables }`. `rows` is one team each. `tables` lists every remaining scope. Empty `rows` mean the league cannot be scored honestly.
 - Call `GET /api/teams/{id}/head-to-head?opponentId=` for the public series. You get `{ record, meetings }` for the five most recent decided meetings. Omit `opponentId`, or send the same id as `{id}`, and you get `400`.
 - Synced canonical data changes can propagate asynchronously; client should tolerate short-lived staleness.
 
