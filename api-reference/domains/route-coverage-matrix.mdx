@@ -18,7 +18,7 @@ Route documentation status uses:
 | --- | --- | --- |
 | `/api/auth/*` | Publish | Core auth/session contracts for all clients. |
 | `/api/mobile/start`, `/callback`, `/verify`, `/exchange` | Publish | Native OAuth + one-time MobileSession ticket exchange. |
-| `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. Includes `GET /api/user/all` (community directory). |
+| `/api/user/*` (non-dev endpoints) | Publish | Core user/profile/follow/support contracts. |
 | `/api/user/check-username` | Publish | Public handle availability check. |
 | `/api/user/mutes`, `/api/user/blocks` | Publish | Authenticated one-way mute and stronger block; handle or User.id refs. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
@@ -78,6 +78,7 @@ Route documentation status uses:
 | `/api/leaderboard/reset` | Exclude | Internal/privileged maintenance behavior. |
 | `/api/team-access/*` | Exclude | Frozen separately in `openapi/team-access.v1.json`. Not part of the public Engage spec. |
 | `/api/events/alerts/season-start` | Exclude | Not in the public spec. Native season reminders opt in through OneSignal. |
+| `/api/user/all` | Shipped, OpenAPI pending | Native community directory. Stays out of this spec until [d-sports-api#738](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/738) merges. |
 | `/api/invites/*`, `/api/user/support/*`, `/api/user/follow-requests*`, `/api/upload/*`, `/api/packs/{id}/odds` | Publish | Invites, support tickets, follow requests, uploads, and public pack odds. |
 | `/api/v1/user/set-pin`, `/api/v1/user/verify-pin`, `/api/v1/users/contacts/match` | Publish | Marketplace listing PIN and hashed contact match. |
 | `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{address}/attestation` | Publish | Wallet link/reset helpers. Attestation path value is the wallet database id. |
@@ -87,7 +88,7 @@ Route documentation status uses:
 
 ## Missing-route tracking
 
-Current intentional gaps in generated OpenAPI are admin/debug/internal operations, the separate team-access freeze, catch-alls, and staff-only `POST /featured` / `POST /promos`. Public and authenticated client routes are published, including `GET /api/user/all`, starred HQ teams, the locker-singularity ledger, and canonical `/api/v1/engage` quest and Rep paths. `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`). `POST /api/games/daily-spin/reward` is in the spec as deprecated. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
+Current intentional gaps in generated OpenAPI are admin/debug/internal operations, the separate team-access freeze, catch-alls, staff-only `POST /featured` / `POST /promos`, and `GET /api/user/all` until [d-sports-api#738](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/738) merges. Public and authenticated client routes are published, including starred HQ teams, the locker-singularity ledger, and canonical `/api/v1/engage` quest and Rep paths. `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`). `POST /api/games/daily-spin/reward` is in the spec as deprecated. Curated domain pages cover approved admin/team routes without exposing sensitive internals.
 
 ## Review cadence
 

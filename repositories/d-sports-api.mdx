@@ -45,7 +45,7 @@ icon: "server"
 
 ## What changed since last docs sync
 
-- OpenAPI is **253** paths, synced from `d-sports-api` `main` (`e9a8d95`) plus `GET /api/user/all`. New published surfaces: HQ starred teams, `GET /api/teams/{id}`, the locker-singularity idle ledger, and wallet attestation at `/api/wallets/{address}/attestation` (the path value is the wallet database id). `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`); confirm with `POST /api/checkout/crypto/verify`.
+- OpenAPI is **252** paths, synced from `d-sports-api` `main` (`e9a8d95`). New published surfaces: HQ starred teams, `GET /api/teams/{id}`, the locker-singularity idle ledger, and wallet attestation at `/api/wallets/{address}/attestation` (the path value is the wallet database id). `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`); confirm with `POST /api/checkout/crypto/verify`. `GET /api/user/all` stays out of this spec until [d-sports-api#738](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/738) merges.
 - HQ stars (`/api/me/starred-teams`) are bookmarks, not follows, with a 50-club cap.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. Send `x-binder-pin-token` on `GET /api/binders/{id}` or PIN binders return `403 PIN_REQUIRED` without shelves.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.

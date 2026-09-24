@@ -67,7 +67,6 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
-- The community directory is `GET /api/user/all` (onboarded users, excluding you, `limit` 1–100). Suggested fans should prefer `GET /api/discovery/fans` and use `/api/user/all` as the fallback list.
 
 ## Marketplace contracts
 

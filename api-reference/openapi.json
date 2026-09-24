@@ -5008,54 +5008,6 @@
         }
       }
     },
-    "/api/user/all": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "List community users",
-        "description": "Authenticated directory of onboarded users, newest first. Excludes the caller. Query limit is clamped to 1–100 (default 50). excludeFollowing=true also drops users the caller already follows. Each user includes id, name, handle, profileUrl, profileUrlThumbhash, bio, location, favoriteTeam, favoritePlayer, rivalTeam, and stats { followerCount, totalPoints }. total is the returned count, not the full population. Cache-Control is no-store. Rate limit: 30 requests per minute.",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 50
-            }
-          },
-          {
-            "name": "excludeFollowing",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
-            }
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ success, data: { users, total } }"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "429": {
-            "description": "RATE_LIMITED"
-          }
-        }
-      }
-    },
     "/api/user/collectibles": {
       "get": {
         "tags": [
