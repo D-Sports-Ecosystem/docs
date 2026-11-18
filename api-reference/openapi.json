@@ -24222,7 +24222,7 @@
         },
         "responses": {
           "200": {
-            "description": "Existing draft returned for an idempotent replay.",
+            "description": "Existing submission returned with its current status for an idempotent replay, including after publication. Cancelled, expired, and unpublished submissions release the key; reuse then creates a new draft (201) if creation succeeds.",
             "content": {
               "application/json": {
                 "schema": {
