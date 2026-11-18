@@ -15964,6 +15964,18 @@
         ],
         "summary": "Update wallet display metadata",
         "description": "Edit-mode metadata (#888). At least one of `label` (<=40 chars, empty clears), `color` (#RRGGBB, null clears), `icon` (1..64 chars, null clears), `isHidden`. Owner-scoped by wallet id.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Wallet database id of a wallet the caller owns.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -20773,118 +20785,6 @@
         }
       }
     },
-    "/api/cron/data-export": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "operationId": "cronDataExport",
-        "summary": "Build one fan data-export archive (cron)",
-        "description": "Vercel cron every 5 minutes (#973). Bearer CRON_SECRET, fail closed when the secret is missing. Claims one REQUESTED row (or a PROCESSING row past its lease), writes a JSON-in-zip archive to the private fan-data-exports bucket, and emails the Clerk verified primary address from privacy@updates.d-sports.org with no download URL. No verified primary still completes the row with metadata.emailSkipped. Pre-worker format json rows are marked FAILED. Objects past metadata.expiresAt are deleted on the same tick. Skips upload, email, and retention deletes when CRON_SIDE_EFFECTS_ENABLED is false. maxDuration 300.",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ success, data: { skipped, job, retention } } or the side-effects skip payload"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Cron job failed"
-          }
-        }
-      }
-    },
-    "/api/cron/social-dispatch": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "operationId": "cronSocialDispatch",
-        "summary": "Dispatch due scheduled social posts (cron)",
-        "description": "Vercel cron every 5 min (#851 Opt A). Bearer CRON_SECRET. dryRun claims nothing.",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "dryRun",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ success, data: { due, published, failed } }"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/cron/locker-room-post-mentions": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "operationId": "cronLockerRoomPostMentions",
-        "summary": "Send due locker-room post mention notifications (cron)",
-        "description": "Vercel cron every 5 min (#953). Bearer CRON_SECRET. Finds LockerRoomPostMention rows with notifiedAt null whose post is already visible (scheduledFor null or <= now) and sends SOCIAL_MENTION with dedupe key mention:post:{postId}:{userId}. Before sending, it drops a tag whose user is gone, blocked in either direction, or unable to view a private post, and stamps notifiedAt so that row is not retried. A send stamps notifiedAt when the push landed or the push failure is not retryable (preferences off, no subscription, non-retryable HTTP). A 429, 5xx, or timeout increments notifyAttempts and leaves notifiedAt null until 6 failures, then stamps notifiedAt so that row leaves the batch. The due query orders by notifyAttempts then createdAt, so a tag that has not been tried is picked before one that already failed. The OneSignal idempotency key is derived from the dedupe key and reused on the retry. The tick stops about 45s in, before the 60s maxDuration, and leaves the rest due. dryRun writes nothing. Skipped when CRON_SIDE_EFFECTS_ENABLED is false.",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "dryRun",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ success, data: { due, notified, suppressed, failed, deferred, exhausted, dryRun } } or the side-effects skip payload"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/api/admin/card-art-batches": {
       "get": {
         "tags": [
@@ -22895,48 +22795,6 @@
           },
           "500": {
             "description": "INTERNAL_ERROR — the write could not be persisted"
-          }
-        }
-      }
-    },
-    "/api/cron/season-windows-fill": {
-      "get": {
-        "tags": [
-          "Cron"
-        ],
-        "summary": "Fill missing league season windows",
-        "description": "Vercel cron (#999). Keeps LeagueSeasonWindow populated for every hockey league so the off-season hub gate is backed by real rows. Runs on four fixed dates a year (1 Jul, 15 Aug, 15 Sep, 1 Jan UTC) and once on the first post-merge deploy. Create-only: it inserts with skipDuplicates, so an existing (leagueId, seasonYear) row is never rewritten — operator-edited startDate/endDate/preseasonStartDate and the stateOverride/hubEnabled switches are untouched. Covers the current and next hockey season. Use the admin PUT /api/admin/leagues/{leagueId}/season-windows for real dates or overrides. ?dryRun=1 reports the same summary without writing.",
-        "parameters": [
-          {
-            "name": "dryRun",
-            "in": "query",
-            "required": false,
-            "description": "1 or true reports without writing.",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "0",
-                "1",
-                "true",
-                "false"
-              ]
-            }
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{ success, data: { seasonYears, leagues, created, existing, perSeason, dryRun, reason } }"
-          },
-          "401": {
-            "description": "UNAUTHORIZED — CRON_SECRET missing or mismatched (fail closed)"
-          },
-          "500": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
