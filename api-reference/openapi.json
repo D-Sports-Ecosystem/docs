@@ -24109,7 +24109,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                  "$ref": "#/components/schemas/SubmissionListSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing teamId or invalid status filter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
                 }
               }
             }
@@ -24148,6 +24158,59 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": true,
+            "description": "Team ID or slug.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by request status. An invalid nonempty status returns 400.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "queued",
+                "rendering",
+                "preview_ready",
+                "changes_requested",
+                "pending_platform_review",
+                "approved",
+                "publishing",
+                "published",
+                "unpublished",
+                "render_failed",
+                "cancelled",
+                "expired"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Defaults to 1; values below 1 are clamped to 1.",
+            "schema": {
+              "type": "number",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Defaults to 20; clamped to 1–50.",
+            "schema": {
+              "type": "number",
+              "default": 20
+            }
           }
         ]
       },
@@ -24503,7 +24566,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                  "$ref": "#/components/schemas/SubmissionTemplateListSuccess"
                 }
               }
             }
@@ -27751,7 +27814,8 @@
           "cardFrontCollectibleId": {
             "type": "string",
             "minLength": 1,
-            "description": "Collectible id or team-scoped slug. Selects a v1 card-front template from the collectible's rarity."
+            "description": "Collectible id or team-scoped slug. Selects a v1 card-front template from the collectible's rarity.",
+            "pattern": "\\S"
           },
           "sourceHasTransparency": {
             "type": "boolean",
@@ -27802,6 +27866,65 @@
           "teamId",
           "idempotencyKey",
           "title"
+        ],
+        "description": "Choose an explicit template key (version optional), or a collectible-bound automatic card front. Card-front expectations must be supplied together; they assert the recommendation rather than override it. Template/target compatibility is validated server-side.",
+        "oneOf": [
+          {
+            "required": [
+              "templateKey"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "cardFrontCollectibleId"
+                  ]
+                },
+                {
+                  "required": [
+                    "sourceHasTransparency"
+                  ]
+                },
+                {
+                  "required": [
+                    "expectedTemplateKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "expectedTemplateVersion"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "required": [
+              "cardFrontCollectibleId"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "templateKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "templateVersion"
+                  ]
+                }
+              ]
+            },
+            "dependentRequired": {
+              "expectedTemplateKey": [
+                "expectedTemplateVersion"
+              ],
+              "expectedTemplateVersion": [
+                "expectedTemplateKey"
+              ]
+            }
+          }
         ]
       },
       "UpdateSubmissionDraftSuccess": {
@@ -27848,6 +27971,213 @@
           "title"
         ],
         "additionalProperties": false
+      },
+      "SubmissionSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "templateKey": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "queued",
+              "rendering",
+              "preview_ready",
+              "changes_requested",
+              "pending_platform_review",
+              "approved",
+              "publishing",
+              "published",
+              "unpublished",
+              "render_failed",
+              "cancelled",
+              "expired"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "templateVersion": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "teamId",
+          "slug",
+          "title",
+          "templateKey",
+          "templateId",
+          "createdByUserId",
+          "status",
+          "version",
+          "templateVersion",
+          "createdAt",
+          "updatedAt",
+          "submittedAt"
+        ]
+      },
+      "SubmissionListSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmissionSummary"
+                }
+              },
+              "page": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests",
+              "page",
+              "pageSize",
+              "total"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SubmissionTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slotSpec": {
+            "description": "Template slot specification stored as JSON."
+          },
+          "outputSpec": {
+            "description": "Template output specification stored as JSON."
+          },
+          "requiresPlatformApproval": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "kind",
+          "contentType",
+          "displayName",
+          "version",
+          "description",
+          "slotSpec",
+          "outputSpec",
+          "requiresPlatformApproval"
+        ]
+      },
+      "SubmissionTemplateListSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "templates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmissionTemplate"
+                }
+              },
+              "recommendedTemplateId": {
+                "type": "string",
+                "description": "Recommended v1 card-front template for the latest collectible selection, when available."
+              },
+              "unavailableTemplateKeys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Pack-face keys with no compatible eligible version, when present."
+              }
+            },
+            "required": [
+              "templates"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
       }
     }
   }
