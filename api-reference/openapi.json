@@ -24095,6 +24095,626 @@
           }
         }
       }
+    },
+    "/api/admin/submissions": {
+      "get": {
+        "operationId": "listSubmissions",
+        "summary": "List submissions for a team",
+        "tags": [
+          "Submissions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createSubmission",
+        "summary": "Create a draft submission",
+        "tags": [
+          "Submissions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubmissionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/submissions/{id}": {
+      "get": {
+        "operationId": "getSubmission",
+        "summary": "Get a submission by id",
+        "tags": [
+          "Submissions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateSubmissionDraftTitle",
+        "summary": "Update the title of a draft submission",
+        "tags": [
+          "Submissions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubmissionDraftBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved draft title",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSubmissionDraftSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Submission is no longer editable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Submission ID or team-scoped slug."
+        },
+        {
+          "name": "teamId",
+          "in": "query",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Team ID or slug to disambiguate a submission slug."
+        }
+      ]
+    },
+    "/api/admin/submissions/templates": {
+      "get": {
+        "operationId": "listSubmissionTemplates",
+        "summary": "List available render templates",
+        "tags": [
+          "Submissions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Team id or slug."
+            },
+            "required": true,
+            "description": "Team id or slug.",
+            "name": "teamId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Restrict the returned content type."
+            },
+            "required": false,
+            "description": "Restrict the returned content type.",
+            "name": "contentType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "latest"
+              ],
+              "description": "One latest compatible version per key. Default returns all eligible active versions."
+            },
+            "required": false,
+            "description": "One latest compatible version per key. Default returns all eligible active versions.",
+            "name": "selection",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pack",
+                "collectible",
+                "team_default"
+              ],
+              "description": "Target context for the latest selection. A pack or collectible requires targetRef."
+            },
+            "required": false,
+            "description": "Target context for the latest selection. A pack or collectible requires targetRef.",
+            "name": "targetKind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Team-scoped pack or collectible id or slug."
+            },
+            "required": false,
+            "description": "Team-scoped pack or collectible id or slug.",
+            "name": "targetRef",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "Allows designs that require a transparent source for a collectible target."
+            },
+            "required": false,
+            "description": "Allows designs that require a transparent source for a collectible target.",
+            "name": "sourceHasTransparency",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid template selection or target",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/collectibles/{id}/render-spin": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Queue a render from saved collectibles artwork",
+        "description": "Team-authorized saved-artwork render. Returns 202 for a new request or 200 for idempotent reuse. A changed expected template version returns 409.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedTemplateVersion",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "description": "Optional JSON body, at most 1 KiB. Omit the body to use the default title.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Trimmed operator title."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing request"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid body, title or version"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Template or target conflict"
+          },
+          "413": {
+            "description": "Body exceeds 1 KiB"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/admin/packs/{id}/render-opening": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Queue a render from saved packs artwork",
+        "description": "Team-authorized saved-artwork render. Returns 202 for a new request or 200 for idempotent reuse. A changed expected template version returns 409.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedTemplateVersion",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "description": "Optional JSON body, at most 1 KiB. Omit the body to use the default title.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Trimmed operator title."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing request"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid body, title or version"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Template or target conflict"
+          },
+          "413": {
+            "description": "Body exceeds 1 KiB"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26980,6 +27600,254 @@
             "minimum": 1
           }
         }
+      },
+      "RenderSubmissionPresentation": {
+        "type": "object",
+        "properties": {
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RenderSubmissionAction"
+            }
+          },
+          "policyAllowsSelfApproval": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "policyReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "allowedActions",
+          "policyAllowsSelfApproval",
+          "policyReasons"
+        ]
+      },
+      "RenderSubmissionAction": {
+        "type": "string",
+        "enum": [
+          "cancel",
+          "approve",
+          "reject",
+          "publish",
+          "unpublish",
+          "retry",
+          "rerender",
+          "submit"
+        ]
+      },
+      "SubmissionsErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/SubmissionsErrorCode"
+          }
+        },
+        "required": [
+          "success",
+          "error",
+          "code"
+        ]
+      },
+      "SubmissionsErrorCode": {
+        "type": "string",
+        "enum": [
+          "VALIDATION_ERROR",
+          "FORBIDDEN",
+          "NOT_FOUND",
+          "CONFLICT",
+          "RATE_LIMIT_EXCEEDED",
+          "INTERNAL_ERROR",
+          "UNAUTHORIZED"
+        ]
+      },
+      "SubmissionsSuccessEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "presentation": {
+                "$ref": "#/components/schemas/RenderSubmissionPresentation"
+              }
+            },
+            "required": [
+              "presentation"
+            ],
+            "additionalProperties": {}
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pagination": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "pageSize": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateSubmissionBody": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "templateKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required for explicit template selection. Omit when choosing a card front by collectible."
+          },
+          "cardFrontCollectibleId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Collectible id or team-scoped slug. Selects a v1 card-front template from the collectible's rarity."
+          },
+          "sourceHasTransparency": {
+            "type": "boolean",
+            "description": "Set for transparent player cut-outs to allow Mythic Rays."
+          },
+          "expectedTemplateKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Recommended card-front key already shown in the creator."
+          },
+          "expectedTemplateVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Recommended card-front version already shown in the creator."
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "templateVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "targetPackId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "enum": [
+                  "team_default"
+                ]
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "teamId",
+          "idempotencyKey",
+          "title"
+        ]
+      },
+      "UpdateSubmissionDraftSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "title",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UpdateSubmissionDraftBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
       }
     }
   }
