@@ -24143,16 +24143,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
-                }
-              }
-            }
           }
         },
         "security": [
@@ -24231,12 +24221,22 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "OK",
+          "200": {
+            "description": "Existing draft returned for an idempotent replay.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                  "$ref": "#/components/schemas/CreateSubmissionSuccess"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New draft created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubmissionSuccess"
                 }
               }
             }
@@ -24682,10 +24682,10 @@
             "description": "Unauthorized"
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Target missing or caller not authorized to manage it."
           },
           "404": {
-            "description": "Target not found"
+            "description": "Render template not found or inactive."
           },
           "409": {
             "description": "Template or target conflict"
@@ -24762,10 +24762,10 @@
             "description": "Unauthorized"
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Target missing or caller not authorized to manage it."
           },
           "404": {
-            "description": "Target not found"
+            "description": "Render template not found or inactive."
           },
           "409": {
             "description": "Template or target conflict"
@@ -28189,6 +28189,68 @@
             },
             "required": [
               "templates"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateSubmissionSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "queued",
+                  "rendering",
+                  "preview_ready",
+                  "changes_requested",
+                  "pending_platform_review",
+                  "approved",
+                  "publishing",
+                  "published",
+                  "unpublished",
+                  "render_failed",
+                  "cancelled",
+                  "expired"
+                ]
+              },
+              "requiredSlots": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "existing": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "requestId",
+              "slug",
+              "version",
+              "status",
+              "requiredSlots",
+              "existing"
             ]
           }
         },
