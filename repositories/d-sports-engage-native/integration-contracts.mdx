@@ -116,6 +116,15 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `GET /api/user/featured-collectibles` is public.
 - `PUT /api/user/featured-collectibles` replaces the authenticated user's showcase (max 12).
 
+## Card display fields
+
+Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET /api/binders/{id}` cards carry `finish` and `cardTemplate` side by side.
+
+- `finish` is a card finish id, or `null` when the card has none.
+- `cardTemplate` is `{ key, version }` naming the render template behind the card's current image, for example `{ "key": "card-front-epic-holo", "version": 1 }`.
+- `cardTemplate` is `null` unless the image came from a published render that still matches the stored image. It is additive and read-only, with no allowlist or kill switch.
+- Treat an unknown `cardTemplate.key` as display metadata only; the card image URL is already the rendered front.
+
 ## User interests contract
 
 - `User.interests` is a `string[]` of slug IDs stored on the `User` row in Postgres (via Prisma).

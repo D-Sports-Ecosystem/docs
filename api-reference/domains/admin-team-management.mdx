@@ -21,6 +21,7 @@ This guide documents approved admin/team-management routes with behavior-level d
 - `/api/admin/teams/sync`
 - `/api/admin/users/{userId}/rep` (D-Sports Direct grant; `isAdmin` only)
 - `/api/admin/players/{playerId}/availability` (platform admin; manual availability/injury. Null status clears back to available)
+- `POST /api/admin/submissions` (team manager): render a card front for an existing collectible. Send `teamId`, `cardFrontCollectibleId` (id or team slug), `title`, and `idempotencyKey`, and omit `templateKey` and `templateVersion`; the API picks a v1 `card-front-*` template from the collectible's rarity. `sourceHasTransparency: true` (transparent player PNG) also allows the Mythic Rays template. The submissions contract is in `openapi/submissions.v1.json` in d-sports-api, not in this reference.
 - Additional team-manager surfaces exist under `/api/admin/*` (entities, mint lock, pins, analytics period). Document RBAC only; redact ops internals.
 
 ## RBAC requirements
