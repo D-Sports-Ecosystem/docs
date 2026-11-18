@@ -46,6 +46,14 @@ The generated OpenAPI still describes verify-pin as `{ granted }` only. Treat th
 
 Card league labels on binder contents come from `Team.leagueRelation`, not a client-side league map.
 
+## Card finish and template
+
+Cards from pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET /api/binders/{id}` include `finish` and `cardTemplate`.
+
+- `finish` is a card finish id, or `null` when the card has none.
+- `cardTemplate` is `{ key, version }` naming the render template behind the card's current image, for example `{ "key": "card-front-epic-holo", "version": 1 }`.
+- `cardTemplate` is `null` unless the image came from a published render that still matches the stored image. It is additive and read-only, with no allowlist or kill switch.
+
 ## Card provenance
 
 - `GET /api/v1/cards/{id}/provenance` is public.
