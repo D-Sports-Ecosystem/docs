@@ -27870,6 +27870,16 @@
         "description": "Choose an explicit template key (version optional), or a collectible-bound automatic card front. Card-front expectations must be supplied together; they assert the recommendation rather than override it. Template/target compatibility is validated server-side.",
         "oneOf": [
           {
+            "example": {
+              "teamId": "milano-hc",
+              "title": "Pack front artwork",
+              "idempotencyKey": "pack-front-draft-001",
+              "templateKey": "pack-art-front",
+              "templateVersion": 2,
+              "metadata": {
+                "target": "team_default"
+              }
+            },
             "required": [
               "templateKey"
             ],
@@ -27899,6 +27909,14 @@
             }
           },
           {
+            "example": {
+              "teamId": "milano-hc",
+              "title": "Common player card front",
+              "idempotencyKey": "card-front-draft-001",
+              "cardFrontCollectibleId": "player-card",
+              "expectedTemplateKey": "card-front-common-contour",
+              "expectedTemplateVersion": 1
+            },
             "required": [
               "cardFrontCollectibleId"
             ],
