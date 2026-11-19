@@ -50,7 +50,7 @@ Card league labels on binder contents come from `Team.leagueRelation`, not a cli
 
 Call public `GET /api/packs/{id}/opening-manifest` with the pack ID, not the purchase ID. It returns scene metadata, not the outcome of opening the pack.
 
-The optional `data.backdropColour` is `tier` for rarity colours or `neutral` for neutral grey. An explicit pack value takes precedence over the team's default. If neither is set, the key is absent (never null); use rarity colours as the fallback. Backdrop changes refresh the manifest ETag but do not change `assetVersion`. This field is separate from the fan's [pack summary layout setting](/api-reference/domains/auth-onboarding#pack-summary-layout).
+The optional `data.backdropColour` is `tier` for rarity colours or `neutral` for neutral grey. An explicit pack value takes precedence over the team's default. If neither is set, the key is absent (never null); use rarity colours as the fallback. Changes to the resolved colour refresh the manifest ETag but do not change `assetVersion`. This field is separate from the fan's [pack summary layout setting](/api-reference/domains/auth-onboarding#pack-summary-layout).
 
 ## Card finish and template
 

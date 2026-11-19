@@ -35,9 +35,9 @@ icon: "list-checks"
 
 ## Opening manifest and backdrop
 
-The public manifest looks up the pack template by ID, not the fan's purchase. It returns the optional `data.backdropColour` from the pack override, then the team default. An explicit `tier` on the pack overrides a `neutral` default. When both values are unset, omit the key; clients fall back to rarity colours.
+The public manifest looks up the pack template by ID, not the fan's purchase. It returns the optional `data.backdropColour` from the pack override, then the team default. An explicit `tier` on the pack overrides a `neutral` default. When both values are unset, the server omits the key and clients fall back to rarity colours.
 
-The backdrop does not change the pack art, draw, or `assetVersion`. It does change the full-manifest ETag, so revalidate the manifest with `If-None-Match` rather than relying on `assetVersion` to detect colour changes. A matching tag returns `304`. The CDN uses `s-maxage=60, stale-while-revalidate=300`, so edits may not appear immediately.
+The backdrop does not change the pack art, draw, or `assetVersion`. Changes to the resolved colour do change the full-manifest ETag, so revalidate the manifest with `If-None-Match` rather than relying on `assetVersion` to detect colour changes. A matching tag returns `304`. The CDN uses `s-maxage=60, stale-while-revalidate=300`, so edits may not appear immediately.
 
 ## Card display fields
 

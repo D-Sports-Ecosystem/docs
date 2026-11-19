@@ -118,8 +118,9 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 ## 3D pack opening
 
-- Use the pack ID with `GET /api/packs/{id}/opening-manifest`. For `data.backdropColour`, use `tier` for rarity colouring and `neutral` for neutral grey. An absent key means rarity colours; the server resolves pack overrides and team defaults.
-- Revalidate with the manifest ETag. A backdrop-only edit doesn't change `assetVersion` or the scene protocol.
+- Use the pack ID with `GET /api/packs/{id}/opening-manifest`. Pass the host's supported scene level as `?scene=3` (or higher) for meshopt templates. Without a sufficient level, those packs return `template: null` and `sceneEligible: false`.
+- Use `data.backdropColour`: `tier` means rarity colours, `neutral` means neutral grey, and an absent key falls back to rarity colours. The server resolves pack overrides and team defaults.
+- Revalidate with the manifest ETag. A change in the resolved colour doesn't change `assetVersion` or the scene protocol.
 - Render the summary from `data.packSummaryLayout` in user settings, independently of the manifest backdrop. Treat an absent layout as `auto` for older servers. See the [settings contract](/api-reference/domains/auth-onboarding#pack-summary-layout) for values and PATCH behavior.
 
 ## Card display fields
