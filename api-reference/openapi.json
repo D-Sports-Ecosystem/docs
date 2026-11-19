@@ -11773,7 +11773,7 @@
           "User"
         ],
         "summary": "Get user settings",
-        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, liveScoreUpdates (opt-in, default false) for OS live score surfaces, analyticsPersonalization (opt-out, default true) for feed ranking and behavioural signals (#614), personalizedAdsConsent (explicit consent for personalized ads, default false, #785) with personalizedAdsConsentAt (ISO-8601 or null) and personalizedAdsConsentVersion (currently version 1, or null until the fan chooses), and hqTextMode (marquee | expand | wrap, default expand) for HQ long-text display (#702). Includes teamNameDisplayMode (full | name_only, default full) for club-name display: full is city plus name (Montreal Canadiens); name_only is the club name (Canadiens). Includes packOpenMotion (system | full | reduced, default system) for the pack-opening motion preference (#884). Includes packSoundEnabled (boolean, default true) for the pack-opening sounds toggle (#920). Also returns data.appTour.seenPages (#777): { page, completedAt }[] for the session user, oldest completion first, empty when no tour page has been marked seen. completedAt is ISO-8601 UTC and is not refreshed by a repeat mark. Tour writes are POST and DELETE /api/user/settings/app-tour; this PATCH does not accept or return appTour. Includes showPullsInFeed (default true) for the live pull feed opt-in (#883). Includes notifyPacks (boolean, default true) for the free-packs-refilled push opt-out (#914). Includes packAntialias (auto | off | fxaa | smaa | msaa, default auto) for the pack-opening antialiasing mode (#923). Includes packQuality (auto | low | mid | high, default auto; native #854/W8); the server stores the choice and the device resolves auto. Includes customizerPreviewMode (full | compact, default full) for the pinned customizer preview (#931). Includes showOpenChoiceSheet (boolean, default true) and defaultOpenAction (open_now | open_later, default open_later; stored as PackOpenAction OPEN_NOW | OPEN_LATER) plus packOpenChoice { showSheet, defaultAction } for the post-checkout Open now / Open later sheet (#930). The server never opens a pack from this preference. Includes timezone (IANA, or null until the device reports it), quietStart, and quietEnd (HH:mm 24h, or null) for quiet hours (#947). A missing zone, a half-set window, or equal start and end does not suppress pushes. Includes marketingEmailOptIn (CASL express consent for marketing email, default false, #1032) with marketingEmailConsentAt (ISO-8601 or null) and marketingEmailConsentSource (settings | onboarding, or null); both are null unless the fan is opted in.",
+        "description": "Authenticated settings row. Creates one from User.isPrivate when missing. privateProfile mirrors isPrivate. Includes per-channel notify* booleans, accessibility flags, liveScoreUpdates (opt-in, default false) for OS live score surfaces, analyticsPersonalization (opt-out, default true) for feed ranking and behavioural signals (#614), personalizedAdsConsent (explicit consent for personalized ads, default false, #785) with personalizedAdsConsentAt (ISO-8601 or null) and personalizedAdsConsentVersion (currently version 1, or null until the fan chooses), and hqTextMode (marquee | expand | wrap, default expand) for HQ long-text display (#702). Includes teamNameDisplayMode (full | name_only, default full) for club-name display: full is city plus name (Montreal Canadiens); name_only is the club name (Canadiens). Includes packOpenMotion (system | full | reduced, default system) for the pack-opening motion preference (#884). Includes packSoundEnabled (boolean, default true) for the pack-opening sounds toggle (#920). Also returns data.appTour.seenPages (#777): { page, completedAt }[] for the session user, oldest completion first, empty when no tour page has been marked seen. completedAt is ISO-8601 UTC and is not refreshed by a repeat mark. Tour writes are POST and DELETE /api/user/settings/app-tour; this PATCH does not accept or return appTour. Includes showPullsInFeed (default true) for the live pull feed opt-in (#883). Includes notifyPacks (boolean, default true) for the free-packs-refilled push opt-out (#914). Includes packAntialias (auto | off | fxaa | smaa | msaa, default auto) for the pack-opening antialiasing mode (#923). Includes packQuality (auto | low | mid | high, default auto; native #854/W8); the server stores the choice and the device resolves auto. Includes packSummaryLayout (auto | grid | compact | carousel | marquee, default auto; #1155) for the 3D pack-opening summary layout; the server stores the choice and native renders it. Includes customizerPreviewMode (full | compact, default full) for the pinned customizer preview (#931). Includes showOpenChoiceSheet (boolean, default true) and defaultOpenAction (open_now | open_later, default open_later; stored as PackOpenAction OPEN_NOW | OPEN_LATER) plus packOpenChoice { showSheet, defaultAction } for the post-checkout Open now / Open later sheet (#930). The server never opens a pack from this preference. Includes timezone (IANA, or null until the device reports it), quietStart, and quietEnd (HH:mm 24h, or null) for quiet hours (#947). A missing zone, a half-set window, or equal start and end does not suppress pushes. Includes marketingEmailOptIn (CASL express consent for marketing email, default false, #1032) with marketingEmailConsentAt (ISO-8601 or null) and marketingEmailConsentSource (settings | onboarding, or null); both are null unless the fan is opted in.",
         "security": [
           {
             "bearerAuth": []
@@ -11781,7 +11781,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data } where data is the UserSettings row plus appTour: { seenPages: [{ page, completedAt }] }. seenPages is [] when nothing has been marked. Also packOpenChoice { showSheet, defaultAction }, showOpenChoiceSheet, defaultOpenAction (open_now | open_later), customizerPreviewMode (full | compact), and packAntialias (auto | off | fxaa | smaa | msaa), plus packQuality (auto | low | mid | high; default auto; device resolves auto). Also autoRefreshIntervalSec (0 or 30..3600 seconds, default 60), requirePinForInventoryMove (boolean, default false), walletReminderSnoozedUntil, and walletReminderDismissedAt (ISO-8601 date-times with timezone or null)."
+            "description": "{ success, data } where data is the UserSettings row plus appTour: { seenPages: [{ page, completedAt }] }. seenPages is [] when nothing has been marked. Also packOpenChoice { showSheet, defaultAction }, showOpenChoiceSheet, defaultOpenAction (open_now | open_later), customizerPreviewMode (full | compact), and packAntialias (auto | off | fxaa | smaa | msaa), plus packQuality (auto | low | mid | high; default auto; device resolves auto), and packSummaryLayout (auto | grid | compact | carousel | marquee; default auto). Also autoRefreshIntervalSec (0 or 30..3600 seconds, default 60), requirePinForInventoryMove (boolean, default false), walletReminderSnoozedUntil, and walletReminderDismissedAt (ISO-8601 date-times with timezone or null)."
           },
           "401": {
             "description": "{ success: false, error, code: UNAUTHORIZED }"
@@ -11796,7 +11796,7 @@
           "User"
         ],
         "summary": "Update user settings",
-        "description": "Boolean fields only plus appearanceTheme, hqTextMode (marquee | expand | wrap, default expand; unknown values 400), teamNameDisplayMode (full | name_only, default full), and packOpenMotion (system | full | reduced, default system; unknown values 400). packSoundEnabled (#920) is a boolean like the other toggles (default true on a new row; a non-boolean is ignored). Unknown teamNameDisplayMode values, including null and empty string, return 400 VALIDATION_ERROR. Omitting teamNameDisplayMode or packOpenMotion leaves the stored value unchanged. Unknown packOpenMotion values, including null and empty string, return 400 VALIDATION_ERROR. A new settings row defaults to full. full is city plus name (Montreal Canadiens); name_only is the club name (Canadiens). Persist notifyTeams, notifyMilestones, notifyCommunity, liveScoreUpdates (opt-in Live Activity / ongoing notification consent), analyticsPersonalization (opt-out; default true), and personalizedAdsConsent (boolean, default false) separately. The server stamps personalizedAdsConsentAt and personalizedAdsConsentVersion (currently version 1) when the choice changes, on the first explicit choice, or when re-granting against a new version. Clients cannot set the timestamp or version; a client-supplied value is ignored. The settings row commits before impression cleanup. A privateProfile change writes User.isPrivate in that same transaction, so a cleanup failure cannot leave the settings row private while the user row stays public. Sending personalizedAdsConsent false (including a retry) or analyticsPersonalization false folds that user's backfill AdImpression rows into AdImpressionDailyRollup one page per transaction, then deletes the raw rows. FeedSignal is deleted only when analyticsPersonalization is set to false, and that purge stays in the settings transaction. A cleanup that stops early returns 500 while the saved flag stays; sending the same false again continues the delete. Do not write preferences.privacy. Does not read or write app tour progress; the response is the settings row without appTour. Includes showPullsInFeed (default true) for the live pull feed opt-in (#883). notifyPacks (#914) is a boolean like the other toggles (default true on a new row; a non-boolean is ignored). packAntialias (#923) is auto | off | fxaa | smaa | msaa (default auto); trim and lowercase; unknown values including null and empty string return 400 VALIDATION_ERROR and write nothing. packQuality (#854/W8) is auto | low | mid | high (default auto); the server stores the choice and the device resolves auto; invalid values return 400 VALIDATION_ERROR and write nothing. customizerPreviewMode (#931) is full | compact (default full) with the same normalization and 400. showOpenChoiceSheet (#930) must be a boolean when present (non-booleans, including null, return 400 VALIDATION_ERROR). defaultOpenAction (#930) is exactly open_now | open_later (case-checked; OPEN_NOW, blanks, and null return 400 VALIDATION_ERROR). The stored enum is OPEN_NOW | OPEN_LATER and the response speaks open_now | open_later, with packOpenChoice { showSheet, defaultAction }. Omitting one of these fields leaves it unchanged. A new row defaults packAntialias to auto, customizerPreviewMode to full, showOpenChoiceSheet to true, and defaultOpenAction to open_later. Checkout and pack open ignore the preference. timezone, quietStart, and quietEnd (#947) follow the other fields: omitted leaves the stored value unchanged, null clears it, and a valid IANA zone or HH:mm is stored. Invalid timezone returns 400 VALIDATION_ERROR (Invalid timezone. Expected an IANA zone such as America/Toronto.). Invalid quietStart or quietEnd returns 400 (Invalid quiet hours. Expected HH:mm (24h) or null.). Nothing is written on 400. A usable window suppresses goal and kickoff pushes and delivers final scores silently. marketingEmailOptIn (#1032) must be a boolean when present; any other value returns 400 VALIDATION_ERROR. Optional marketingEmailConsentSource is settings | onboarding (default settings); unknown values return 400 VALIDATION_ERROR. On opt-in the server stamps marketingEmailConsentAt and marketingEmailConsentSource; a repeated opt-in keeps the original stamp. On opt-out both are cleared to null. Clients cannot set marketingEmailConsentAt; a client-supplied value is ignored. Each change (off to on, on to off) appends a MarketingEmailConsentEvent row (optIn, source, createdAt) in the same transaction.",
+        "description": "Boolean fields only plus appearanceTheme, hqTextMode (marquee | expand | wrap, default expand; unknown values 400), teamNameDisplayMode (full | name_only, default full), and packOpenMotion (system | full | reduced, default system; unknown values 400). packSoundEnabled (#920) is a boolean like the other toggles (default true on a new row; a non-boolean is ignored). Unknown teamNameDisplayMode values, including null and empty string, return 400 VALIDATION_ERROR. Omitting teamNameDisplayMode or packOpenMotion leaves the stored value unchanged. Unknown packOpenMotion values, including null and empty string, return 400 VALIDATION_ERROR. A new settings row defaults to full. full is city plus name (Montreal Canadiens); name_only is the club name (Canadiens). Persist notifyTeams, notifyMilestones, notifyCommunity, liveScoreUpdates (opt-in Live Activity / ongoing notification consent), analyticsPersonalization (opt-out; default true), and personalizedAdsConsent (boolean, default false) separately. The server stamps personalizedAdsConsentAt and personalizedAdsConsentVersion (currently version 1) when the choice changes, on the first explicit choice, or when re-granting against a new version. Clients cannot set the timestamp or version; a client-supplied value is ignored. The settings row commits before impression cleanup. A privateProfile change writes User.isPrivate in that same transaction, so a cleanup failure cannot leave the settings row private while the user row stays public. Sending personalizedAdsConsent false (including a retry) or analyticsPersonalization false folds that user's backfill AdImpression rows into AdImpressionDailyRollup one page per transaction, then deletes the raw rows. FeedSignal is deleted only when analyticsPersonalization is set to false, and that purge stays in the settings transaction. A cleanup that stops early returns 500 while the saved flag stays; sending the same false again continues the delete. Do not write preferences.privacy. Does not read or write app tour progress; the response is the settings row without appTour. Includes showPullsInFeed (default true) for the live pull feed opt-in (#883). notifyPacks (#914) is a boolean like the other toggles (default true on a new row; a non-boolean is ignored). packAntialias (#923) is auto | off | fxaa | smaa | msaa (default auto); trim and lowercase; unknown values including null and empty string return 400 VALIDATION_ERROR and write nothing. packQuality (#854/W8) is auto | low | mid | high (default auto); the server stores the choice and the device resolves auto; invalid values return 400 VALIDATION_ERROR and write nothing. packSummaryLayout (#1155) is auto | grid | compact | carousel | marquee (default auto); trim and lowercase; the server stores the choice and native renders it; invalid values, including null and empty string, return 400 VALIDATION_ERROR and write nothing. customizerPreviewMode (#931) is full | compact (default full) with the same normalization and 400. showOpenChoiceSheet (#930) must be a boolean when present (non-booleans, including null, return 400 VALIDATION_ERROR). defaultOpenAction (#930) is exactly open_now | open_later (case-checked; OPEN_NOW, blanks, and null return 400 VALIDATION_ERROR). The stored enum is OPEN_NOW | OPEN_LATER and the response speaks open_now | open_later, with packOpenChoice { showSheet, defaultAction }. Omitting one of these fields leaves it unchanged. A new row defaults packAntialias to auto, customizerPreviewMode to full, showOpenChoiceSheet to true, and defaultOpenAction to open_later. Checkout and pack open ignore the preference. timezone, quietStart, and quietEnd (#947) follow the other fields: omitted leaves the stored value unchanged, null clears it, and a valid IANA zone or HH:mm is stored. Invalid timezone returns 400 VALIDATION_ERROR (Invalid timezone. Expected an IANA zone such as America/Toronto.). Invalid quietStart or quietEnd returns 400 (Invalid quiet hours. Expected HH:mm (24h) or null.). Nothing is written on 400. A usable window suppresses goal and kickoff pushes and delivers final scores silently. marketingEmailOptIn (#1032) must be a boolean when present; any other value returns 400 VALIDATION_ERROR. Optional marketingEmailConsentSource is settings | onboarding (default settings); unknown values return 400 VALIDATION_ERROR. On opt-in the server stamps marketingEmailConsentAt and marketingEmailConsentSource; a repeated opt-in keeps the original stamp. On opt-out both are cleared to null. Clients cannot set marketingEmailConsentAt; a client-supplied value is ignored. Each change (off to on, on to off) appends a MarketingEmailConsentEvent row (optIn, source, createdAt) in the same transaction.",
         "security": [
           {
             "bearerAuth": []
@@ -11808,7 +11808,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "Partial settings write. A JSON object is required; an omitted body is not valid JSON and the handler returns 500. Every settings field inside the object stays optional. teamNameDisplayMode is the closed enum. packAntialias, packQuality, customizerPreviewMode, and defaultOpenAction are closed strings. showOpenChoiceSheet is a strict boolean. autoRefreshIntervalSec is an integer (0 or 30..3600 seconds).",
+                "description": "Partial settings write. A JSON object is required; an omitted body is not valid JSON and the handler returns 500. Every settings field inside the object stays optional. teamNameDisplayMode is the closed enum. packAntialias, packQuality, packSummaryLayout, customizerPreviewMode, and defaultOpenAction are closed strings. showOpenChoiceSheet is a strict boolean. autoRefreshIntervalSec is an integer (0 or 30..3600 seconds).",
                 "additionalProperties": true,
                 "properties": {
                   "teamNameDisplayMode": {
@@ -11819,6 +11819,9 @@
                   },
                   "packQuality": {
                     "$ref": "#/components/schemas/PackQuality"
+                  },
+                  "packSummaryLayout": {
+                    "$ref": "#/components/schemas/PackSummaryLayout"
                   },
                   "customizerPreviewMode": {
                     "$ref": "#/components/schemas/CustomizerPreviewMode"
@@ -11905,10 +11908,10 @@
         },
         "responses": {
           "200": {
-            "description": "{ success, data } where data is the UserSettings row, including teamNameDisplayMode (full | name_only). Also packAntialias, packQuality, customizerPreviewMode, showOpenChoiceSheet, defaultOpenAction (open_now | open_later), and packOpenChoice { showSheet, defaultAction }. Also autoRefreshIntervalSec (0 or 30..3600 seconds, default 60), requirePinForInventoryMove (boolean, default false), walletReminderSnoozedUntil, and walletReminderDismissedAt (ISO-8601 date-times with timezone or null)."
+            "description": "{ success, data } where data is the UserSettings row, including teamNameDisplayMode (full | name_only). Also packAntialias, packQuality, packSummaryLayout, customizerPreviewMode, showOpenChoiceSheet, defaultOpenAction (open_now | open_later), and packOpenChoice { showSheet, defaultAction }. Also autoRefreshIntervalSec (0 or 30..3600 seconds, default 60), requirePinForInventoryMove (boolean, default false), walletReminderSnoozedUntil, and walletReminderDismissedAt (ISO-8601 date-times with timezone or null)."
           },
           "400": {
-            "description": "{ success: false, error: Invalid teamNameDisplayMode. Expected full | name_only., code: VALIDATION_ERROR }. Also returned for an invalid hqTextMode. Nothing is written. Also returned for an invalid packAntialias (Invalid packAntialias. Expected auto | off | fxaa | smaa | msaa.), customizerPreviewMode (Invalid customizerPreviewMode. Expected full | compact.), showOpenChoiceSheet (Invalid showOpenChoiceSheet. Expected boolean.), or defaultOpenAction (Invalid defaultOpenAction. Expected open_now | open_later.), or packQuality (Invalid packQuality. Expected auto | low | mid | high.). Also returned for an invalid timezone (Invalid timezone. Expected an IANA zone such as America/Toronto.) or quiet hours (Invalid quiet hours. Expected HH:mm (24h) or null.). Nothing is written. Also returned for an invalid autoRefreshIntervalSec (Invalid autoRefreshIntervalSec. Expected 0 or an integer 30..3600 (seconds).). Nothing is written."
+            "description": "{ success: false, error: Invalid teamNameDisplayMode. Expected full | name_only., code: VALIDATION_ERROR }. Also returned for an invalid hqTextMode. Nothing is written. Also returned for an invalid packAntialias (Invalid packAntialias. Expected auto | off | fxaa | smaa | msaa.), customizerPreviewMode (Invalid customizerPreviewMode. Expected full | compact.), showOpenChoiceSheet (Invalid showOpenChoiceSheet. Expected boolean.), or defaultOpenAction (Invalid defaultOpenAction. Expected open_now | open_later.), or packQuality (Invalid packQuality. Expected auto | low | mid | high.). Also returned for an invalid packSummaryLayout (Invalid packSummaryLayout. Expected auto | grid | compact | carousel | marquee.). Also returned for an invalid timezone (Invalid timezone. Expected an IANA zone such as America/Toronto.) or quiet hours (Invalid quiet hours. Expected HH:mm (24h) or null.). Nothing is written. Also returned for an invalid autoRefreshIntervalSec (Invalid autoRefreshIntervalSec. Expected 0 or an integer 30..3600 (seconds).). Nothing is written."
           },
           "500": {
             "description": "{ success: false, error: Failed to update settings, code: INTERNAL_ERROR }. Impression cleanup that stops early uses this response. The settings row, including privateProfile mirrored onto User.isPrivate, is already saved. Sending the same false again continues the delete."
@@ -18428,6 +18431,14 @@
                             "enabled",
                             "assetVersion"
                           ]
+                        },
+                        "backdropColour": {
+                          "type": "string",
+                          "enum": [
+                            "tier",
+                            "neutral"
+                          ],
+                          "description": "Backdrop pattern colouring for the 3D pack-opening scene (#1156): tier is rarity-coloured, neutral is grey. The pack value wins over the team default; omitted (never null) when neither is set. Not part of assetVersion."
                         }
                       }
                     }
@@ -24095,6 +24106,689 @@
           }
         }
       }
+    },
+    "/api/admin/submissions": {
+      "get": {
+        "operationId": "listSubmissions",
+        "summary": "List submissions for a team",
+        "tags": [
+          "Submissions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionListSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing teamId or invalid status filter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": true,
+            "description": "Team ID or slug.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by request status. An invalid nonempty status returns 400.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "queued",
+                "rendering",
+                "preview_ready",
+                "changes_requested",
+                "pending_platform_review",
+                "approved",
+                "publishing",
+                "published",
+                "unpublished",
+                "render_failed",
+                "cancelled",
+                "expired"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Defaults to 1; values below 1 are clamped to 1.",
+            "schema": {
+              "type": "number",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Defaults to 20; clamped to 1–50.",
+            "schema": {
+              "type": "number",
+              "default": 20
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createSubmission",
+        "summary": "Create a draft submission",
+        "tags": [
+          "Submissions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubmissionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing submission returned with its current status for an idempotent replay, including after publication. Cancelled, expired, and unpublished submissions release the key; reuse then creates a new draft (201) if creation succeeds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubmissionSuccess"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New draft created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubmissionSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/submissions/{id}": {
+      "get": {
+        "operationId": "getSubmission",
+        "summary": "Get a submission by id",
+        "tags": [
+          "Submissions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateSubmissionDraftTitle",
+        "summary": "Update the title of a draft submission",
+        "tags": [
+          "Submissions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubmissionDraftBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved draft title",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSubmissionDraftSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Submission is no longer editable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Submission ID or team-scoped slug."
+        },
+        {
+          "name": "teamId",
+          "in": "query",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Team ID or slug to disambiguate a submission slug."
+        }
+      ]
+    },
+    "/api/admin/submissions/templates": {
+      "get": {
+        "operationId": "listSubmissionTemplates",
+        "summary": "List available render templates",
+        "tags": [
+          "Submissions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Team id or slug."
+            },
+            "required": true,
+            "description": "Team id or slug.",
+            "name": "teamId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Restrict the returned content type."
+            },
+            "required": false,
+            "description": "Restrict the returned content type.",
+            "name": "contentType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "latest"
+              ],
+              "description": "One latest compatible version per key. Default returns all eligible active versions."
+            },
+            "required": false,
+            "description": "One latest compatible version per key. Default returns all eligible active versions.",
+            "name": "selection",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pack",
+                "collectible",
+                "team_default"
+              ],
+              "description": "Target context for the latest selection. A pack or collectible requires targetRef."
+            },
+            "required": false,
+            "description": "Target context for the latest selection. A pack or collectible requires targetRef.",
+            "name": "targetKind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Team-scoped pack or collectible id or slug."
+            },
+            "required": false,
+            "description": "Team-scoped pack or collectible id or slug.",
+            "name": "targetRef",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "Allows designs that require a transparent source for a collectible target."
+            },
+            "required": false,
+            "description": "Allows designs that require a transparent source for a collectible target.",
+            "name": "sourceHasTransparency",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionTemplateListSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid template selection or target",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionsErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/collectibles/{id}/render-spin": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Queue a render from saved collectibles artwork",
+        "description": "Team-authorized saved-artwork render. Returns 202 for a new request or 200 for idempotent reuse. A changed expected template version returns 409.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedTemplateVersion",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "description": "Optional JSON body, at most 1 KiB. Omit the body to use the default title.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Trimmed operator title."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing request"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid body, title or version"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Target missing or caller not authorized to manage it."
+          },
+          "404": {
+            "description": "Render template not found or inactive."
+          },
+          "409": {
+            "description": "Template or target conflict"
+          },
+          "413": {
+            "description": "Body exceeds 1 KiB"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/admin/packs/{id}/render-opening": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Queue a render from saved packs artwork",
+        "description": "Team-authorized saved-artwork render. Returns 202 for a new request or 200 for idempotent reuse. A changed expected template version returns 409.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedTemplateVersion",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "description": "Optional JSON body, at most 1 KiB. Omit the body to use the default title.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Trimmed operator title."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing request"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid body, title or version"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Target missing or caller not authorized to manage it."
+          },
+          "404": {
+            "description": "Render template not found or inactive."
+          },
+          "409": {
+            "description": "Template or target conflict"
+          },
+          "413": {
+            "description": "Body exceeds 1 KiB"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26224,6 +26918,17 @@
           "high"
         ]
       },
+      "PackSummaryLayout": {
+        "type": "string",
+        "description": "Fan layout for the 3D pack-opening summary (#1155, native#1381). The server stores the choice; native renders it. auto is the device default (today grid). Stored on UserSettings.packSummaryLayout. New rows default to auto.",
+        "enum": [
+          "auto",
+          "grid",
+          "compact",
+          "carousel",
+          "marquee"
+        ]
+      },
       "PackOpenAction": {
         "type": "string",
         "description": "Wire value for the Open now / Open later default (#930). open_later is the inert default: the server never opens a pack from this preference. Stored as the PackOpenAction enum OPEN_NOW | OPEN_LATER. Default open_later.",
@@ -26980,6 +27685,601 @@
             "minimum": 1
           }
         }
+      },
+      "RenderSubmissionPresentation": {
+        "type": "object",
+        "properties": {
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RenderSubmissionAction"
+            }
+          },
+          "policyAllowsSelfApproval": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "policyReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "allowedActions",
+          "policyAllowsSelfApproval",
+          "policyReasons"
+        ]
+      },
+      "RenderSubmissionAction": {
+        "type": "string",
+        "enum": [
+          "cancel",
+          "approve",
+          "reject",
+          "publish",
+          "unpublish",
+          "retry",
+          "rerender",
+          "submit"
+        ]
+      },
+      "SubmissionsErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/SubmissionsErrorCode"
+          }
+        },
+        "required": [
+          "success",
+          "error",
+          "code"
+        ]
+      },
+      "SubmissionsErrorCode": {
+        "type": "string",
+        "enum": [
+          "VALIDATION_ERROR",
+          "FORBIDDEN",
+          "NOT_FOUND",
+          "CONFLICT",
+          "RATE_LIMIT_EXCEEDED",
+          "INTERNAL_ERROR",
+          "UNAUTHORIZED"
+        ]
+      },
+      "SubmissionsSuccessEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "presentation": {
+                "$ref": "#/components/schemas/RenderSubmissionPresentation"
+              }
+            },
+            "required": [
+              "presentation"
+            ],
+            "additionalProperties": {}
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pagination": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "pageSize": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateSubmissionBody": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "templateKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required for explicit template selection. Omit when choosing a card front by collectible."
+          },
+          "cardFrontCollectibleId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Collectible id or team-scoped slug. Selects a v1 card-front template from the collectible's rarity.",
+            "pattern": "\\S"
+          },
+          "sourceHasTransparency": {
+            "type": "boolean",
+            "description": "Set for transparent player cut-outs to allow Mythic Rays."
+          },
+          "expectedTemplateKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Recommended card-front key already shown in the creator."
+          },
+          "expectedTemplateVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Recommended card-front version already shown in the creator."
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "templateVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "targetPackId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "enum": [
+                  "team_default"
+                ]
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "teamId",
+          "idempotencyKey",
+          "title"
+        ],
+        "description": "Choose an explicit template key (version optional), or a collectible-bound automatic card front. Card-front expectations must be supplied together; they assert the recommendation rather than override it. Template/target compatibility is validated server-side.",
+        "oneOf": [
+          {
+            "example": {
+              "teamId": "milano-hc",
+              "title": "Pack front artwork",
+              "idempotencyKey": "pack-front-draft-001",
+              "templateKey": "pack-art-front",
+              "templateVersion": 2,
+              "metadata": {
+                "target": "team_default"
+              }
+            },
+            "required": [
+              "templateKey"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "cardFrontCollectibleId"
+                  ]
+                },
+                {
+                  "required": [
+                    "sourceHasTransparency"
+                  ]
+                },
+                {
+                  "required": [
+                    "expectedTemplateKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "expectedTemplateVersion"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "example": {
+              "teamId": "milano-hc",
+              "title": "Common player card front",
+              "idempotencyKey": "card-front-draft-001",
+              "cardFrontCollectibleId": "player-card",
+              "expectedTemplateKey": "card-front-common-contour",
+              "expectedTemplateVersion": 1
+            },
+            "required": [
+              "cardFrontCollectibleId"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "templateKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "templateVersion"
+                  ]
+                }
+              ]
+            },
+            "dependentRequired": {
+              "expectedTemplateKey": [
+                "expectedTemplateVersion"
+              ],
+              "expectedTemplateVersion": [
+                "expectedTemplateKey"
+              ]
+            }
+          }
+        ]
+      },
+      "UpdateSubmissionDraftSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "title",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UpdateSubmissionDraftBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "SubmissionSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "templateKey": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "queued",
+              "rendering",
+              "preview_ready",
+              "changes_requested",
+              "pending_platform_review",
+              "approved",
+              "publishing",
+              "published",
+              "unpublished",
+              "render_failed",
+              "cancelled",
+              "expired"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "templateVersion": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "teamId",
+          "slug",
+          "title",
+          "templateKey",
+          "templateId",
+          "createdByUserId",
+          "status",
+          "version",
+          "templateVersion",
+          "createdAt",
+          "updatedAt",
+          "submittedAt"
+        ]
+      },
+      "SubmissionListSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmissionSummary"
+                }
+              },
+              "page": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests",
+              "page",
+              "pageSize",
+              "total"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SubmissionTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slotSpec": {
+            "description": "Template slot specification stored as JSON."
+          },
+          "outputSpec": {
+            "description": "Template output specification stored as JSON."
+          },
+          "requiresPlatformApproval": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "kind",
+          "contentType",
+          "displayName",
+          "version",
+          "description",
+          "slotSpec",
+          "outputSpec",
+          "requiresPlatformApproval"
+        ]
+      },
+      "SubmissionTemplateListSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "templates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmissionTemplate"
+                }
+              },
+              "recommendedTemplateId": {
+                "type": "string",
+                "description": "Recommended v1 card-front template for the latest collectible selection, when available."
+              },
+              "unavailableTemplateKeys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Pack-face keys with no compatible eligible version, when present."
+              }
+            },
+            "required": [
+              "templates"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateSubmissionSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "queued",
+                  "rendering",
+                  "preview_ready",
+                  "changes_requested",
+                  "pending_platform_review",
+                  "approved",
+                  "publishing",
+                  "published",
+                  "unpublished",
+                  "render_failed",
+                  "cancelled",
+                  "expired"
+                ]
+              },
+              "requiredSlots": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "existing": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "requestId",
+              "slug",
+              "version",
+              "status",
+              "requiredSlots",
+              "existing"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
       }
     }
   }

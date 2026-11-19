@@ -9,7 +9,7 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 
 ## Endpoint map
 
-- Packs: `/api/packs`, `/api/packs/{id}`, `POST /api/packs/{id}/purchase`, `/api/packs/{id}/open`, `GET /api/packs/{id}/odds`
+- Packs: `/api/packs`, `/api/packs/{id}`, `POST /api/packs/{id}/purchase`, `/api/packs/{id}/open`, `GET /api/packs/{id}/odds`, `GET /api/packs/{id}/opening-manifest`
 - User inventory: `/api/user/collectibles`, `/api/user/packs`, `/api/user/packs/opened`
 - Featured showcase: `GET/PUT /api/user/featured-collectibles`
 - Binders: `/api/binders*`
@@ -45,6 +45,12 @@ Without a valid token, a PIN-protected binder returns `403` with code `PIN_REQUI
 The generated OpenAPI still describes verify-pin as `{ granted }` only. Treat the token + header contract above as the live behavior.
 
 Card league labels on binder contents come from `Team.leagueRelation`, not a client-side league map.
+
+## 3D pack-opening manifest
+
+Call public `GET /api/packs/{id}/opening-manifest` with the pack ID, not the purchase ID. It returns scene metadata, not the outcome of opening the pack.
+
+The optional `data.backdropColour` is `tier` for rarity colours or `neutral` for neutral grey. An explicit pack value takes precedence over the team's default. If neither is set, the key is absent (never null); use rarity colours as the fallback. Backdrop changes refresh the manifest ETag but do not change `assetVersion`. This field is separate from the fan's [pack summary layout setting](/api-reference/domains/auth-onboarding#pack-summary-layout).
 
 ## Card finish and template
 

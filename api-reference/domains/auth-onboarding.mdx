@@ -23,6 +23,12 @@ Favorite teams on the user profile are capped at **5**. `d-sports` and `house-of
 
 See generated endpoint pages in the Endpoints section for full request/response schemas.
 
+## Pack summary layout
+
+Authenticated `GET /api/user/settings` returns `data.packSummaryLayout` for the 3D pack-opening summary. The allowed values are `auto` (default), `grid`, `compact`, `carousel`, and `marquee`. The client renders the selected layout.
+
+To change it, send a partial `PATCH /api/user/settings`, for example `{ "packSummaryLayout": "carousel" }`. The server trims and lowercases strings, then returns the stored value in `data.packSummaryLayout`. Omit the field to keep the current value. Null, blank, unknown, and non-string values return `400 VALIDATION_ERROR`.
+
 ## Mobile exchange contract
 
 - `POST /api/mobile/exchange` is public. Body `{ token }` or `Authorization: Bearer <token>`.
