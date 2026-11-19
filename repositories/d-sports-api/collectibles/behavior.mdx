@@ -35,7 +35,7 @@ icon: "list-checks"
 
 ## Opening manifest and backdrop
 
-The optional `scene` query parameter is the client's supported scene level (an integer from 0 to 99). The server treats an invalid value as absent. Meshopt-compressed templates require level 3 or higher. If the level is absent or below 3, the manifest returns `data.template: null` and `data.sceneEligible: false`.
+The optional `scene` query parameter is the client's supported scene level (an integer from 0 to 99). The server treats an invalid value as absent. The scene level does not gate uncompressed templates. For a meshopt-compressed template, the manifest returns `data.template: null` and `data.sceneEligible: false` unless the client sends level 3 or higher.
 
 The public manifest looks up the pack template by ID, not the fan's purchase. It returns the optional `data.backdropColour` from the pack override, then the team default. An explicit `tier` on the pack overrides a `neutral` default. When both values are unset, the server omits the key and clients fall back to rarity colours.
 
