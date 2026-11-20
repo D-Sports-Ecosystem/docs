@@ -10,6 +10,7 @@ icon: "list-checks"
 - `GET /api/packs/[id]`
 - `POST /api/packs/[id]/purchase`
 - `POST /api/packs/[id]/open`
+- `GET /api/packs/[id]/opening-manifest`
 - `GET /api/packs/[id]/odds`
 - `GET /api/user/packs`
 - `GET /api/user/packs/opened`
@@ -31,6 +32,14 @@ icon: "list-checks"
 - Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload is `POST /api/upload/binder-cover`.
 - PIN binders require `x-binder-pin-token` from verify-pin. Without it, `GET /api/binders/[id]` returns `403 PIN_REQUIRED` and metadata only.
 - `GET /api/v1/cards/[id]/provenance` is public and returns `{ card, currentOwners, transfers, mints }`.
+
+## Opening manifest and backdrop
+
+The optional `scene` query parameter is the client's supported scene level (an integer from 0 to 99). The server treats an invalid value as absent. The scene level does not gate uncompressed templates. For a meshopt-compressed template, the manifest returns `data.template: null` and `data.sceneEligible: false` unless the client sends level 3 or higher.
+
+The public manifest looks up the pack template by ID, not the fan's purchase. It returns the optional `data.backdropColour` from the pack override, then the team default. An explicit `tier` on the pack overrides a `neutral` default. When both values are unset, the server omits the key and clients fall back to rarity colours.
+
+The backdrop does not change the pack art, draw, or `assetVersion`. Changes to the resolved colour do change the full-manifest ETag, so revalidate the manifest with `If-None-Match` rather than relying on `assetVersion` to detect colour changes. A matching tag returns `304`. The CDN uses `s-maxage=60, stale-while-revalidate=300`, so edits may not appear immediately.
 
 ## Card display fields
 

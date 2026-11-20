@@ -34,6 +34,7 @@ icon: "list-checks"
 - `POST /api/mobile/exchange` consumes a one-time 128-char hex `MobileSession` token and returns a Clerk sign-in ticket. No Clerk session is required on that call.
 - Native prefers the URL fragment (`#token=`) over the query string, then calls `signIn.create({ strategy: 'ticket' })`.
 - `GET/PATCH /api/user/settings` is the settings SoT. `privateProfile` mirrors `User.isPrivate`. Persist `notifyTeams`, `notifyMilestones`, and `notifyCommunity` separately.
+- `packSummaryLayout` is a per-user 3D pack summary preference, not a pack attribute. New settings rows default to `auto`; partial updates that omit it don't reset an existing choice. See [Pack summary layout](/api-reference/domains/auth-onboarding#pack-summary-layout) for accepted values and validation.
 
 ## Common outputs and side effects
 
