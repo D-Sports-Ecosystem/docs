@@ -23,6 +23,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Quest progression is backend-authoritative for eligibility and completion.
 - Daily quiz sessions use `/api/v1/engage/quests/{questId}/session`, `/session/{sessionId}/submit`, and `/session/{sessionId}/forfeit`.
 - Arena check-in is `POST /api/v1/engage/quests/arena-check-in` (once per team per UTC day).
+
+## Apple Wallet and App Clip contracts
+
+- Add a pass to Apple Wallet with `POST /api/v1/passes/apple-wallet` and a Clerk bearer token. Send `{ "passKind": "fan_id" | "club_membership" | "arena_event", "teamId"?, "gameId"?, "format": "base64" }` and pass `data.pkpassBase64` to `PKAddPassesViewController`. `club_membership` needs a `teamId` for a club the fan has joined (`403` otherwise). Unknown body fields return `400`.
+- Treat `503 CONFIGURATION_ERROR` from the pass route as "Wallet passes not available yet" and hide or disable the add-to-Wallet entry point.
+- The iOS App Clip (`LU58V6484P.com.dsports.wallet.beta.Clip`) is invoked on `https://app.d-sports.org/clip/arena/<id>`, where `<id>` is a game event ID, team ID, or team slug. The API's apple-app-site-association lists `/clip` and `/clip/*` under `applinks` and the clip under `appclips`.
+- The App Clip loads its card from `GET /api/v1/app-clips/arena/{id}` without auth. Reuse the `ETag` with `If-None-Match`. A `404` means the ID matches no game or club.
+- The preview never checks a fan in. When `checkInAvailable` is true, hand off to `fullAppUrl` (or sign in) and call `checkInEndpoint`, which is the authenticated arena check-in above.
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
 

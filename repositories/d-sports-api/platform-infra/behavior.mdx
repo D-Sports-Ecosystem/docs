@@ -13,6 +13,8 @@ icon: "list-checks"
 - `POST /api/upload/banner`, `/api/upload/binder-cover`, `/api/upload/locker-media`, `/api/upload/profile`
 - `POST /api/cron/sync-trends`
 - feature-specific sync routes such as quest/leaderboard synchronization paths
+- Apple Wallet: `POST /api/v1/passes/apple-wallet` (authenticated, Node runtime) signs fan ID, club membership, and arena event `.pkpass` files; `format: "base64"` returns JSON for native clients.
+- App Clips: `GET /api/v1/app-clips/arena/{id}` (public) returns a read-only arena preview for the iOS App Clip, with a weak ETag.
 
 ## Runtime behavior highlights
 

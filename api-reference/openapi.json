@@ -7440,7 +7440,7 @@
           "Teams"
         ],
         "summary": "List teams",
-        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }. logo is the raster crest (logoPng when the stored logo is SVG, else logo); logoSvg carries the stored vector logo when a logoPng sibling exists, else null. Joinability: joinable (boolean), isGlobal (boolean), teamCategory (e.g. dsports_official). D-Sports is joinable:false / isGlobal:true / teamCategory:\"dsports_official\" — not a club membership board. source (dsports = partner club with the full social surface; provider = pulled data-only HQ) and providerId (api-sports team id, the dedupe key) are included per team. rosterVerifiedByClubAt is an ISO-8601 timestamp or null (null until a club admin confirms the roster). ?leagueId= filters, ?search= matches name/slug server-side, ?limit=/?page= paginate (opt-in; omitted returns the whole filtered list with { teams, season, total }).",
+        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }. logo is the raster crest (logoPng when the stored logo is SVG, else logo); logoSvg carries the stored vector logo when a logoPng sibling exists, else null. Joinability: joinable (boolean), isGlobal (boolean), teamCategory (e.g. dsports_official). D-Sports is joinable:false / isGlobal:true / teamCategory:\"dsports_official\" — not a club membership board. source (dsports = partner club with the full social surface; provider = pulled data-only HQ) and providerId (api-sports team id, the dedupe key) are included per team. rosterVerifiedByClubAt is an ISO-8601 timestamp or null (null until a club admin confirms the roster). nickname is the admin-set short club name (for example Milano for Milano HC), or null when unset; clients then derive the short name from name. ?leagueId= filters, ?search= matches name/slug server-side, ?limit=/?page= paginate (opt-in; omitted returns the whole filtered list with { teams, season, total }).",
         "security": [
           {
             "bearerAuth": []
@@ -7758,7 +7758,7 @@
           "Teams"
         ],
         "summary": "Search teams",
-        "description": "Cursor-paginated team search. Query: q (max 64), sport, league, cursor, limit (1-50), sort (rank | name | fans). Each team includes rosterVerifiedByClubAt (ISO-8601 or null).",
+        "description": "Cursor-paginated team search. Query: q (max 64), sport, league, cursor, limit (1-50), sort (rank | name | fans). Each team includes rosterVerifiedByClubAt (ISO-8601 or null) and nickname (admin-set short club name, or null to derive it from name).",
         "parameters": [
           {
             "name": "q",
