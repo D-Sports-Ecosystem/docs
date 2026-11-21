@@ -11,6 +11,12 @@ Most non-admin API endpoints use Clerk-backed bearer authentication.
 - Public routes explicitly set no auth requirement.
 - Webhook routes can use separate auth schemes (for example shared secrets).
 
+## Scoped widget credentials
+
+Use a Clerk session to issue a device token with `POST /api/v1/widgets/token`. A widget token is not a Clerk JWT. It is valid only for a snapshot read or for revoking itself. Existing snapshot callers can still send a Clerk JWT or use a Clerk session cookie.
+
+Unknown, revoked, and expired widget credentials return `401` on reads. A missing snapshot scope returns `403`. See the [widget API](/api-reference/domains/platform-infra#widget-api) for issuance and revocation.
+
 ## Native mobile session exchange
 
 Native OAuth does not always arrive with a Clerk JWT. The API can issue a one-time `MobileSession` hex token (128 hex chars). Native prefers the URL **fragment** (`#token=`) over the query string, stashes it in memory, then redeems it:

@@ -25011,21 +25011,50 @@
         }
       }
     },
-    "/api/v1/widgets/snapshot": {
-      "get": {
+    "/api/v1/widgets/token": {
+      "post": {
         "tags": [
           "Engage"
         ],
-        "summary": "Get the signed-in fan’s widget snapshot",
-        "description": "Compact, on-demand refresh for the Rank / Fan Rep and HQ Live widgets. The rank is global and is ordered by earned points; Fan Rep also includes applicable ledger amounts. The live slice uses the latest live match for any of the fan’s favorite or followed clubs, or null if there is no qualifying match.",
+        "summary": "Issue a scoped, revocable widget bearer token",
+        "description": "Issues an opaque `wgt_` bearer token scoped to `widgets:snapshot:read`. The 201 response returns it once; the API stores only a SHA-256 hash. Issuing again replaces the token for the same user and device. The expiry slides with successful use and is 90 days from issuance or the latest recorded use. The JSON body is capped at 4 KiB.",
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId",
+                  "platform"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Per-install client identifier. After trimming, it must be 1–128 characters with no whitespace."
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "android",
+                      "ios"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "Personalized widget snapshot",
+          "201": {
+            "description": "Widget token issued",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -25037,7 +25066,219 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WidgetSnapshotSuccess"
+                  "$ref": "#/components/schemas/WidgetTokenIssueSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE"
+          },
+          "429": {
+            "description": "RATE_LIMITED (20 token issuance requests per hour per user)"
+          },
+          "503": {
+            "description": "RATE_LIMITER_UNAVAILABLE"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Engage"
+        ],
+        "summary": "Revoke a widget bearer token",
+        "description": "Revokes the presented widget bearer, or revokes the signed-in Clerk user’s tokens for the given `deviceId`. With Clerk, use the query parameter or, if absent or empty, the JSON body (4 KiB maximum). A successful response may report zero matching tokens.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "widgetBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Device identifier to revoke when authenticating with a Clerk session."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget token(s) revoked",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetTokenRevokeSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE (Clerk-authenticated JSON request)"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Per-install client identifier. After trimming, it must be 1–128 characters with no whitespace."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{userId}/widget-tokens": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List a user's widget tokens (admin)",
+        "description": "Requires a Clerk session with a platform admin role. Returns widget token metadata (`id`, `deviceId`, `platform`, `scopes`, `createdAt`, `lastUsedAt`, `expiresAt`, `revokedAt`) for a user. Never returns `tokenHash` or raw tokens.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget token metadata list",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "tokens"
+                      ],
+                      "properties": {
+                        "tokens": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "deviceId",
+                              "platform",
+                              "scopes",
+                              "createdAt",
+                              "lastUsedAt",
+                              "expiresAt",
+                              "revokedAt"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "deviceId": {
+                                "type": "string"
+                              },
+                              "platform": {
+                                "type": "string",
+                                "enum": [
+                                  "android",
+                                  "ios"
+                                ]
+                              },
+                              "scopes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "lastUsedAt": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "revokedAt": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -25045,11 +25286,198 @@
           "401": {
             "description": "UNAUTHORIZED"
           },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Revoke one or all widget tokens for a user (admin)",
+        "description": "Requires a Clerk session with a platform admin role. Revokes a specific `tokenId` (query or JSON body) or all active widget tokens for `userId` and records an admin audit entry.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tokenId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget token(s) revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetTokenRevokeSuccess"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tokenId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/widgets/snapshot": {
+      "get": {
+        "tags": [
+          "Engage"
+        ],
+        "summary": "Get the signed-in fan’s widget snapshot",
+        "description": "Returns personalized Rank / Fan Rep and HQ Live data. Provide a Clerk session (bearer or cookie) or a widget bearer scoped to `widgets:snapshot:read`. Request `?include=clubs` for up to six favorite or followed clubs. If a game in the returned snapshot is live, the private cache max age is 60 seconds; otherwise it is 3600. A weak ETag ignores `updatedAt`; a matching `If-None-Match` returns 304 without a body.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "widgetBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated optional slices. Pass `clubs` to add up to six favorite or followed clubs. Without it, the clubs field is omitted."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Previously returned weak ETag for conditional revalidation."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personalized widget snapshot",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "private, max-age=60",
+                    "private, max-age=3600"
+                  ]
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak ETag (`W/\"<hash>\"`) computed over the snapshot state."
+                }
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "const": "Authorization, Cookie"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetSnapshotSuccess"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified (snapshot state unchanged for the supplied `If-None-Match` ETag)",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "private, max-age=60",
+                    "private, max-age=3600"
+                  ]
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak ETag (`W/\"<hash>\"`) computed over the snapshot state."
+                }
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "const": "Authorization, Cookie"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN (widget token lacks required scope)"
+          },
           "404": {
             "description": "USER_NOT_PROVISIONED"
           },
+          "429": {
+            "description": "RATE_LIMITED (widget token exceeded 60 req/hr)"
+          },
           "500": {
             "description": "Unexpected error building the snapshot"
+          },
+          "503": {
+            "description": "RATE_LIMITER_UNAVAILABLE (widget-token verification)"
           }
         }
       }
@@ -25134,6 +25562,11 @@
         "type": "http",
         "scheme": "bearer",
         "description": "REVENUECAT_WEBHOOK_SECRET for /api/webhooks/revenuecat."
+      },
+      "widgetBearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque wgt_ device credential. Accepted only for widget snapshot reads and revoking the presented widget token."
       }
     },
     "schemas": {
@@ -28919,6 +29352,195 @@
           }
         }
       },
+      "WidgetTokenIssueSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "token",
+              "expiresAt"
+            ],
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "Opaque `wgt_` bearer token returned once at issuance."
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "WidgetTokenRevokeSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "revoked",
+              "revokedCount"
+            ],
+            "properties": {
+              "revoked": {
+                "type": "boolean",
+                "const": true
+              },
+              "revokedCount": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "WidgetTeamSide": {
+        "type": "object",
+        "required": [
+          "abbr",
+          "name",
+          "score",
+          "logo",
+          "color"
+        ],
+        "properties": {
+          "abbr": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "score": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "logo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Raster logo URL (`Team.logoPng`, or non-SVG fallback), or null."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team.themeColor, falling back to the first nonblank Team.gradientColors entry, or null."
+          }
+        }
+      },
+      "WidgetClubSnapshot": {
+        "type": "object",
+        "required": [
+          "teamId",
+          "slug",
+          "name",
+          "abbr",
+          "color",
+          "logo",
+          "game"
+        ],
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "abbr": {
+            "type": "string"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "game": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "gameId",
+              "status",
+              "startTime",
+              "home",
+              "away",
+              "period",
+              "clock",
+              "appDeepLink"
+            ],
+            "properties": {
+              "gameId": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "startTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "home": {
+                "$ref": "#/components/schemas/WidgetTeamSide"
+              },
+              "away": {
+                "$ref": "#/components/schemas/WidgetTeamSide"
+              },
+              "period": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "clock": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "appDeepLink": {
+                "type": "string",
+                "description": "Native app deep link (`engagenative://hq/match/<gameId>?slug=<slug>`)."
+              }
+            },
+            "description": "Best eligible non-demo game: live, soonest upcoming, then latest final; null when none qualifies."
+          }
+        }
+      },
       "WidgetSnapshotSuccess": {
         "type": "object",
         "required": [
@@ -28975,64 +29597,37 @@
                 ],
                 "required": [
                   "gameId",
+                  "slug",
                   "status",
                   "home",
                   "away",
                   "period",
                   "clock",
-                  "deepLink"
+                  "lastPlay",
+                  "squadLabel",
+                  "deepLink",
+                  "appDeepLink"
                 ],
                 "properties": {
                   "gameId": {
                     "type": "string"
+                  },
+                  "slug": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Followed club slug for native HQ deep links."
                   },
                   "status": {
                     "type": "string",
                     "const": "live"
                   },
                   "home": {
-                    "type": "object",
-                    "required": [
-                      "abbr",
-                      "name",
-                      "score"
-                    ],
-                    "properties": {
-                      "abbr": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "score": {
-                        "type": [
-                          "integer",
-                          "null"
-                        ]
-                      }
-                    }
+                    "$ref": "#/components/schemas/WidgetTeamSide"
                   },
                   "away": {
-                    "type": "object",
-                    "required": [
-                      "abbr",
-                      "name",
-                      "score"
-                    ],
-                    "properties": {
-                      "abbr": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "score": {
-                        "type": [
-                          "integer",
-                          "null"
-                        ]
-                      }
-                    }
+                    "$ref": "#/components/schemas/WidgetTeamSide"
                   },
                   "period": {
                     "type": [
@@ -29046,12 +29641,38 @@
                       "null"
                     ]
                   },
+                  "lastPlay": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Newest play-by-play summary line clamped for widget display."
+                  },
+                  "squadLabel": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Split-squad label when the club has concurrent squads playing."
+                  },
                   "deepLink": {
                     "type": "string",
-                    "description": "Relative app path under /locker-room/game/."
+                    "description": "Relative web path under /locker-room/game/ (retained for backward compatibility)."
+                  },
+                  "appDeepLink": {
+                    "type": "string",
+                    "description": "Native app deep link (`engagenative://hq/match/<gameId>`), with `?slug=<slug>` when a club slug is available."
                   }
                 },
                 "description": "A live match involving a favorite or followed club, or null if none qualifies."
+              },
+              "clubs": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "$ref": "#/components/schemas/WidgetClubSnapshot"
+                },
+                "description": "Present only with `include=clubs`. Up to six favorite or followed clubs, ordered by live games, upcoming games, final games, then clubs without an eligible game."
               }
             }
           }

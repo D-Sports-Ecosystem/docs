@@ -36,10 +36,19 @@ Unknown `/api/*` paths return JSON `404` with code `NOT_FOUND`. They do not fall
 | Endpoint | Contract |
 | --- | --- |
 | `POST /api/v1/passes/google-wallet` | Clerk-authenticated pass issuance. Returns a signed Google Wallet Save URL and JWT, not a pass file. |
-| `GET /api/v1/widgets/snapshot` | Clerk-authenticated, on-demand snapshot of the fan’s global rank, Fan Rep, and qualifying live match. |
 | `GET /.well-known/assetlinks.json` | Public Digital Asset Links statement for Android App Links and credential delegation. |
 
 See [Android integration contracts](/repositories/d-sports-engage-native/integration-contracts#android-integration-contracts) for client behavior and [Android App Links](/repositories/d-sports-api/platform-infra/architecture#android-app-links) for signing-certificate setup.
+
+## Widget API
+
+| Endpoint | Contract |
+| --- | --- |
+| `POST /api/v1/widgets/token` | With a Clerk session, send `deviceId` (a stable per-install ID) and `platform` (`android` or `ios`). A `201` returns an opaque `wgt_` bearer and expiry once. Issuing again replaces that installation’s token. |
+| `GET /api/v1/widgets/snapshot` | Use a Clerk session or send a widget bearer. Returns global rank, Fan Rep, and HQ Live; add `?include=clubs` for up to six favorite or followed clubs with game summaries. |
+| `DELETE /api/v1/widgets/token` | Present the widget bearer to revoke itself, or use a Clerk session with the device ID in the query or JSON body. |
+
+Keep the widget bearer in secure device storage. Revalidate the same user’s snapshot and query by sending the returned weak `ETag` in `If-None-Match`. A `304` has no response body; keep the cached snapshot. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for cache durations, field details, and club ordering.
 
 ## Deep-dive documentation
 
