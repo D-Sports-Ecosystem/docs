@@ -23,7 +23,7 @@ icon: "list-checks"
 - Maintenance scripts reconcile historical inconsistencies without changing primary route contracts.
 - Unbuilt `/api/*` paths hit a catch-all that returns JSON `404` with code `NOT_FOUND` instead of the HTML app 404.
 
-## Pass issuance
+## Pass issuance and widget refresh
 
 `POST /api/v1/passes/google-wallet` returns `{ success: true, data: { saveUrl, jwt, passKind, objectId, classId } }` and `Cache-Control: no-store`. The optional JSON body is capped at 4 KiB. An unknown team or game returns `404 NOT_FOUND`; missing or invalid signing configuration returns `503 CONFIGURATION_ERROR`. It requires a Clerk session and returns `404 USER_NOT_PROVISIONED` if the fan has no D-Sports account.
 
