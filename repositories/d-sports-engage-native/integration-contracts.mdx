@@ -26,6 +26,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
 
+## Apple Wallet and App Clip contracts
+
+- Add a pass to Apple Wallet with `POST /api/v1/passes/apple-wallet` and a Clerk bearer token. Send `{ "passKind": "fan_id" | "club_membership" | "arena_event", "teamId"?, "gameId"?, "format": "base64" }` then decode `data.pkpassBase64` to bytes, build a `PKPass` from that `Data`, and present it with `PKAddPassesViewController`. `club_membership` needs the `teamId` of an Engage partner club the fan has joined; a non-partner club or an unjoined club returns `403`. Unknown body fields return `400`.
+- Treat `503 CONFIGURATION_ERROR` from the pass route as "Wallet passes not available yet" and hide or disable the add-to-Wallet entry point.
+- The iOS App Clip (`LU58V6484P.com.dsports.wallet.beta.Clip`) is invoked on `https://app.d-sports.org/clip/arena/<id>`, where `<id>` is a game event ID, team ID, or team slug. Apple reads the association file from the invocation host, so `app.d-sports.org/.well-known/apple-app-site-association` must serve the API's AASA (via the engage-native Vercel rewrite). That file lists `/clip` and `/clip/*` under `applinks` and the clip under `appclips`.
+- The App Clip loads its card from `GET /api/v1/app-clips/arena/{id}` without auth. Send the last `ETag` as `If-None-Match`; you get `304` only while it still matches the current card. A `404` means the ID matches no game or club.
+- The preview never checks a fan in. When `checkInAvailable` is true, hand off to `fullAppUrl` (or sign in) and call `checkInEndpoint` (the authenticated arena check-in above) with `{ "teamId": team.id }` from the preview. For a game event, `team` is the home club, so do not send the game ID from the URL.
+
 ## Fan Rep contracts
 
 - `GET /api/v1/engage/rep/breakdown` returns Fan/Club/Player/Direct totals plus `clubRepByTeam`. `dsportsDirectRep` sums `repType = Direct` rows.
@@ -38,6 +46,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Team lists and team metadata come from `/api/teams`. Use `?slug=` for a single team, or public `GET /api/teams/{id}` when you have an id or slug (id is tried first). Archived teams return `404`.
 - `GET /api/teams/search` accepts `q`, `sport`, `league`, `cursor`, `limit`, and `sort` (`rank` | `name` | `fans`).
+- Team list, detail, and search payloads include `nickname`, the admin-set short club name, or `null`. Pass it to `formatTeamName(team, "name_only")`, which already prefers a non-blank `nickname` over derivation. The API port of that derivation is `lib/team-short-name.ts`; keep the two in step.
 - Sports chips come from public `GET /api/config/sports`. On `500`, fall back to a local cache. Do not hardcode a second catalog.
 - Team `sport` and `leagueInfo.sport` are never null. Unknown values are `"other"`.
 - `POST /api/teams/{id}/follow` is social only (`TeamFollow`).
