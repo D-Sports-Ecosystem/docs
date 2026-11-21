@@ -14,7 +14,7 @@ icon: "list-checks"
 - `POST /api/cron/sync-trends`
 - feature-specific sync routes such as quest/leaderboard synchronization paths
 - Apple Wallet: `POST /api/v1/passes/apple-wallet` (authenticated, Node runtime) signs fan ID, club membership, and arena event `.pkpass` files; `format: "base64"` returns JSON for native clients.
-- App Clips: `GET /api/v1/app-clips/arena/{id}` (public) returns a read-only arena preview for the iOS App Clip, with a weak ETag. Its `team` is the check-in club (the home club for a game event); clients check in with `POST /api/v1/engage/quests/arena-check-in` and `{ "teamId": team.id }`.
+- App Clips: `GET /api/v1/app-clips/arena/{id}` (public) returns a read-only arena preview for the iOS App Clip, with a weak ETag. Its `team` is the check-in club (the home club for a game event); when `checkInAvailable` is true, signed-in clients check in with a Clerk bearer token on `POST /api/v1/engage/quests/arena-check-in` and `{ "teamId": team.id }`.
 
 ## Runtime behavior highlights
 
