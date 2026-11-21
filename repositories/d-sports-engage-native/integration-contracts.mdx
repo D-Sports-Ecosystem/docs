@@ -152,3 +152,25 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 - Show user-actionable errors for purchase/open/claim/sign failures.
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
+
+## Android integration contracts
+
+### Google Wallet
+
+Send `POST /api/v1/passes/google-wallet` with the active Clerk bearer token. Omit the body for a `fan_id`. For `club_membership`, send a `teamId` (ID or slug) for an Engage partner club the fan has joined; otherwise the request is forbidden. For `arena_event`, send a `gameId` or `teamId` to scope the pass, or omit both for a general pass. Saving it does not check the fan in.
+
+The response wraps `{ saveUrl, jwt, passKind, objectId, classId }` in `data`. Open `saveUrl` or hand `jwt` to the Google Wallet SDK. Do not cache or log either value. Treat `503 CONFIGURATION_ERROR` as Google Wallet passes being unavailable.
+
+### Widget refresh
+
+Use `GET /api/v1/widgets/snapshot` for an on-demand refresh with the active fan’s Clerk bearer token. The response is private and not cacheable. `data.rankOrPoints` has `fanRep`, nullable `rank`, `updatedAt`, and the `/leaderboard` deep link. Rank is global by earned points, not by combined Fan Rep.
+
+`data.hqLive` is `null` when no favorite or followed club is live. Otherwise it contains the game ID, status, home and away teams and scores, period, clock, and a relative `/locker-room/game/…` deep link. Scores, period, and clock can be `null`.
+
+### Live Update tone
+
+Read the optional `live_notification.event_updates.semanticTone` on Android Live Update pushes as an Android 17 ProgressStyle color hint. `final` means the game is terminal or the update ends; `urgent` marks scoring, overtime, shootouts, or close third-period play; `info` marks other live play; `neutral` is the default. Keep using the actual game status for game state. If the hint is absent or unsupported, keep the existing styling.
+
+### App Links
+
+`app.d-sports.org` serves the [Digital Asset Links statement](/repositories/d-sports-api/platform-infra/architecture#android-app-links) for content links. The installed `com.dsports.engage` build’s signing certificate must appear in that statement for verification.
