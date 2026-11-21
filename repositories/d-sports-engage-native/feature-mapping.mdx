@@ -120,9 +120,25 @@ See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#tie
 
 The **Add to Apple Wallet** button is available on the fan's own profile for a Fan ID, eligible team leaderboards for club membership (the existing `showAlertsBell` gate plus a team ID), and HQ match bodies for an arena-event pass. It is hidden when signed out, on Android/web, in older binaries without the native module, and where PassKit cannot add passes.
 
-On tap, the hook prevents concurrent requests, fetches a signed pass through the authenticated API client, and presents Apple's native confirmation sheet. The client does not generate/sign passes or add them silently. Native completion checks whether the pass is in Wallet; dismissing the sheet is not itself success. The hook can recheck the returned identity, updates local added state, and shows localized success/error feedback, including a configuration message for a 503. The shipped CTA does not supply the optional known-pass identity for an initial Wallet check, so added state is not a persistent cross-mount status cache. There is no automatic pass refresh or Google Wallet counterpart in this implementation.
+On tap, the hook prevents concurrent requests, fetches a signed pass through the authenticated API client, and presents Apple's native confirmation sheet. The client does not generate/sign passes or add them silently. Native completion checks whether the pass is in Wallet; dismissing the sheet is not itself success. The hook can recheck the returned identity, updates local added state, and shows localized success/error feedback, including a configuration message for a 503. The shipped CTA does not supply the optional known-pass identity for an initial Wallet check, so added state is not a persistent cross-mount status cache. There is no automatic pass refresh. Android has a separate Google Wallet integration below.
 
 See [native configuration](/repositories/d-sports-engage-native/architecture#apple-wallet-pass-configuration) for the module and entitlement. The issuance contract is owned by [d-sports-api PR #1167](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/1167) and [Platform and infrastructure API](/api-reference/domains/platform-infra).
+
+## Google Wallet passes
+
+PR #1421 adds **Add to Google Wallet** on Android at the same three entry points as Apple Wallet:
+
+| Pass | Source and entry point |
+| --- | --- |
+| Fan ID (`fan_id`) | Your own profile, `features/profile/screen/OwnProfileScreen.tsx` |
+| Club Membership (`club_membership`) | `components/leaderboard/TeamLeaderboardScreen.tsx`, gated by `showAlertsBell` and a team ID |
+| Arena Event (`arena_event`) | `features/hq/screen/HqMatchBody.tsx`, with game ID and optional context team ID |
+
+`AddToGoogleWalletButton.android.tsx` uses `hooks/use-google-wallet-pass.android.ts` to prevent concurrent taps, request a server-signed pass, and present the native save flow. The CTA is hidden when signed out or after an explicit `503 CONFIGURATION_ERROR`; the latter shows localized configuration feedback. Other failures, including `503 RATE_LIMITER_UNAVAILABLE`, show an error without hiding the CTA. iOS/web stubs render nothing. Missing native support or unavailable Play Services still permits the Android browser fallback.
+
+Only native `saved` sets the mounted hook's added state and success feedback. Cancellation is silent. Native `error` shows an error without opening the browser. If availability is false or native save returns `unavailable`, the hook opens the validated Save URL. Browser opening does not confirm saving or set added state. There is no persistent Wallet membership check, automatic refresh, or pass-update push integration. Saving an event pass does not check you in, and the client does not sign passes.
+
+See [native configuration](/repositories/d-sports-engage-native/architecture#google-wallet-pass-configuration) and [native integration](/repositories/d-sports-engage-native/integration-contracts#google-wallet). The existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) own issuance contracts.
 
 ## App Clip
 

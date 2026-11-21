@@ -115,6 +115,16 @@ PR #1402 adds the local iOS module `modules/expo-apple-wallet/` for PassKit and 
 
 Focused source tests cover native availability/delegation, API-client behavior, and entitlement registration/merging. They do not verify real pass signing, provisioning, native sheet presentation, or addition to a device's Wallet.
 
+## Google Wallet pass configuration
+
+PR #1421 adds Android Google Wallet presentation inside the existing Android-only `modules/expo-android-capabilities/`. Its `android/build.gradle` adds `com.google.android.gms:play-services-pay:16.5.0`; `android/proguard-rules.pro` keeps `com.google.android.gms.pay.**`. No new app config plugin or root package dependency is required. Rebuild the Android binary for the dependency and Kotlin bridge; an OTA alone cannot install them.
+
+`modules/expo-android-capabilities/android/src/main/java/expo/modules/androidcapabilities/AndroidGoogleWallet.kt` queries `PayClient.RequestType.SAVE_PASSES` and calls `savePassesJwt`. `ExpoAndroidCapabilitiesModule.kt` exposes availability/save methods, forwards activity results, and cancels pending saves on destroy. Results distinguish `saved`, `canceled`, `unavailable`, and `error`.
+
+`lib/google-wallet/native.android.ts` wraps optional native support and validates the browser Save URL prefix. `hooks/use-google-wallet-pass.android.ts` coordinates authenticated issuance through `lib/api/wallet-pass-api.ts` and presentation. `components/wallet/AddToGoogleWalletButton.android.tsx` owns the CTA; non-Android button/hook/bridge stubs no-op, leaving iOS Apple Wallet unchanged. This is pass presentation, not payment-card provisioning. Use the existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) for issuance contracts.
+
+Focused tests live in `lib/google-wallet/__tests__/native.test.ts`, `hooks/__tests__/use-google-wallet-pass.test.ts`, and `lib/api/__tests__/wallet-pass-api.test.ts`. They do not establish Play account eligibility, native sheet delivery, or Wallet persistence on a device. See [Google Wallet behavior](/repositories/d-sports-engage-native/feature-mapping#google-wallet-passes) for entry points and fallback limits.
+
 ## App Clip configuration
 
 `app.json` registers `plugins/withIosAppClip.js`. Prebuild copies `plugins/app-clip/*.swift` into **DSportsAppClip**, embeds the target through **Embed App Clips**, and adds EAS `appExtensions` signing metadata while preserving sibling extensions. The target uses the parent bundle ID plus `.Clip` (`com.dsports.wallet.beta.Clip`). It is a pure-SwiftUI iOS 17.0+ app with no CocoaPods or React Native dependencies. The root `package.json` does not change. `scripts/sync-ios-extension-versions.js` synchronizes its version/build number.
