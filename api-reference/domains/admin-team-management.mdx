@@ -34,6 +34,13 @@ Team Management uses the same `SubmissionWorkspace` creator and editor for new a
 - `PATCH /api/admin/submissions/{id}` accepts only `{ "title": "New title" }`. Titles are trimmed and must be 1–120 characters. The authenticated manager must be authorized for the team. IDs or team-scoped slugs are accepted (use `?teamId=…` for slug disambiguation). Only `draft` submissions can be renamed; non-drafts and concurrent changes return `409`. Success returns `{ success: true, data: { title, updatedAt } }`. Renaming records `draft_title_updated` without changing pinned render inputs or version. Invalid/extra fields return `400`.
 - Saved-artwork scene renders use `POST /api/admin/collectibles/{id}/render-spin` and `POST /api/admin/packs/{id}/render-opening`, not a new generic render URL. Both share `lib/saved-artwork-render-route.ts` (`queueSavedArtworkRender`). An optional JSON body supplies a trimmed 1–120 character `title`; omit the body to keep the default title. Bodies over 1 KiB return `413`; malformed JSON or invalid titles return `400`. Optional `expectedTemplateVersion` is a positive-integer query parameter; a changed template returns `409`. A newly queued request returns `202` and an idempotently reused request returns `200`. The server derives collectible name, rarity, team branding, and pack reveal size from the saved target, not client metadata.
 
+## Team short name
+
+- `PUT /api/admin/teams/{teamId}` accepts `nickname`, the short club name the app shows where it uses a short name.
+- The value is trimmed and its whitespace collapsed. `null` or a blank value clears it, so clients derive the short name from `name`. Omit `nickname` to leave the stored value unchanged.
+- A non-string or a value over 40 characters returns `400`.
+- In the admin team editor, **Short name** shows only when you edit an existing team. Its placeholder is the derived name that applies when the field is blank. `POST /api/admin/teams` does not accept `nickname`.
+
 ## RBAC requirements
 
 - Requests require authenticated user context.

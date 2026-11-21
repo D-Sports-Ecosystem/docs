@@ -38,6 +38,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Team lists and team metadata come from `/api/teams`. Use `?slug=` for a single team, or public `GET /api/teams/{id}` when you have an id or slug (id is tried first). Archived teams return `404`.
 - `GET /api/teams/search` accepts `q`, `sport`, `league`, `cursor`, `limit`, and `sort` (`rank` | `name` | `fans`).
+- Team list, detail, and search payloads include `nickname`, the admin-set short club name, or `null`. Pass it to `formatTeamName(team, "name_only")`, which already prefers a non-blank `nickname` over derivation. The API port of that derivation is `lib/team-short-name.ts`; keep the two in step.
 - Sports chips come from public `GET /api/config/sports`. On `500`, fall back to a local cache. Do not hardcode a second catalog.
 - Team `sport` and `leagueInfo.sport` are never null. Unknown values are `"other"`.
 - `POST /api/teams/{id}/follow` is social only (`TeamFollow`).

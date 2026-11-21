@@ -66,6 +66,8 @@ A star is a bookmark. It does not write `TeamFollow` and it does not grant a soc
 
 - `/api/teams` payload includes enriched team context (ranking/count, league-link metadata, and never-null `sport`).
 - `GET /api/teams` returns `{ teams, season, total }` when you filter or paginate. The unfiltered full list omits `total`. `?slug=` returns `{ team }`. Archived-team slug checks are case-insensitive.
+- Each team in `GET /api/teams`, `GET /api/teams/{id}`, and `GET /api/teams/search` includes `nickname`: the admin-set short club name (for example `Milano` for Milano HC), or `null` when unset. On `null`, derive the short name from `name`. The API's derivation matches engage-native `formatTeamName(team, "name_only")`: Milano HC gives Milano and HC Sierre gives Sierre.
+- `GET /api/teams` is cached for 60 seconds, so a new `nickname` can take up to a minute to appear there. Other team reads, such as `GET /api/teams/followed`, do not return `nickname`.
 - `/api/leagues` payloads include branding/color metadata used in client visual theming.
 - `GET /api/teams/{id}/roster` returns `{ players: [{ id, name, jersey, position, role, duty, photo?, availability? }] }` from active `Player` rows. `photo` is omitted when there is no art. `availability` is omitted when the player is available. Editorial snapshots live in `leagues/teams/rosters.json`.
 - After sync events, clients should tolerate short propagation windows before all surfaces reflect updates.

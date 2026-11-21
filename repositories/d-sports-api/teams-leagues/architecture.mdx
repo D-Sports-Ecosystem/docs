@@ -22,6 +22,13 @@ Canonical sync processing is split into coordinated backend services:
 - HQ stars (`app/api/me/starred-teams`) are a third write. They do not create `TeamFollow` or a leaderboard entry. `GET /api/teams/{id}` (`app/api/teams/[id]/route.ts`) is the public id-or-slug read.
 - Public `GET /api/teams/{id}/roster` reads `Player` rows (`isActive: true`) and maps position to sport-aware `role` / `duty`. Editorial snapshots live in `leagues/teams/rosters.json`.
 
+## Short club name
+
+- `Team.nickname` is a nullable, admin-set short name. `null` means derive it from `name`. There is no backfill.
+- `mapTeamInfo` (`lib/team-info-map.ts`) returns `nickname` on the public team list, detail, and search payloads.
+- `teamShortName({ name, nickname, location })` in `lib/team-short-name.ts` returns the nickname when set, otherwise a name derived from `name` and `location`. It is a port of engage-native `lib/team-display-name*.ts` (`formatTeamName(team, "name_only")`), so the two must change together.
+- `lib/team-short-name.ts` is separate from `lib/team-name-display.ts`, which handles the fan's team-name display setting.
+
 ## Team logo propagation
 
 - Canonical logo paths are fetched from source data and uploaded to storage.
