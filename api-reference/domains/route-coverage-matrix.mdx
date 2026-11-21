@@ -26,8 +26,8 @@ Route documentation status uses:
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
 | `/api/quests*` | Publish | Core quest progression contracts and side effects. |
 | `/api/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. Canonical `/api` prefix. |
-| `/api/v1/passes/apple-wallet` | Shipped, OpenAPI pending | Authenticated Apple Wallet `.pkpass` issuance (fan ID, club membership, arena event). Operation added in d-sports-api#1167. |
-| `/api/v1/app-clips/arena/{id}` | Shipped, OpenAPI pending | Public iOS App Clip arena preview (no auth, weak ETag, no writes). Operation added in d-sports-api#1167. |
+| `/api/v1/passes/apple-wallet` | Publish | Authenticated Apple Wallet `.pkpass` issuance (fan ID, club membership, arena event). |
+| `/api/v1/app-clips/arena/{id}` | Publish | Public iOS App Clip arena preview (no auth, weak ETag, no writes). |
 | `/api/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, me/player-me, and client-safe earn. Direct kinds on `/earn` return 403. |
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
