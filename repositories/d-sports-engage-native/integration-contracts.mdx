@@ -169,7 +169,7 @@ Use `GET /api/v1/widgets/snapshot` for an on-demand refresh with the active fanâ
 
 ### Live Update tone
 
-Read the optional `live_notification.event_updates.semanticTone` on Android Live Update pushes as an Android 17 ProgressStyle color hint. `final` means the game is terminal or the update ends; `urgent` marks scoring, overtime, shootouts, or close third-period play; `info` marks other live play; `neutral` is the default. Keep using the actual game status for game state. If the hint is absent or unsupported, keep the existing styling.
+Read the optional `live_notification.event_updates.semanticTone` on Android Live Update pushes as an Android 17 ProgressStyle color hint. See the [backend tone mapping](/repositories/d-sports-api/platform-infra/behavior#android-live-update-tone) for the four values. Keep using the actual game status for game state. If the hint is absent or unsupported, keep the existing styling.
 
 ### App Links
 
