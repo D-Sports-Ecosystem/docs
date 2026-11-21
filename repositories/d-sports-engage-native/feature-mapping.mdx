@@ -81,9 +81,13 @@ Missing, invalid, empty, expired (over 24 hours), or unavailable-native handoffs
 
 ## Alternate app icons
 
-On a supported iOS device and binary, open **Settings → Appearance → App icon** (`/settings/app-icon`). Choose **D-Sports**, **D-Sports Gold**, **London Knights**, or **Oshawa Generals**. These are the entire curated roster; following or joining a team is not required. The app does not automatically select your favorite team, download more icons, or accept custom artwork. **D-Sports** restores the primary Icon Composer icon; the alternate PNGs do not replace that default bundle.
+On a supported iOS device and binary, open **Settings → Appearance → App icon** (`/settings/app-icon`). Choose **D-Sports**, **D-Sports Gold**, **HC Sierre**, or **Milano HC**. These are the entire curated roster; following or joining a team is not required. The app does not automatically select your favorite team, download more icons, or accept custom artwork. **D-Sports** restores the primary Icon Composer icon; the alternate PNGs do not replace that default bundle.
+
+PR #1411 replaces the former London Knights and Oshawa Generals options with D-Sports-themed **HC Sierre** (crimson and gold) and **Milano HC** (navy, crimson and gold) artwork. **D-Sports Gold** remains available. The team names are untranslated brand labels; default/Gold labels and option descriptions follow the app's English, French, or Italian settings translations.
 
 The picker reads the current native icon, disables choices while a switch is pending, and shows a spinner. After iOS reports success, the selected marker and Appearance row update. Selecting the active option does nothing. A failed switch keeps the prior selection, logs the failure, and shows a localized error banner. The choice is device-level native state, not an account preference synchronized through the API.
+
+There is no app-side migration or automatic reset for a removed icon selection. If iOS still returns a removed native icon name, the Appearance row displays the **D-Sports** fallback label/preview, but the picker has no selected row because it compares the raw native name with the current options. Choose **D-Sports** to explicitly request the primary icon, or choose a current alternate. The implementation/tests do not establish whether iOS itself preserves or resets removed artwork during an app upgrade.
 
 The Appearance entry is hidden when the device/binary does not support alternate icons. Direct entry to the picker shows unsupported copy. Android, web, Expo Go, and older binaries without the module do not switch icons. The module and all icon artwork must be installed in a new native binary; OTA cannot add compiled icons. See [alternate icon configuration](/repositories/d-sports-engage-native/architecture#alternate-app-icon-configuration) for assets, build settings, and tests.
 
