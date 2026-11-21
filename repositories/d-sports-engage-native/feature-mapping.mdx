@@ -136,6 +136,47 @@ If full Engage is already installed, incoming clip links instead queue the lates
 
 See [App Clip configuration](/repositories/d-sports-engage-native/architecture#app-clip-configuration) for target, signing, native-build, size-validation, and test limits. For server-owned preview/check-in behavior and AASA, use [Platform and infrastructure API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior).
 
+## Android Tier 1 platform behavior
+
+### Video, back navigation, and sign-in association
+
+Supported Android devices can use platform PiP from the native controls on Locker Room inline videos and the media viewer. Active inline PiP is exempt from viewport/Reduce Motion pausing; this is not automatic PiP on every video or a separate background-media service. Predictive back enables the system's supported edge-back previews rather than custom screen animations, and keeps existing route/auth guards. Compare [iOS video behavior](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar).
+
+Passkey changes are Digital Asset Links plumbing, not a new sign-in button, enrollment flow, or auth bypass. Website statements, installed signing identity, OS/provider support, and the existing auth implementation remain separate requirements. No application caller invokes the installed passkey library in this change.
+
+### Per-app language
+
+Android system **App Languages** (API 33+) and the in-app language preference synchronize English, French, and Italian choices. Startup imports the system choice before the first mirror so a choice made while Engage was closed is not overwritten; foreground resume imports again. Older Android uses AppCompat APIs, not a promise of the same system settings UI. Unsupported/empty language tags use device-following; the preference is device-local and does not require sign-in. Missing native support skips synchronization; errors log warnings.
+
+### Launcher shortcuts
+
+Long-press the app icon to access the four packaged static shortcuts, subject to launcher support. Their generated labels are English:
+
+| Label | Target and limits |
+| --- | --- |
+| **Live Game** | `engagenative://hq` opens HQ, not a selected tracked match. |
+| **Packs** | `engagenative://(tabs)/wallet` opens the wallet without opening/buying a pack. This differs from the iOS **Open Packs** Quick Action's pack-market destination. |
+| **Arena QR** | `engagenative://(tabs)/leaderboard/scan-qr` opens the scanner without submitting a check-in. |
+| **Market** | `engagenative://market` opens the marketplace without a transaction. |
+
+After sign-in/onboarding, dynamic requests include **Locker Room** (`engagenative://(tabs)/locker-room`) and up to three unique favorite clubs resolved through the teams catalog (`engagenative://hq/<slug>`). Club labels use the catalog name, truncated to 18 characters. The launcher may show fewer or none: static shortcuts consume quota first. The same dynamic entries are long-lived Direct Share candidates, not guaranteed share-sheet placement. Sign-out after an authenticated session removes dynamic entries, not packaged static or pinned shortcuts. Pin APIs exist for a club/scanner, but no product UI calls them.
+
+These intents use normal Expo Router/deep-link auth handling, not the [iOS Quick Actions](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions) forced pending-route path. The pending-link helper does not restore explicit `(tabs)` routes, excludes public HQ paths, and ignores hostname-only targets in its capture helper. Do not assume every destination survives a cold signed-out onboarding flow.
+
+### Share into Locker Room
+
+Use Android's share sheet to send text/links, images, or videos into Engage. The full app handles cold/warm/resume intents; unlike the [iOS Share Extension](/repositories/d-sports-engage-native/feature-mapping#share-extension-drafts), it does not use a separate extension or App Group. It takes the first four media streams, copies accepted images/videos into temporary private cache, and skips unreadable/unsupported files or files over 50 MiB. It does not transcode/downsample, import arbitrary files, or show per-file rejection feedback. Text and surviving media can still form a draft; completely empty imports do nothing.
+
+The client trims/deduplicates subject/text and keeps one pending draft in memory. Signed-out/onboarding fans wait until the authenticated in-app gate opens; warm authenticated shares navigate to **Locker Room** immediately. Only the focused Locker Room screen auto-opens the composer. Its personal-draft scope consumes the text/media before server-draft fallback. Direct Share carries a shortcut ID but does not select a team/channel. Nothing posts automatically: normal composer/upload/posting rules remain. Later shares replace pending content, process death loses the handoff, and cached files may be pruned after ten minutes when later copies run. This is not a durable multi-share inbox.
+
+### Restore Credentials and Play updates
+
+Restore Credentials ships an Android 9/API 28+ bridge and sign-out cleanup, not automatic device-migration login. Create/get require server-provided WebAuthn JSON but have no application callers; the app does not enroll/verify a restore key or restore a Clerk session. The bridge tries E2EE cloud backup then local-only fallback when E2EE is unavailable, and handles missing providers without blocking normal sign-in. After a previously in-app user signs out, the host clears the local synced flag and requests deletion of the restore credential.
+
+For eligible Play-installed builds, the authenticated app's existing forced/soft update gate can start a Play update. Forced prefers immediate when allowed, otherwise flexible; soft uses flexible only. On flexible download completion, **Update ready** offers **Restart**; only choosing it completes the update/restarts, rather than silently restarting over a composer draft. This is not a guarantee of draft persistence after an approved restart. Foregrounding can re-prompt for a downloaded update or resume an immediate update. Non-Play/sideload/debug errors return unavailable/false through this wrapper; it does not disable other update-gate behavior. This flow installs a native Play build, not an Expo OTA.
+
+See [Android configuration](/repositories/d-sports-engage-native/architecture#android-tier-1-configuration) for plugins, native-build/OTA boundaries, test coverage, and unverified device/Play behavior.
+
 ## Notifications and legal
 
 - Push delivery uses OneSignal. In-app inbox uses `/api/notifications*` and includes `GAME_ALERT` and `RATING`.
