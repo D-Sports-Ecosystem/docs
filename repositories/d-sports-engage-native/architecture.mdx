@@ -221,7 +221,7 @@ Focused tests: `plugins/__tests__/withAndroidPlatformCapabilities.test.ts` cover
 
 ## Android Tier 2 configuration
 
-PR #1409 changes Android UI/integrations without adding a root dependency, config plugin, or `app.config.ts` change. Its only `app.json` addition is the blocked-read-permission list below. The existing native UI, widget, image-picker, notification, and OneSignal setup remains required.
+PR #1409 changes Android UI/integrations without adding a root dependency, config plugin, or `app.config.ts` change. Its only `app.json` addition is the blocked-read-permission list below. The existing native UI, image-picker, notification, and OneSignal setup remains required. The widget rows below describe the later migration in #1436 and its follow-ups on main, not the original #1409 implementation.
 
 | Surface | Configuration, trigger, and limits |
 | --- | --- |
@@ -237,7 +237,7 @@ PR #1409 changes Android UI/integrations without adding a root dependency, confi
 
 A new binary is required for the Glance receivers/resources, WorkManager refresh pipeline, Quick Settings module/services/resources, native semantic rendering/cache/goal-channel changes, and manifest permission removals. Compatible JS-only tab wrappers, widget helpers, channel catalog/copy, and picker calls can use OTA only when their native dependencies already exist. OTA cannot install native workers, remove an installed manifest permission, or reset Android channel settings. See [Tier 2 behavior](/repositories/d-sports-engage-native/feature-mapping#android-tier-2-platform-behavior).
 
-Focused #1409 tests are `lib/__tests__/tier2-android.test.ts` (tokens, tile manifest markers, distinct refresh constants, semantic-tone/API-gate source markers, blocked permissions/keyboard resize) and `lib/__tests__/notification-channels.test.ts` (goal JS/Kotlin parity, unique IDs, distinct vibration patterns). They do not compile Kotlin, verify merged APK permissions, exercise HTTP/auth/headless refresh, or prove device UI/gestures, tile discovery, actual vibration, push promotion, Photo Picker behavior, or Play compliance. See `docs/android-native-capabilities.md` in engage-native for source ownership and release checks.
+Focused #1409 tests are `lib/__tests__/tier2-android.test.ts` (tokens, tile manifest markers, distinct refresh constants, semantic-tone/API-gate source markers, blocked permissions/keyboard resize) and `lib/__tests__/notification-channels.test.ts` (goal JS/Kotlin parity, unique IDs, distinct vibration patterns). These #1409 tests do not cover the later Glance migration or WorkManager refresh pipeline described above. They do not compile Kotlin, verify merged APK permissions, exercise HTTP/auth/headless refresh, or prove device UI/gestures, tile discovery, actual vibration, push promotion, Photo Picker behavior, or Play compliance. See `docs/android-native-capabilities.md` in engage-native for source ownership and release checks.
 
 ## Android NFC configuration
 
