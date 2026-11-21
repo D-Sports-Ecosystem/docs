@@ -79,6 +79,29 @@ Missing, invalid, empty, expired (over 24 hours), or unavailable-native handoffs
 - **Preview and share:** market `ListingCard` and `TradeListingCard`, plus the team browse card's details link, use `Link.Preview` and open/share menus for native iOS interactions. Sharing strips Expo route groups and defaults to `https://app.d-sports.org`; the team share action requires a string href. This is not an app-wide preview or external metadata service.
 - **Sheets and resizing:** HQ game summaries and the legacy wheel/player-guess routes use native iOS form-sheet detents. Match routes and engine game routes are not converted wholesale. Large iOS media-viewer windows remain free of programmatic orientation locking under the 600-dp shortest-side heuristic; compact iOS and Android keep existing viewer behavior.
 
+## Alternate app icons
+
+On a supported iOS device and binary, open **Settings → Appearance → App icon** (`/settings/app-icon`). Choose **D-Sports**, **D-Sports Gold**, **London Knights**, or **Oshawa Generals**. These are the entire curated roster; following or joining a team is not required. The app does not automatically select your favorite team, download more icons, or accept custom artwork. **D-Sports** restores the primary Icon Composer icon; the alternate PNGs do not replace that default bundle.
+
+The picker reads the current native icon, disables choices while a switch is pending, and shows a spinner. After iOS reports success, the selected marker and Appearance row update. Selecting the active option does nothing. A failed switch keeps the prior selection, logs the failure, and shows a localized error banner. The choice is device-level native state, not an account preference synchronized through the API.
+
+The Appearance entry is hidden when the device/binary does not support alternate icons. Direct entry to the picker shows unsupported copy. Android, web, Expo Go, and older binaries without the module do not switch icons. The module and all icon artwork must be installed in a new native binary; OTA cannot add compiled icons. See [alternate icon configuration](/repositories/d-sports-engage-native/architecture#alternate-app-icon-configuration) for assets, build settings, and tests.
+
+## Home Screen Quick Actions
+
+After the iOS app registers its dynamic shortcuts, long-press its Home Screen icon to access these four actions in catalog order. Titles follow the app language (English, French, or Italian) and refresh on app mount and locale changes. There is no static pre-first-launch menu fallback or personalized live-match list.
+
+| Action | Destination | Behavior |
+| --- | --- | --- |
+| **Live Game** | `/hq` | Opens HQ, not the tracked match. #1406 removes the former `teamHqEnabled`/dev-label client lock, so HQ is open to all fans. |
+| **Open Packs** | `/market/packs` | Opens the pack market, not the wallet; it does not open or buy a pack. |
+| **Scan Arena QR** | `/leaderboard/scan-qr` | Opens the scanner; it does not submit a check-in automatically. |
+| **Market** | `/market` | Opens the market without performing a transaction. |
+
+Warm taps navigate immediately when you have passed authentication/onboarding, using `router.navigate` to avoid duplicate screen stacking. Cold taps are buffered natively until the listener attaches. If the in-app gate is closed, the target waits in the pending-deep-link helper until the gate opens. Only the latest buffered/pending target is retained; this is not a durable queue. Unknown IDs are ignored, and normal route/backend authorization still applies.
+
+These app-icon actions are separate from Siri shortcuts and widget buttons. They require an iOS binary containing the local Quick Actions module; Android, web, Expo Go, and older binaries do not register them. Later JS-only labels/catalog/routing updates can use a compatible OTA, but OTA cannot add the native module. See [Quick Actions configuration](/repositories/d-sports-engage-native/architecture#home-screen-quick-actions-configuration) for registration, limits, and tests.
+
 ## Spotlight search and Handoff
 
 On iOS, the authenticated in-app bootstrap indexes teams from `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles using existing data sources. Binder mutations and foregrounding refresh binder summaries; wallet changes clear stale binder rows. Posts and marketplace listings are not part of the Core Spotlight batch.
