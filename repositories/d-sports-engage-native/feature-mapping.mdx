@@ -60,6 +60,23 @@ Shop and wallet pack reveals call `lib/store-review.ts` after a Rare, Epic, Lege
 
 See [native configuration](/repositories/d-sports-engage-native/architecture#native-configuration-and-ios-capabilities) for plugins, privacy declarations, and build requirements.
 
+## Tier 2 iOS behavior
+
+- **App Shortcuts:** Open Packs opens the wallet; Scan Arena QR opens the leaderboard scanner; Live Score opens a validated explicit match ID or the tracked live match, falling back to `/hq`. The shipped Swift Live Score shortcut supplies no ID. These actions open the app and navigate; they do not open packs, submit check-ins, or speak a fetched score. Pending invocations wait for the in-app auth/onboarding gate; a burst navigates to the newest recognized target, and unknown intent names have no target.
+- **Live Game accessory:** a tracked live snapshot shows a score/status bar above native tabs, or a compact inline score beside minimized tabs. Tapping opens the match. While mounted, it fetches the tracked match through existing `GET /api/events/{id}` immediately, every 30 seconds while active, and on foreground. Network failures keep the last score; final, canceled, or postponed games clear the accessory while preserving the MMKV snapshot for ActivityKit cleanup. It does not discover live matches.
+- **Preview and share:** market `ListingCard` and `TradeListingCard`, plus the team browse card's details link, use `Link.Preview` and open/share menus for native iOS interactions. Sharing strips Expo route groups and defaults to `https://app.d-sports.org`; the team share action requires a string href. This is not an app-wide preview or external metadata service.
+- **Sheets and resizing:** HQ game summaries and the legacy wheel/player-guess routes use native iOS form-sheet detents. Match routes and engine game routes are not converted wholesale. Large iOS media-viewer windows remain free of programmatic orientation locking under the 600-dp shortest-side heuristic; compact iOS and Android keep existing viewer behavior.
+
+## Spotlight search and Handoff
+
+On iOS, the authenticated in-app bootstrap indexes teams from `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles using existing data sources. Binder mutations and foregrounding refresh binder summaries; wallet changes clear stale binder rows. Posts and marketplace listings are not part of the Core Spotlight batch.
+
+Team search results open `/hq/{slug}`; binder results open `/binder/{id}`; card results open `/binder`, not a selected card. Continuations wait for the in-app gate. The parser accepts Engage identifiers, internal paths, and HTTPS URLs on the configured or canonical app host, rejecting other schemes/hosts. Route guards and backend authorization remain authoritative.
+
+Focused HQ clubs, non-global team boards, binder/card detail, visible or owned market listings, and ready post detail publish Handoff activities. The activity clears on blur. Sign-out, settled signed-out/session-revoked startup, and account switching invoke index and activity cleanup, including cancellation of pending index updates. Native failures are logged; cleanup is not a guarantee of synchronous OS deletion. Handoff offers continuation, not cross-device state synchronization or a new search API.
+
+See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#tier-2-native-integration) and [Spotlight integration](/repositories/d-sports-engage-native/architecture#core-spotlight-and-handoff-integration) for source ownership and native-build requirements.
+
 ## Notifications and legal
 
 - Push delivery uses OneSignal. In-app inbox uses `/api/notifications*` and includes `GAME_ALERT` and `RATING`.

@@ -47,6 +47,24 @@ The native app is structured around Expo Router screens, feature-oriented compon
 
 For source ownership and focused regression tests, see the native repository's [maintained capabilities guide](https://github.com/D-Sports-Ecosystem/d-sports-engage-native/blob/main/docs/ios-native-capabilities.md).
 
+## Tier 2 native integration
+
+PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers `expo-app-intents` and `experiments.inlineModules.watchedDirectories: ["app-intents"]`; `package.json` includes the native package. `AppIntentsSetup.swift` refreshes shortcut parameters. `AppIntentsHost`, mounted by `RootAuthStack`, processes invocations only after the authenticated/onboarded `inApp` route gate opens. The resolver lives in `lib/ios/app-intents.ts`.
+
+The iOS tab layout enables `minimizeBehavior="onScrollDown"` and conditionally mounts `LiveGameBottomAccessory` for a live snapshot. `services/live-game-accessory-store.ts` holds the in-memory state, synchronized by Live Activity snapshot writes/clears and restored from MMKV by the intent host. This iOS 26+ tab accessory is separate from ActivityKit and WidgetKit.
+
+Presentation stays in route layouts: `app/hq/_layout.tsx` uses iOS `formSheet` for `game/[gameId]` with detents `[0.65, 1.0]`; the locker-room layout uses `[0.85, 1.0]` for `wheel-spin` and `player-guess`. Both configure a system grabber and 24-point corner radius. Non-iOS keeps modal presentation, and engine `games/[gameKey]` remains a pushed screen. The HQ summary keeps its iOS top bar inside the scroll view and omits the duplicate custom grabber.
+
+For iOS 27 resizable-window compatibility, `lib/ios/resizable-window.ts` uses a finite, positive shortest-side threshold of 600 dp, not OS-version or model detection. The media viewer skips orientation capture/lock/unlock on those iOS windows and on web. This is not an app-wide orientation rewrite or a new window target. Selected card previews use Expo Router links; their share helper defaults to the canonical app origin rather than an environment-derived host.
+
+## Core Spotlight and Handoff integration
+
+PR #1399 adds the local iOS module `modules/expo-spotlight-handoff/` and registers `plugins/withSpotlightHandoff.js` in `app.json`. The plugin merges `com.dsports.engage.viewTeam`, `viewBinder`, `viewCard`, and `viewPost` into `NSUserActivityTypes` without removing other declarations. The module implements Core Spotlight operations and `NSUserActivity` continuation; Android, web, and missing-module binaries no-op.
+
+`SpotlightSyncBootstrap` owns indexing and continuation routing. `lib/spotlight/` builds a deduplicated batch capped at 250 entries, prioritizing teams, binders, then cards. It debounces updates by 1.5 seconds, persists the last hash/identifiers in MMKV, skips unchanged batches, and removes stale identifiers. `hooks/use-handoff-activity.ts` publishes a focused screen activity using the configured app web origin and clears it on blur. Native cold-start continuation buffering and the authenticated in-app gate prevent routing before protected routes become available.
+
+The App Intents package/inline Swift sources and Spotlight module/Info.plist declarations require a new native build; an OTA alone cannot install them. The source capabilities guide lists focused helper, store, Spotlight, and plugin tests. Unit coverage does not establish Siri, Spotlight/Handoff delivery, or native UI rendering on a device.
+
 ## Wallet signing
 
 - Custodial wallets sign on the server via `POST /api/wallets/{address}/sign-transaction`.
