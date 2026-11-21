@@ -99,6 +99,55 @@ Expo's scene delegate forwards cold-launch shortcut connection options to the ap
 
 The module and subscriber require a new binary. Once the installed binary contains them, JS-only catalog, translation, or routing changes can use a compatible OTA; dynamic items refresh when the bootstrap runs. `lib/quick-actions/__tests__/quick-actions.test.ts` covers catalog/order/routes/symbols, localization, registration and unavailable/error cases, warm navigation, post-auth/forced restoration, and unknown/empty IDs. It does not verify Swift buffering, native launch delivery, or OS menu discovery. See [Quick Actions behavior](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions) for each destination.
 
+## Android AppSearch and AppFunctions integration
+
+PR #1423 adds Android counterparts to [iOS Spotlight](#core-spotlight-and-handoff-integration) and [App Intents](#tier-2-native-integration).
+It does not implement Android Handoff.
+`AndroidCapabilitiesHost.android.tsx` calls `hooks/use-android-search-sync.android.ts` with the authenticated/onboarded `inApp` gate.
+The hook reuses `lib/spotlight/` mappers for `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles.
+It refreshes binders on mutation and foregrounding, and clears stale binder rows on wallet changes or fetch failure.
+No new API route or contract is added.
+
+`lib/android/search-index.android.ts` maps the shared `engage:<kind>:<id>` identifiers to `engagenative://` routes.
+The deduplicated batch caps at 250 entries, prioritizing teams, binders, then cards.
+Writes debounce by 1.5 seconds, skip unchanged MMKV hashes, and remove stale IDs.
+Partial native writes clear the hash for a later retry while retaining potentially indexed IDs for pruning.
+The hook persists the last synced user ID across remounts.
+Sign-out, account deletion, settled signed-out startup, and account switching request index/cache cleanup through the hook and `features/user/useUserAuthActions.ts`.
+JS generations and serialized native mutations with a clear epoch guard obsolete writes.
+Cleanup errors remain possible; do not treat the request as guaranteed synchronous OS deletion.
+
+Native sources live under `modules/expo-android-capabilities/android/src/main/java/expo/modules/androidcapabilities/`:
+
+| Source | Responsibility |
+| --- | --- |
+| `AndroidAppSearch.kt` | Database `dsports_engage_search`; schemas `DSportsTeam`, `DSportsCard`, `DSportsBinder`; namespaces `teams`, `cards`, `binders`. Stores title, subtitle, keywords, deep link, domain identifier, entity type, and optional thumbnail URL. |
+| `ExpoAndroidCapabilitiesModule.kt` | Index/delete/clear/search operations, cache methods, availability gates, and AppSearch session closure on module destroy. |
+| `appfunctions/BaseDSportsAppFunctionService.kt` | API 36+ declarations for `getLiveScore`, `getFanRep`, `openArenaQr`, and `searchCollectibles`. |
+| `appfunctions/DSportsAppFunctionModels.kt` | Serializable results with immutable, package-scoped launch `PendingIntent`s. |
+| `appfunctions/AndroidAppFunctionsCache.kt` | Private SharedPreferences snapshots for Fan Rep and one HQ score, readable without starting React Native JS. |
+
+AppSearch is available from API 26 with the native module.
+API 31+ prefers `PlatformStorage` and marks the schemas displayable by the system.
+API 26–30 or platform-storage failure uses `LocalStorage`, which is not system-search delivery.
+Title, subtitle, and keywords use prefix indexing; domain and entity type use exact terms.
+Non-Android wrappers and missing modules safely no-op.
+AppFunctions availability reports API 36+ with the module, not actual assistant/provider eligibility.
+
+The module's `android/build.gradle` adds AppSearch core/local/platform storage 1.1.0, AppFunctions/runtime compiler 1.0.0, and concurrent-futures-ktx 1.2.0.
+It applies KSP.
+`plugins/withAndroidPlatformCapabilities.js` injects KSP classpath `2.1.20-2.0.1` for metadata generation.
+The module manifest registers generated `DSportsAppFunctionService` as exported with `android.permission.BIND_APP_FUNCTION_SERVICE` protection.
+It references generated schema/service metadata and `res/xml/app_metadata.xml`.
+ProGuard keeps the module's `appfunctions.**`, `androidx.appfunctions.**`, and `androidx.appsearch.**` classes.
+These native dependencies, Kotlin, Gradle, service, and metadata changes need a rebuilt Android binary.
+Only later compatible JS changes can use OTA.
+
+Focused tests are `lib/android/__tests__/search-index.test.ts`, `lib/android/__tests__/app-functions.test.ts`, and `plugins/__tests__/withAndroidPlatformCapabilities.test.ts`.
+They cover mapping, empty/invalid items, reconciliation, clearing, partial writes, availability delegation, snapshot normalization, and KSP injection/source declarations.
+They do not prove Kotlin compilation, generated-service execution, system/assistant discovery, or device search and cleanup behavior.
+See [function behavior](/repositories/d-sports-engage-native/feature-mapping#android-appsearch-and-appfunctions) for cache limits and launch semantics.
+
 ## Core Spotlight and Handoff integration
 
 PR #1399 adds the local iOS module `modules/expo-spotlight-handoff/` and registers `plugins/withSpotlightHandoff.js` in `app.json`. The plugin merges `com.dsports.engage.viewTeam`, `viewBinder`, `viewCard`, and `viewPost` into `NSUserActivityTypes` without removing other declarations. The module implements Core Spotlight operations and `NSUserActivity` continuation; Android, web, and missing-module binaries no-op.

@@ -106,6 +106,43 @@ Warm taps navigate immediately when you have passed authentication/onboarding, u
 
 These app-icon actions are separate from Siri shortcuts and widget buttons. They require an iOS binary containing the local Quick Actions module; Android, web, Expo Go, and older binaries do not register them. Later JS-only labels/catalog/routing updates can use a compatible OTA, but OTA cannot add the native module. See [Quick Actions configuration](/repositories/d-sports-engage-native/architecture#home-screen-quick-actions-configuration) for registration, limits, and tests.
 
+## Android AppSearch and AppFunctions
+
+PR #1423 indexes teams from `user.favoriteTeams`, active-wallet binder summaries, and owned collectible cards after authenticated in-app routes become active.
+The shared mappers cap the batch at 250 items in team, binder, then card order.
+Posts and marketplace listings are not indexed.
+Binder mutations and foregrounding refresh binder summaries.
+Wallet changes and fetch failures clear stale binder rows.
+AppSearch uses platform storage on API 31+ when available, with local storage on older supported devices or platform failure.
+System search visibility depends on the device/provider; local storage alone does not deliver system search results.
+
+Android 16+ exposes these declarations in `appfunctions/BaseDSportsAppFunctionService.kt`:
+
+| Function | Result and limits |
+| --- | --- |
+| `getLiveScore(teamId?)` | Reads one cached live/recent HQ score with a match launch handle. Optional normalized text matches cached team slug, names, or abbreviations. A mismatch throws element-not-found. Missing cache returns `hasLiveGame: false` and an HQ launch handle. A safe match ID opens match detail and retains a safe context slug. |
+| `getFanRep()` | Reads cached signed-in Fan Rep, optional rank/name, a summary, and a leaderboard launch handle. Missing signed-in cache throws element-not-found. |
+| `openArenaQr()` | Returns scanner metadata and a launch handle. It does not scan, check in, or award Rep. |
+| `searchCollectibles(query, limit)` | Prefix-searches only indexed cards. Blank queries throw invalid-argument. Nonpositive limits default to 10; positive limits cap at 50. Returns the first result page with metadata and card launch handles, or an empty list for no matches. |
+
+The immutable launch handles target this app's package and `engagenative` routes.
+Normal routing and authentication gates still apply.
+They do not silently execute protected actions or transactions.
+Declaring these functions does not guarantee Gemini or another assistant will discover or invoke them.
+
+`lib/android/app-functions.android.ts` mirrors profile Fan Rep and HQ snapshots into private native SharedPreferences.
+`lib/hq/widget-sync.android.ts` updates the score and clears it when `clearHqWidget` receives an ended match.
+The service reads this cache and AppSearch without booting React Native JS or fetching network data.
+Timestamps are stored but no freshness TTL is enforced.
+Answers can be stale; they are not live backend lookups.
+Sign-out, account deletion, settled signed-out startup, and account switching request index/cache cleanup.
+Cleanup failures are not a guarantee of immediate OS deletion.
+Non-Android wrappers and missing native modules no-op.
+
+See [Android integration](/repositories/d-sports-engage-native/architecture#android-appsearch-and-appfunctions-integration) for schemas, identifiers, native dependencies, rebuild requirements, and tests.
+Compare [iOS Spotlight](#spotlight-search-and-handoff) and [iOS App Intents](/repositories/d-sports-engage-native/architecture#tier-2-native-integration).
+The Android implementation does not add Handoff or a new API contract.
+
 ## Spotlight search and Handoff
 
 On iOS, the authenticated in-app bootstrap indexes teams from `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles using existing data sources. Binder mutations and foregrounding refresh binder summaries; wallet changes clear stale binder rows. Posts and marketplace listings are not part of the Core Spotlight batch.
