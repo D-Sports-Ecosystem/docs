@@ -65,6 +65,14 @@ PR #1399 adds the local iOS module `modules/expo-spotlight-handoff/` and registe
 
 The App Intents package/inline Swift sources and Spotlight module/Info.plist declarations require a new native build; an OTA alone cannot install them. The source capabilities guide lists focused helper, store, Spotlight, and plugin tests. Unit coverage does not establish Siri, Spotlight/Handoff delivery, or native UI rendering on a device.
 
+## Apple Wallet pass configuration
+
+PR #1402 adds the local iOS module `modules/expo-apple-wallet/` for PassKit and registers `plugins/withAppleWallet.js` in `app.json`. The plugin merges `com.apple.developer.pass-type-identifiers`, preserving existing entries. It defaults to `$(TeamIdentifierPrefix)pass.com.dsports.wallet`; the `passTypeId` plugin option or `EXPO_PUBLIC_APPLE_PASS_TYPE_ID` can override it. Signed pass identifiers and provisioning entitlements must agree. The module and entitlement require a rebuilt native binary, not an OTA alone.
+
+`lib/apple-wallet/native.ts` provides availability, membership-check, and presentation wrappers; `hooks/use-apple-wallet-pass.ts` coordinates the authenticated request and native sheet. The presenter uses `PKAddPassesViewController` and checks `PKPassLibrary` after dismissal. This integration is Wallet passes, not Apple Pay. For the issuance API contract, use [d-sports-api PR #1167](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/1167) and the documentation work in [docs PR #316](https://github.com/D-Sports-Ecosystem/docs/pull/316), rather than treating this native guide as the contract.
+
+Focused source tests cover native availability/delegation, API-client behavior, and entitlement registration/merging. They do not verify real pass signing, provisioning, native sheet presentation, or addition to a device's Wallet.
+
 ## Wallet signing
 
 - Custodial wallets sign on the server via `POST /api/wallets/{address}/sign-transaction`.
