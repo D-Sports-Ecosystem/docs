@@ -14,6 +14,10 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior. Start a pack purchase with `POST /api/packs/{id}/purchase`. Do not call `PUT` on that path (`410 GONE`). Confirm crypto checkout with `POST /api/checkout/crypto/verify`.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
+## Native review requests
+
+Shop and wallet pack reveals call `lib/store-review.ts` after a Rare, Epic, Legendary, or Mythic pull. The helper uses `expo-store-review` on iOS and Android and skips web or unavailable APIs. With MMKV storage available, requests are limited to once per installed app version and at least 90 days apart. The OS decides whether to display the review sheet; a request does not guarantee presentation. Game-win and quest-claim moment names exist in the helper type but are not wired triggers. This flow is separate from the app-update prompt.
+
 ## Binder and market
 
 - `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
@@ -46,6 +50,75 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Fetch one team with public `GET /api/teams/{id}` (id first, then slug). Archived teams return `404`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Native media, widgets, and calendar
+
+- **Locker-room PiP:** the full-screen media viewer and inline video tiles opt in with `allowsPictureInPicture`. Inline tiles preserve active PiP playback when they leave the viewport or Reduce Motion is enabled. This is not an app-wide PiP guarantee for every video surface.
+- **Rank and Fan Rep widgets:** `widgets/ios/RankOrPointsWidget.tsx` supports small/medium Home Screen layouts and circular, rectangular, and inline Lock Screen accessories. The small layout initially prefers a valid team rank. On iOS 17+, when both stats exist, its metric-toggle button switches between **Team rank** and **Fan Rep** inside the extension, even without the host app running. Medium layouts have a refresh button; Lock Screen accessories have no buttons. Taps outside buttons retain the supplied `engagenative://` deep link, otherwise opening the leaderboard for a valid rank or the wallet as fallback.
+- **Live status widget:** `widgets/ios/LiveStatusActivityWidget.tsx` opens the match for a supplied `gameId`, otherwise the locker room. Its small layout keeps the **LIVE** label on one line. On iOS 17+, its medium layout has a refresh button; small and Lock Screen layouts do not. WidgetKit Home/Lock Screen layouts remain separate from ActivityKit Live Activities and Android widgets; keep platform-specific imports.
+- **Widget refresh limits:** button callbacks reload App Group timeline data without inventing a new update timestamp. When the host listener receives a refresh event, it rewrites the cached rank/Fan Rep or live-game snapshot, not a fresh server response. Without a live snapshot it leaves retained final/APNs cards intact. These controls do not guarantee current scores/rank or schedule a network fetch. The metric toggle changes widget props, not account settings.
+- **Scan Arena QR control:** on iOS 18+, you can use the control in Control Center, Lock Screen quick actions, or supported Action Buttons. It launches the app at `engagenative://leaderboard/scan-qr` through normal auth/onboarding gates. It does not scan or submit a check-in inside the control. This uses the existing widget target and is separate from the Siri shortcut. A rebuilt binary is required; see [widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration).
+- **Add to calendar:** upcoming HQ cards and pre-game match actions open the system event editor on iOS/Android, not web. `lib/hq/add-to-calendar.ts` builds an event from the fixture start time with a 150-minute duration, optional venue, match deep link in notes, and a 30-minute pre-game alarm. Invalid dates or unavailable APIs do not create an event. The helper distinguishes saved, opened, canceled, and error outcomes: Android's `done` response means the editor was opened, not confirmed saving. There is no silent calendar write or server-side calendar synchronization.
+
+See [native configuration](/repositories/d-sports-engage-native/architecture#native-configuration-and-ios-capabilities) for plugins, privacy declarations, and build requirements.
+
+## Share Extension drafts
+
+On iOS 17+, the system share sheet can hand plain text, one HTTP(S) URL, and up to four photos to **D-Sports Engage**. The extension keeps the first nonempty text and first supported URL. It downscales photos to a maximum 2048-pixel dimension and converts them to JPEG at quality 0.85. Original formats are not preserved. Videos and arbitrary files are not supported. There is no explicit input-byte-size or text-length cap in the extension; large photos are downsampled rather than rejected by a fixed byte threshold.
+
+Activation rules limit eligible shares. If extra images still arrive, intake skips images beyond four. Unsupported/unreadable items are skipped. If nothing usable remains, or App Group access/manifest writing fails, the extension closes without an error message or opening the app. Otherwise it saves a local handoff and requests the app's `/share-inbox` route. Only the handoff ID travels in the URL, not shared content.
+
+The route waits for authentication/onboarding, validates the handoff, and opens **Locker Room** with the composer prefilled. Text and URL are combined without duplicating a URL already in the text. Imported text/media replace the composer values; server-draft restoration is suppressed for that opening. You still review and submit the post yourself. The extension does not upload or publish content.
+
+Missing, invalid, empty, expired (over 24 hours), or unavailable-native handoffs fall back to **Locker Room** without a shared draft. Thrown intake failures are logged, not shown as a toast. Photo-staging failures preserve the original App Group handoff but do not automatically retry. Shared and temporary directories receive stale cleanup; the pending composer queue is in memory and does not survive app termination. This is an iOS extension, not an Android/web share target. You need a rebuilt binary with the target, entitlements, and bridge; see [Share Extension configuration](/repositories/d-sports-engage-native/architecture#share-extension-configuration).
+
+## Tier 2 iOS behavior
+
+- **App Shortcuts:** Open Packs opens the wallet; Scan Arena QR opens the leaderboard scanner; Live Score opens a validated explicit match ID or the tracked live match, falling back to `/hq`. The shipped Swift Live Score shortcut supplies no ID. These actions open the app and navigate; they do not open packs, submit check-ins, or speak a fetched score. Pending invocations wait for the in-app auth/onboarding gate; a burst navigates to the newest recognized target, and unknown intent names have no target.
+- **Live Game accessory:** a tracked live snapshot shows a score/status bar above native tabs, or a compact inline score beside minimized tabs. Tapping opens the match. While mounted, it fetches the tracked match through existing `GET /api/events/{id}` immediately, every 30 seconds while active, and on foreground. Network failures keep the last score; final, canceled, or postponed games clear the accessory while preserving the MMKV snapshot for ActivityKit cleanup. It does not discover live matches.
+- **Preview and share:** market `ListingCard` and `TradeListingCard`, plus the team browse card's details link, use `Link.Preview` and open/share menus for native iOS interactions. Sharing strips Expo route groups and defaults to `https://app.d-sports.org`; the team share action requires a string href. This is not an app-wide preview or external metadata service.
+- **Sheets and resizing:** HQ game summaries and the legacy wheel/player-guess routes use native iOS form-sheet detents. Match routes and engine game routes are not converted wholesale. Large iOS media-viewer windows remain free of programmatic orientation locking under the 600-dp shortest-side heuristic; compact iOS and Android keep existing viewer behavior.
+
+## Alternate app icons
+
+On a supported iOS device and binary, open **Settings → Appearance → App icon** (`/settings/app-icon`). Choose **D-Sports**, **D-Sports Gold**, **London Knights**, or **Oshawa Generals**. These are the entire curated roster; following or joining a team is not required. The app does not automatically select your favorite team, download more icons, or accept custom artwork. **D-Sports** restores the primary Icon Composer icon; the alternate PNGs do not replace that default bundle.
+
+The picker reads the current native icon, disables choices while a switch is pending, and shows a spinner. After iOS reports success, the selected marker and Appearance row update. Selecting the active option does nothing. A failed switch keeps the prior selection, logs the failure, and shows a localized error banner. The choice is device-level native state, not an account preference synchronized through the API.
+
+The Appearance entry is hidden when the device/binary does not support alternate icons. Direct entry to the picker shows unsupported copy. Android, web, Expo Go, and older binaries without the module do not switch icons. The module and all icon artwork must be installed in a new native binary; OTA cannot add compiled icons. See [alternate icon configuration](/repositories/d-sports-engage-native/architecture#alternate-app-icon-configuration) for assets, build settings, and tests.
+
+## Home Screen Quick Actions
+
+After the iOS app registers its dynamic shortcuts, long-press its Home Screen icon to access these four actions in catalog order. Titles follow the app language (English, French, or Italian) and refresh on app mount and locale changes. There is no static pre-first-launch menu fallback or personalized live-match list.
+
+| Action | Destination | Behavior |
+| --- | --- | --- |
+| **Live Game** | `/hq` | Opens HQ, not the tracked match. #1406 removes the former `teamHqEnabled`/dev-label client lock, so HQ is open to all fans. |
+| **Open Packs** | `/market/packs` | Opens the pack market, not the wallet; it does not open or buy a pack. |
+| **Scan Arena QR** | `/leaderboard/scan-qr` | Opens the scanner; it does not submit a check-in automatically. |
+| **Market** | `/market` | Opens the market without performing a transaction. |
+
+Warm taps navigate immediately when you have passed authentication/onboarding, using `router.navigate` to avoid duplicate screen stacking. Cold taps are buffered natively until the listener attaches. If the in-app gate is closed, the target waits in the pending-deep-link helper until the gate opens. Only the latest buffered/pending target is retained; this is not a durable queue. Unknown IDs are ignored, and normal route/backend authorization still applies.
+
+These app-icon actions are separate from Siri shortcuts and widget buttons. They require an iOS binary containing the local Quick Actions module; Android, web, Expo Go, and older binaries do not register them. Later JS-only labels/catalog/routing updates can use a compatible OTA, but OTA cannot add the native module. See [Quick Actions configuration](/repositories/d-sports-engage-native/architecture#home-screen-quick-actions-configuration) for registration, limits, and tests.
+
+## Spotlight search and Handoff
+
+On iOS, the authenticated in-app bootstrap indexes teams from `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles using existing data sources. Binder mutations and foregrounding refresh binder summaries; wallet changes clear stale binder rows. Posts and marketplace listings are not part of the Core Spotlight batch.
+
+Team search results open `/hq/{slug}`; binder results open `/binder/{id}`; card results open `/binder`, not a selected card. Continuations wait for the in-app gate. The parser accepts Engage identifiers, internal paths, and HTTPS URLs on the configured or canonical app host, rejecting other schemes/hosts. Route guards and backend authorization remain authoritative.
+
+Focused HQ clubs, non-global team boards, binder/card detail, visible or owned market listings, and ready post detail publish Handoff activities. The activity clears on blur. Sign-out, settled signed-out/session-revoked startup, and account switching invoke index and activity cleanup, including cancellation of pending index updates. Native failures are logged; cleanup is not a guarantee of synchronous OS deletion. Handoff offers continuation, not cross-device state synchronization or a new search API.
+
+See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#tier-2-native-integration) and [Spotlight integration](/repositories/d-sports-engage-native/architecture#core-spotlight-and-handoff-integration) for source ownership and native-build requirements.
+
+## Apple Wallet passes
+
+The **Add to Apple Wallet** button is available on the fan's own profile for a Fan ID, eligible team leaderboards for club membership (the existing `showAlertsBell` gate plus a team ID), and HQ match bodies for an arena-event pass. It is hidden when signed out, on Android/web, in older binaries without the native module, and where PassKit cannot add passes.
+
+On tap, the hook prevents concurrent requests, fetches a signed pass through the authenticated API client, and presents Apple's native confirmation sheet. The client does not generate/sign passes or add them silently. Native completion checks whether the pass is in Wallet; dismissing the sheet is not itself success. The hook can recheck the returned identity, updates local added state, and shows localized success/error feedback, including a configuration message for a 503. The shipped CTA does not supply the optional known-pass identity for an initial Wallet check, so added state is not a persistent cross-mount status cache. There is no automatic pass refresh or Google Wallet counterpart in this implementation.
+
+See [native configuration](/repositories/d-sports-engage-native/architecture#apple-wallet-pass-configuration) for the module and entitlement. The issuance contract is owned by [d-sports-api PR #1167](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/1167) and [docs PR #316](https://github.com/D-Sports-Ecosystem/docs/pull/316).
 
 ## Notifications and legal
 

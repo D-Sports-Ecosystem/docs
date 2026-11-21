@@ -34,6 +34,83 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
 - Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`). iOS also claims `applinks:app.d-sports.org`.
 
+## Native configuration and iOS capabilities
+
+`app.json` owns the base Expo configuration. `app.config.ts` applies environment-dependent overrides, including associated domains derived from the API and app web hosts. PR #1398 added the following native capabilities; plugin, entitlement, privacy-manifest, and icon changes require a new binary rather than an OTA alone.
+
+- **Passkey domain association:** iOS declares both `applinks:` and `webcredentials:` for the API and app hosts, deduplicating matching hosts. Production defaults are `api.d-sports.org` and `app.d-sports.org`. Webcredentials enables passkey/Keychain AutoFill domain association; it does not replace the server's AASA file or add a new authentication flow by itself.
+- **Privacy manifest:** `ios.privacyManifests` declares `NSPrivacyAccessedAPICategoryUserDefaults` reasons `CA92.1` and `1C8F.1`. Expo generates `PrivacyInfo.xcprivacy` at prebuild. This is a required-reason API declaration, not a complete data-collection disclosure.
+- **Shared App Group:** OneSignal and `expo-widgets` use `group.com.dsports.wallet.beta.dengage`. Keep extension signing, plugin configuration, and shared UserDefaults access aligned.
+- **Icon Composer:** `ios.icon` still points to the primary `assets/app.icon`, containing `icon.json` and `Assets/`. #1403 adds separate PNG alternate icons without replacing the primary bundle. Android adaptive icons and the web favicon remain separately configured.
+- **Picture-in-picture:** the `expo-video` plugin sets `supportsPictureInPicture: true`, enabling iOS background audio and Android PiP support. Opted-in video views still control playback behavior.
+- **Calendar:** the `expo-calendar` plugin requests write-only calendar access with a usage description and disables reminders permission. The client opens the native event editor through `expo-calendar/legacy`; it does not read calendars or the Reminders database.
+
+For source ownership and focused regression tests, see the native repository's [maintained capabilities guide](https://github.com/D-Sports-Ecosystem/d-sports-engage-native/blob/main/docs/ios-native-capabilities.md).
+
+## Alternate app icon configuration
+
+PR #1403 registers `plugins/withAlternateAppIcons.js` in `app.json`. It maps `AppIconGold`, `AppIconLondonKnights`, and `AppIconOshawaGenerals` to `assets/app-icons/dsports-gold.png`, `london-knights.png`, and `oshawa-generals.png` respectively (all in `assets/app-icons/`). Prebuild validates names, nonempty paths, and source existence, then creates universal 1024×1024 `.appiconset` entries under the app's `Images.xcassets`. The plugin enables `ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS` and sets `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` on app configurations with a primary icon setting, skipping `SKIP_INSTALL=YES`. It preserves the primary icon setting; Xcode compiles the alternate declarations alongside the existing `.icon` primary.
+
+The local Apple-only module `modules/expo-alternate-icons/` wraps UIKit support checks, current-name reads, and main-queue `setAlternateIconName`. No new extension, App Group, or entitlement is added. `app.config.ts` and the root `package.json` are unchanged. The picker catalog is `constants/app-icons.constants.ts`; its primary preview is `assets/images/icon-square.png`, not a new primary native icon source. `useAppIconScreen` coordinates selection and errors, while in-process subscriptions update the Appearance row. This is native device state, not a backend preference.
+
+Build a new binary for the native module, asset catalogs, and Xcode settings. OTA cannot add or replace compiled app-icon artwork. Later JS-only copy/picker changes need a compatible binary containing the named icons. Tests in `plugins/__tests__/withAlternateAppIcons.test.ts`, `modules/expo-alternate-icons/__tests__/expo-alternate-icons.test.ts`, and `features/settings/screen/__tests__/app-icon-screen.test.tsx` cover generation/build settings, invalid configuration, bridge fallbacks/delegation, and selection/reset/error/skip behavior. They do not establish real Xcode compilation, OS switching, or device rendering. See [icon selection behavior](/repositories/d-sports-engage-native/feature-mapping#alternate-app-icons).
+
+## Widget controls and interaction configuration
+
+PR #1404 registers `plugins/withControlCenterWidget.js` after `expo-widgets` in `app.json`. It extends the existing `ExpoWidgetsTarget` (`com.dsports.wallet.beta.ExpoWidgets`), not a new extension. The plugin copies `plugins/widgets/ScanArenaQRControlWidget.swift` and `OpenArenaQRScannerIntent.swift`, injects iOS 18+ control registration into the generated widget bundle, and compiles the shared intent into the host app as well. It preserves the iOS 17 deployment target and adds no separate entitlement. Keep the existing `expo-widgets` App Group `group.com.dsports.wallet.beta.dengage` aligned with extension signing.
+
+The **Scan Arena QR** control supports Control Center, Lock Screen quick actions, and supported Action Buttons on iOS 18+. Its non-discoverable `AppIntent` sets `openAppWhenRun` and opens `engagenative://leaderboard/scan-qr` through the host URL handler. It does not duplicate the Siri shortcut or perform a check-in within the extension.
+
+Interactive Home Screen widgets use the existing `expo-widgets` dependency and its iOS 17+ `WidgetUserInteraction` intent. `widgets/ios/bootstrap.ts` registers serialized layouts and initial props in App Group storage and installs the iOS interaction listener once per process. Button callbacks run in the extension, merge returned props into its stored timeline, and reload it. `lib/ios/widget-interactions.ts` handles host-observed refresh events using safe cached-snapshot writers. Unknown sources/targets are ignored; failures use `logger.error`. No new network endpoint or background fetch is added.
+
+Neither #1404 nor #1400 changes `app.config.ts` or `package.json`. The environment wrapper retains the base plugins; widgets reuse the existing package and the share bridge is a local Expo module. Rebuild the iOS binary for the Swift sources, generated bundle registration, Share Extension, and native bridge; OTA alone cannot install them. Tests in `plugins/__tests__/withControlCenterWidget.test.ts`, `widgets/ios/__tests__/interactive-widgets.test.ts`, and `lib/ios/__tests__/widget-interactions.test.ts` cover plugin order/idempotency, availability, button callbacks/families, and refresh dispatch. They do not establish device control discovery, signing, or real background execution.
+
+## Share Extension configuration
+
+PR #1400 registers `plugins/withIosShareExtension.js` in `app.json`. Prebuild generates the iOS 17+ `DSportsShareExtension` target (`com.dsports.wallet.beta.ShareExtension`) from `plugins/share-extension/ShareViewController.swift`, with a share-services Info.plist and App Group entitlements. The plugin adds EAS `appExtensions` metadata without dropping other extensions. It merges `com.apple.security.application-groups` into the host entitlements and gives both targets `group.com.dsports.wallet.beta.dengage`. It writes `EngageShareAppGroup` in the host and extension Info.plists, plus `EngageShareUrlScheme` (`engagenative`) in the extension. Provision both targets for that App Group.
+
+Activation rules advertise four images, one web URL, and plain text. The extension writes a versioned manifest and converted photos under App Group `share-handoffs/{id}/`. Only the ID enters the `engagenative://share-inbox?id={id}` URL. The local iOS Expo module `modules/expo-share-handoff/` stages photos in app temporary storage before consuming the shared folder. Staging failures preserve the original handoff; no automatic retry is added. Payload validation enforces a 24-hour TTL, schema, safe IDs, local image URIs, and a four-image cap. Intake sweeps stale shared and temporary directories; the extension also sweeps stale shared directories.
+
+`useDeepLinkBootstrap` captures this hostname-only route for cold/warm entry and restores it after the authenticated/onboarded `inApp` gate opens. `RootAuthStack` protects `/share-inbox` with that gate. `useShareInbox` queues the validated draft in memory, then replaces the route with Locker Room. `useShareDraftIntake` consumes it once and suppresses server-draft restoration for that composer opening. See [draft behavior](/repositories/d-sports-engage-native/feature-mapping#share-extension-drafts) for supported content and failure limits.
+
+The extension target, entitlements, and native bridge require a new binary, not OTA alone. `plugins/__tests__/withIosShareExtension.test.ts` covers registration, activation rules, template presence, App Group merging, and EAS metadata. `lib/locker-room/__tests__/share-handoff.test.ts` covers validation, TTL, empty/error cases, caps, formatting, queueing, and restore suppression. These tests do not prove signed extension discovery, Swift photo staging, or device/auth handoff.
+
+## Tier 2 native integration
+
+PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers `expo-app-intents` and `experiments.inlineModules.watchedDirectories: ["app-intents"]`; `package.json` includes the native package. `AppIntentsSetup.swift` refreshes shortcut parameters. `AppIntentsHost`, mounted by `RootAuthStack`, processes invocations only after the authenticated/onboarded `inApp` route gate opens. The resolver lives in `lib/ios/app-intents.ts`.
+
+The iOS tab layout enables `minimizeBehavior="onScrollDown"` and conditionally mounts `LiveGameBottomAccessory` for a live snapshot. `services/live-game-accessory-store.ts` holds the in-memory state, synchronized by Live Activity snapshot writes/clears and restored from MMKV by the intent host. This iOS 26+ tab accessory is separate from ActivityKit and WidgetKit.
+
+Presentation stays in route layouts: `app/hq/_layout.tsx` uses iOS `formSheet` for `game/[gameId]` with detents `[0.65, 1.0]`; the locker-room layout uses `[0.85, 1.0]` for `wheel-spin` and `player-guess`. Both configure a system grabber and 24-point corner radius. Non-iOS keeps modal presentation, and engine `games/[gameKey]` remains a pushed screen. The HQ summary keeps its iOS top bar inside the scroll view and omits the duplicate custom grabber.
+
+For iOS 27 resizable-window compatibility, `lib/ios/resizable-window.ts` uses a finite, positive shortest-side threshold of 600 dp, not OS-version or model detection. The media viewer skips orientation capture/lock/unlock on those iOS windows and on web. This is not an app-wide orientation rewrite or a new window target. Selected card previews use Expo Router links; their share helper defaults to the canonical app origin rather than an environment-derived host.
+
+## Home Screen Quick Actions configuration
+
+PR #1406 adds the local iOS module `modules/expo-quick-actions/`. Its `expo-module.config.json` registers `ExpoQuickActionsModule` and `ExpoQuickActionsAppDelegateSubscriber`. It uses UIKit `UIApplicationShortcutItem`, not a new plugin, static `UIApplicationShortcutItems` Info.plist array, App Group, entitlement, or extension target. `app.json`, `app.config.ts`, and the root `package.json` are unchanged. The module podspec declares iOS 16.4; these shortcuts are separate from iOS 18 Control Center controls and Siri App Intents.
+
+`RootAuthStack` mounts `useQuickActionsBootstrap`. On iOS mount and app-locale changes, it registers the four dynamic items from `lib/quick-actions/catalog.ts` with English, French, or Italian titles and SF Symbols. The native setter considers only the first four items, skips empty IDs/titles, and replaces the dynamic list. No static fallback exists before app-side registration. Android, web, Expo Go, and older binaries without the module no-op. Registration failures return `false` and log a warning, rather than proving OS menu presentation.
+
+Expo's scene delegate forwards cold-launch shortcut connection options to the app-delegate subscriber; non-scene launch options provide a fallback. Warm taps arrive through `performActionFor`. The native store buffers the latest tap until observation starts and drains it once; the hook also calls `consumeInitialAction`. `routeQuickAction` resolves known IDs from the catalog rather than trusting event `params.href`. It calls `router.navigate` when `inApp` is true. Otherwise it force-stashes the target in the in-memory pending-href helper, and `useDeepLinkBootstrap` restores it after authentication/onboarding. This is not a durable multi-action queue.
+
+The module and subscriber require a new binary. Once the installed binary contains them, JS-only catalog, translation, or routing changes can use a compatible OTA; dynamic items refresh when the bootstrap runs. `lib/quick-actions/__tests__/quick-actions.test.ts` covers catalog/order/routes/symbols, localization, registration and unavailable/error cases, warm navigation, post-auth/forced restoration, and unknown/empty IDs. It does not verify Swift buffering, native launch delivery, or OS menu discovery. See [Quick Actions behavior](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions) for each destination.
+
+## Core Spotlight and Handoff integration
+
+PR #1399 adds the local iOS module `modules/expo-spotlight-handoff/` and registers `plugins/withSpotlightHandoff.js` in `app.json`. The plugin merges `com.dsports.engage.viewTeam`, `viewBinder`, `viewCard`, and `viewPost` into `NSUserActivityTypes` without removing other declarations. The module implements Core Spotlight operations and `NSUserActivity` continuation; Android, web, and missing-module binaries no-op.
+
+`SpotlightSyncBootstrap` owns indexing and continuation routing. `lib/spotlight/` builds a deduplicated batch capped at 250 entries, prioritizing teams, binders, then cards. It debounces updates by 1.5 seconds, persists the last hash/identifiers in MMKV, skips unchanged batches, and removes stale identifiers. `hooks/use-handoff-activity.ts` publishes a focused screen activity using the configured app web origin and clears it on blur. Native cold-start continuation buffering and the authenticated in-app gate prevent routing before protected routes become available.
+
+The App Intents package/inline Swift sources and Spotlight module/Info.plist declarations require a new native build; an OTA alone cannot install them. The source capabilities guide lists focused helper, store, Spotlight, and plugin tests. Unit coverage does not establish Siri, Spotlight/Handoff delivery, or native UI rendering on a device.
+
+## Apple Wallet pass configuration
+
+PR #1402 adds the local iOS module `modules/expo-apple-wallet/` for PassKit and registers `plugins/withAppleWallet.js` in `app.json`. The plugin merges `com.apple.developer.pass-type-identifiers`, preserving existing entries. It defaults to `$(TeamIdentifierPrefix)pass.com.dsports.wallet`; the `passTypeId` plugin option or `EXPO_PUBLIC_APPLE_PASS_TYPE_ID` can override it. Signed pass identifiers and provisioning entitlements must agree. The module and entitlement require a rebuilt native binary, not an OTA alone.
+
+`lib/apple-wallet/native.ts` provides availability, membership-check, and presentation wrappers; `hooks/use-apple-wallet-pass.ts` coordinates the authenticated request and native sheet. The presenter uses `PKAddPassesViewController` and checks `PKPassLibrary` after dismissal. This integration is Wallet passes, not Apple Pay. For the issuance API contract, use [d-sports-api PR #1167](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/1167) and the documentation work in [docs PR #316](https://github.com/D-Sports-Ecosystem/docs/pull/316), rather than treating this native guide as the contract.
+
+Focused source tests cover native availability/delegation, API-client behavior, and entitlement registration/merging. They do not verify real pass signing, provisioning, native sheet presentation, or addition to a device's Wallet.
+
 ## Wallet signing
 
 - Custodial wallets sign on the server via `POST /api/wallets/{address}/sign-transaction`.
