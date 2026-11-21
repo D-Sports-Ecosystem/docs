@@ -166,9 +166,11 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 
 ### Google Wallet
 
-Send `POST /api/v1/passes/google-wallet` with the active Clerk bearer token. Omit the body for a `fan_id`. For `club_membership`, send a `teamId` (ID or slug) for an Engage partner club the fan has joined; otherwise the request is forbidden. For `arena_event`, send a `gameId` or `teamId` to scope the pass, or omit both for a general pass. Saving it does not check the fan in.
+Use the existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) for authentication, issuance payloads, eligibility, responses, and server errors. The shipped Android client from PR #1421 uses `walletPass.issueGoogleWalletPass` in `lib/api/wallet-pass-api.ts`; it does not generate or sign passes. Saving an event pass does not check the fan in.
 
-The response wraps `{ saveUrl, jwt, passKind, objectId, classId }` in `data`. Open `saveUrl` or hand `jwt` to the Google Wallet SDK. Do not cache or log either value. Treat `503 CONFIGURATION_ERROR` as Google Wallet passes being unavailable.
+`hooks/use-google-wallet-pass.android.ts` hands the signed JWT to the Pay API through `lib/google-wallet/native.android.ts`. If native availability is false or saving returns `unavailable`, it opens the server Save URL through `Linking.canOpenURL`/`openURL`. The wrapper accepts only a nonempty suffix after `https://pay.google.com/gp/v/save/`. Do not cache or log the JWT or Save URL. Native cancellation does not trigger fallback; native errors show error feedback. Browser opening does not prove saving, and only native `saved` updates the mounted hook's added state.
+
+An explicit `503 CONFIGURATION_ERROR` hides the CTA for that mounted hook and shows localized configuration feedback. Transient `503 RATE_LIMITER_UNAVAILABLE` and other errors leave it available and show an error. The button is signed-in Android only; missing native support retains browser fallback, while iOS/web stubs no-op. There is no persistent membership check or automatic pass-update integration. See [Google Wallet configuration](/repositories/d-sports-engage-native/architecture#google-wallet-pass-configuration) for native dependencies and rebuild requirements, and [entry points](/repositories/d-sports-engage-native/feature-mapping#google-wallet-passes) for all three pass kinds.
 
 ### Widget refresh
 
