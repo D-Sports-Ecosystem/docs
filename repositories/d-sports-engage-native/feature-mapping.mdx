@@ -14,6 +14,10 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Pack browsing, purchase, and open flows use backend-driven states and inventory refresh behavior. Start a pack purchase with `POST /api/packs/{id}/purchase`. Do not call `PUT` on that path (`410 GONE`). Confirm crypto checkout with `POST /api/checkout/crypto/verify`.
 - Odds-disclosure surfaces read backend-provided probability payloads.
 
+## Native review requests
+
+Shop and wallet pack reveals call `lib/store-review.ts` after a Rare, Epic, Legendary, or Mythic pull. The helper uses `expo-store-review` on iOS and Android and skips web or unavailable APIs. With MMKV storage available, requests are limited to once per installed app version and at least 90 days apart. The OS decides whether to display the review sheet; a request does not guarantee presentation. Game-win and quest-claim moment names exist in the helper type but are not wired triggers. This flow is separate from the app-update prompt.
+
 ## Binder and market
 
 - `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
@@ -46,6 +50,15 @@ description: "Native feature coverage and parity mapping against backend/PWA beh
 - Fetch one team with public `GET /api/teams/{id}` (id first, then slug). Archived teams return `404`.
 - Leaderboard displays and team-scoped ranking views align with backend leaderboard contracts.
 - Favorite-team interactions influence quest and leaderboard context where backend eligibility requires it.
+
+## Native media, widgets, and calendar
+
+- **Locker-room PiP:** the full-screen media viewer and inline video tiles opt in with `allowsPictureInPicture`. Inline tiles preserve active PiP playback when they leave the viewport or Reduce Motion is enabled. This is not an app-wide PiP guarantee for every video surface.
+- **Rank and Fan Rep widgets:** `widgets/ios/RankOrPointsWidget.tsx` supports small/medium Home Screen layouts and circular, rectangular, and inline Lock Screen accessories. The small Home Screen layout prefers a valid team rank. Taps use an `engagenative://` deep link when supplied, otherwise the leaderboard for a valid rank or the wallet as fallback.
+- **Live status widget:** `widgets/ios/LiveStatusActivityWidget.tsx` opens the match for a supplied `gameId`, otherwise the locker room. Its small layout keeps the LIVE label on one line. WidgetKit home/Lock Screen layouts are separate from ActivityKit Live Activities and Android widgets; keep platform-specific imports.
+- **Add to calendar:** upcoming HQ cards and pre-game match actions open the system event editor on iOS/Android, not web. `lib/hq/add-to-calendar.ts` builds an event from the fixture start time with a 150-minute duration, optional venue, match deep link in notes, and a 30-minute pre-game alarm. Invalid dates or unavailable APIs do not create an event. The helper distinguishes saved, opened, canceled, and error outcomes: Android's `done` response means the editor was opened, not confirmed saving. There is no silent calendar write or server-side calendar synchronization.
+
+See [native configuration](/repositories/d-sports-engage-native/architecture#native-configuration-and-ios-capabilities) for plugins, privacy declarations, and build requirements.
 
 ## Notifications and legal
 

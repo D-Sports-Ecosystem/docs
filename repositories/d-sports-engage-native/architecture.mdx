@@ -34,6 +34,19 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
 - Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`). iOS also claims `applinks:app.d-sports.org`.
 
+## Native configuration and iOS capabilities
+
+`app.json` owns the base Expo configuration. `app.config.ts` applies environment-dependent overrides, including associated domains derived from the API and app web hosts. PR #1398 added the following native capabilities; plugin, entitlement, privacy-manifest, and icon changes require a new binary rather than an OTA alone.
+
+- **Passkey domain association:** iOS declares both `applinks:` and `webcredentials:` for the API and app hosts, deduplicating matching hosts. Production defaults are `api.d-sports.org` and `app.d-sports.org`. Webcredentials enables passkey/Keychain AutoFill domain association; it does not replace the server's AASA file or add a new authentication flow by itself.
+- **Privacy manifest:** `ios.privacyManifests` declares `NSPrivacyAccessedAPICategoryUserDefaults` reasons `CA92.1` and `1C8F.1`. Expo generates `PrivacyInfo.xcprivacy` at prebuild. This is a required-reason API declaration, not a complete data-collection disclosure.
+- **Shared App Group:** OneSignal and `expo-widgets` use `group.com.dsports.wallet.beta.dengage`. Keep extension signing, plugin configuration, and shared UserDefaults access aligned.
+- **Icon Composer:** `ios.icon` points to `assets/app.icon`, containing `icon.json` and `Assets/`. Android adaptive icons and the web favicon remain separately configured.
+- **Picture-in-picture:** the `expo-video` plugin sets `supportsPictureInPicture: true`, enabling iOS background audio and Android PiP support. Opted-in video views still control playback behavior.
+- **Calendar:** the `expo-calendar` plugin requests write-only calendar access with a usage description and disables reminders permission. The client opens the native event editor through `expo-calendar/legacy`; it does not read calendars or the Reminders database.
+
+For source ownership and focused regression tests, see the native repository's [maintained capabilities guide](https://github.com/D-Sports-Ecosystem/d-sports-engage-native/blob/main/docs/ios-native-capabilities.md).
+
 ## Wallet signing
 
 - Custodial wallets sign on the server via `POST /api/wallets/{address}/sign-transaction`.
