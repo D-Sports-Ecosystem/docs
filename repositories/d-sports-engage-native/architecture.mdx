@@ -238,6 +238,47 @@ A new binary is required for the Quick Settings module/services/resources, nativ
 
 Focused #1409 tests are `lib/__tests__/tier2-android.test.ts` (tokens, tile manifest markers, distinct refresh constants, semantic-tone/API-gate source markers, blocked permissions/keyboard resize) and `lib/__tests__/notification-channels.test.ts` (goal JS/Kotlin parity, unique IDs, distinct vibration patterns). They do not compile Kotlin, verify merged APK permissions, exercise HTTP/auth/headless refresh, or prove device UI/gestures, tile discovery, actual vibration, push promotion, Photo Picker behavior, or Play compliance. See `docs/android-native-capabilities.md` in engage-native for source ownership and release checks.
 
+## Android NFC configuration
+
+PR #1425 adds `modules/expo-android-nfc/` and registers `plugins/withAndroidNfc.js` in `app.json`.
+This is a separate link transport from [Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes).
+It reuses the arena URL family of the [iOS App Clip](/repositories/d-sports-engage-native/architecture#app-clip-configuration).
+
+`ExpoAndroidNfcModule.kt`, `DsportsNfcHceService.kt`, and `NdefUrlCodec.kt` live under `modules/expo-android-nfc/android/src/main/java/expo/modules/androidnfc/`.
+The service emulates a read-only NFC Forum Type 4 Tag containing one NDEF URI record.
+The reader accepts physical NDEF tags and peer Android HCE over IsoDep.
+This is neither Android Beam nor a physical-tag writer.
+The module depends on `androidx.core:core-ktx:1.15.0`.
+Its consumer ProGuard rules keep the Expo module and HCE service.
+
+The plugin adds `android.permission.NFC`.
+It declares `android.hardware.nfc` and `android.hardware.nfc.hce` with `required="false"`.
+The exported HCE service requires `android.permission.BIND_NFC_SERVICE`.
+Generated `res/xml/nfc_aid_list.xml` requires device unlock and uses category `other`.
+It registers the standard Type 4 NDEF AID `D2760000850101` and custom AID `F04453504F52545301`.
+There is no user-facing rollout flag or Android 16/17 API-level gate in this bridge.
+
+`NDEF_DISCOVERED` filters accept HTTPS `/clip/arena`, `/profile`, and `/binder` prefixes on `extra.appWebHost`, defaulting to `app.d-sports.org`.
+The plugin writes that host to `com.dsports.engage.NFC_ALLOWED_HOST` metadata.
+Native and JS validators accept production/configured hosts and reject non-HTTPS or unsupported paths.
+The native codec rejects `..` and URLs longer than 512 characters.
+`lib/android/nfc-url.ts` adds route and identifier validation.
+Manifest prefix matching alone is not validation.
+
+`AndroidCapabilitiesHost.android.tsx` mounts `hooks/use-android-nfc-host.android.ts` for cold/warm intents and live reader events.
+The hook queues the latest link until the authenticated/onboarded `inApp` gate opens.
+It suppresses identical URLs for three seconds.
+The share sheet refreshes status and rearms its selected mode on resume.
+Closing it stops sharing and reading.
+Native background/destroy callbacks also stop both modes and clear the in-memory share URL.
+
+Native module, Kotlin, manifest, plugin, and XML changes require a rebuilt Android binary.
+Compatible JS-only changes can use OTA only after that binary exists.
+`lib/android/__tests__/nfc-url.test.ts` covers builders, valid/invalid/empty URLs, and non-Android unavailable defaults.
+`plugins/__tests__/withAndroidNfc.test.ts` covers AIDs/unlock, optional hardware, protected service registration, filters/host metadata, idempotence, and app registration.
+These tests do not execute Kotlin APDUs, modal lifecycle, auth/check-in effects, or physical-device interoperability.
+See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for the shipped entry point and failure limits.
+
 ## Wallet signing
 
 - Custodial wallets sign on the server via `POST /api/wallets/{address}/sign-transaction`.

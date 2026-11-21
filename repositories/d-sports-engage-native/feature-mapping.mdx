@@ -165,6 +165,8 @@ See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#tie
 
 ## Apple Wallet passes
 
+For Android's public-profile link transport rather than signed passes, see [NFC sharing](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
+
 The **Add to Apple Wallet** button is available on the fan's own profile for a Fan ID, eligible team leaderboards for club membership (the existing `showAlertsBell` gate plus a team ID), and HQ match bodies for an arena-event pass. It is hidden when signed out, on Android/web, in older binaries without the native module, and where PassKit cannot add passes.
 
 On tap, the hook prevents concurrent requests, fetches a signed pass through the authenticated API client, and presents Apple's native confirmation sheet. The client does not generate/sign passes or add them silently. Native completion checks whether the pass is in Wallet; dismissing the sheet is not itself success. The hook can recheck the returned identity, updates local added state, and shows localized success/error feedback, including a configuration message for a 503. The shipped CTA does not supply the optional known-pass identity for an initial Wallet check, so added state is not a persistent cross-mount status cache. There is no automatic pass refresh. Android has a separate Google Wallet integration below.
@@ -188,6 +190,8 @@ Only native `saved` sets the mounted hook's added state and success feedback. Ca
 See [native configuration](/repositories/d-sports-engage-native/architecture#google-wallet-pass-configuration) and [native integration](/repositories/d-sports-engage-native/integration-contracts#google-wallet). The existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) own issuance contracts.
 
 ## App Clip
+
+For Android's separate tag-reader and authenticated claim flow using the same arena URL family, see [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
 
 An arena invocation such as `https://app.d-sports.org/clip/arena/<id>` opens the iOS 17+ **D-Sports Arena** clip without installing full Engage. Its SwiftUI card displays a public event/club preview, including available team branding, status, venue/start time, and match scores. It does not sign you in, subscribe to live scores, claim a check-in, or award Rep. Invalid links, missing arenas, and network/server failures show **Couldn't Load Arena**; **Try Again** appears when a valid arena ID was extracted. API requests use 10-second request and 15-second resource timeouts.
 
@@ -269,6 +273,46 @@ Android registers five channel categories: `hq_goal_alerts` (high, no badge, goa
 Binder cover selection/uploads and admin artwork now open Android's system library picker without first requesting broad media-library permission. Access is limited to selected media; normal cancellation/upload handling and admin edit gates still apply. The build blocks broad image/video and legacy read-storage permissions, while deliberately retaining legacy write-storage support for API 26–28 camera use. Non-Android permission handling is unchanged. This is not a whole-library browser, new camera entitlement, or verified Play approval.
 
 See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration) for native-build/OTA boundaries, source tests, and device-verification limits.
+
+## Android NFC sharing and arena check-in
+
+PR #1425 adds **Tap to share** to your own Fan Profile through `features/profile/screen/OwnProfileScreen.tsx` and `components/nfc/NfcTapToShareButton.android.tsx`.
+The payload is a public HTTPS link such as `https://app.d-sports.org/profile/<handle>`.
+`buildFanProfileNfcUrl` uses the configured app web origin and strips leading `@` characters.
+It does not share private profile data or a signed Wallet pass.
+Binder URL helpers and inbound routing exist, but the merged PR removes the Binder share button pending a public binder endpoint.
+
+In `NfcTapToShareModal.android.tsx`, share mode exposes the URL as an NDEF URI through HCE.
+Scan mode reads physical arena tags or a peer Android phone.
+A completed NDEF read shows share confirmation, not proof that the recipient opened the link.
+The button hides without NFC hardware, the native module, or a usable URL.
+The modal distinguishes NFC-off and HCE-unavailable states.
+Sharing requires enabled NFC, HCE, and a current activity.
+Scanning requires enabled NFC and a current activity.
+**Share link instead** uses the existing share-link fallback.
+iOS/web components no-op.
+Native start failures return `false`, but the modal ignores that return value.
+A ready label therefore does not prove a session started.
+Unsupported reader URLs show an error toast; unreadable tags can remain silent.
+
+`hooks/use-android-nfc-host.android.ts` waits for sign-in/onboarding before routing received links.
+Profile and binder links open their local routes.
+An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
+The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
+If the preview supplies `team.id`, it submits an authenticated quest check-in with that team ID.
+It does not check `checkInAvailable` before calling the claim client.
+Success sets the arena badge and shows earned Rep.
+Already-claimed responses set the badge without another earn toast.
+Other claim errors show feedback; thrown errors also log.
+Invalid/missing previews return silently, and missing team IDs skip the claim.
+The hook has no durable retry queue.
+An allowlisted URL is not proof of attendance or permission to earn rewards.
+See the [NFC integration](/repositories/d-sports-engage-native/integration-contracts#android-nfc) for the reused API clients and server-owned contracts.
+
+The [iOS App Clip](/repositories/d-sports-engage-native/feature-mapping#app-clip) uses the same arena URL family with a different handoff flow.
+[Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes) are signed pass presentation, not this public-link NFC transport.
+See [NFC configuration](/repositories/d-sports-engage-native/architecture#android-nfc-configuration) for permissions, lifecycle, native build requirements, and test limits.
+Cross-platform phone reading and physical-device interoperability remain unverified by the source tests.
 
 ## Notifications and legal
 
