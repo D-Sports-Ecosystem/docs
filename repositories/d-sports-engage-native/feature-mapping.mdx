@@ -177,6 +177,36 @@ For eligible Play-installed builds, the authenticated app's existing forced/soft
 
 See [Android configuration](/repositories/d-sports-engage-native/architecture#android-tier-1-configuration) for plugins, native-build/OTA boundaries, test coverage, and unverified device/Play behavior.
 
+## Android Tier 2 platform behavior
+
+### Material 3 navigation
+
+The Android tab bar is now a floating Compose capsule with native ripples, selected-tab semantics, scaled labels, and API 31+ live backdrop blur. Its five entries still open the existing wallet, shop, Locker Room, leaderboard, and profile tab routes through normal auth/onboarding gates. The wallet badge shows sealed owned packs, capped at **99+**. Hide/show follows the shared navigation visibility with an Expressive spring, or snaps with Reduce Motion. The host supports wallpaper-derived colors on capable devices and follows the app's dark/light choice, but the capsule keeps explicit gold/neutral styling. This does not migrate every screen: new loading, sheet, and snackbar wrappers are not called by product screens.
+
+### Quick Settings tiles
+
+Add tiles with Android's Quick Settings editor; Engage does not auto-place them or expose an in-app add button. **Scan Arena QR** opens `engagenative://leaderboard/scan-qr`; its **Check in** subtitle does not mean a check-in is submitted. **Live Game** opens `engagenative://hq/match/<encoded-id>` (optional encoded `slug`) when its cached snapshot is active with an ID. Otherwise it opens `engagenative://locker-room` and shows **Open Locker Room**. Tile labels are currently English resources; an active tile can show the cached score/status.
+
+Locked taps request device unlock, then launch the app through existing route/auth guards. They do not run the scanner inside the shade, bypass sign-in, or guarantee every cold signed-out destination is restored. State comes from foreground match polling or a successful headless HQ refresh, not a separate live tile subscription. Leaving a live screen preserves the tile snapshot; an observed final clears it on the ended-game path. There is no separate sign-out/expiry cleanup, so an apparently active tile can be stale. Compare the [iOS Control Center scanner](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar).
+
+### Widget refresh
+
+The **D-Sports Rank** and **D-Sports Live** widgets gain a **Refresh** (`↻`) action without opening the app. Live widgets show last-play text when space permits. Ordinary widget body taps keep their existing app/deep-link behavior. Refresh attempts a four-second-budget snapshot fetch, then redraws stored data. Initial/periodic/resize renders remain cache-based, and Android controls update scheduling.
+
+Do not treat the refresh button as proof of fresh authenticated scores/rank. The shipped helper omits the API's required bearer header and does not unwrap its `data` response envelope. Missing configuration, rejected requests, timeout/offline/errors, or absent expected fields leave local/push data without an error banner. It does not open a login flow or bypass API authorization. Compare [iOS widget refresh](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar), which rewrites cached snapshots without this Android network attempt.
+
+### Live Update colors
+
+On Android 17/API 37+, eligible live-game ProgressStyle notifications can use blue info, red urgent, or green final accents/milestone points. Team-color segments stay unchanged; neutral and older Android keep existing styling. A valid explicit `semanticTone` wins; absent/invalid values fall back to status/last-play text heuristics (FINAL/FT, OT/SO or GOAL, PP/INT, otherwise neutral). The color is a hint, not authoritative game state, a new follow subscription, or a guarantee of SystemUI promotion. Existing notification consent, delivery, and tap routing remain in force. The [iOS Live Activity contract](/repositories/d-sports-engage-native/integration-contracts#game-center-contracts) remains a separate ActivityKit surface, not an Android widget/color feature.
+
+### Notification categories and photo selection
+
+Android registers five channel categories: `hq_goal_alerts` (high, no badge, goal-horn vibration), `hq_quiet_updates` (low, silent/no badge), `dsports_quest_drops` (default, badge, two-tap pulse), `dsports_marketplace_bids` (high, badge, double-tap), and `dsports_locker_room_replies` (default, badge, light tap). New category names/descriptions have English/French/Italian entries. Android/user settings control actual sound, vibration, and importance; existing channels are not reset by an app update. Registration alone neither grants notification consent nor makes server pushes target those categories. A channel-settings helper exists, but no in-app screen calls it. See the shared [settings/notification contract](/repositories/d-sports-engage-native/integration-contracts#settings-and-notifications) for account preferences; iOS does not use Android channel IDs.
+
+Binder cover selection/uploads and admin artwork now open Android's system library picker without first requesting broad media-library permission. Access is limited to selected media; normal cancellation/upload handling and admin edit gates still apply. The build blocks broad image/video and legacy read-storage permissions, while deliberately retaining legacy write-storage support for API 26–28 camera use. Non-Android permission handling is unchanged. This is not a whole-library browser, new camera entitlement, or verified Play approval.
+
+See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration) for native-build/OTA boundaries, source tests, and device-verification limits.
+
 ## Notifications and legal
 
 - Push delivery uses OneSignal. In-app inbox uses `/api/notifications*` and includes `GAME_ALERT` and `RATING`.
