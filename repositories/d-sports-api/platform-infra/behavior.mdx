@@ -25,9 +25,20 @@ icon: "list-checks"
 
 ## Pass issuance and widget refresh
 
-- `POST /api/v1/passes/google-wallet` returns `{ success: true, data: { saveUrl, jwt, passKind, objectId, classId } }` and `Cache-Control: no-store`. The optional JSON body is capped at 4 KiB. An unknown team or game returns `404 NOT_FOUND`; missing or invalid signing configuration returns `503 CONFIGURATION_ERROR`.
-- `GET /api/v1/widgets/snapshot` returns `{ success: true, data: { rankOrPoints, hqLive } }` and `Cache-Control: private, no-store`. `hqLive` selects the latest live game by start time among the fan’s favorite or followed clubs, or is `null` when none qualifies. HQ stars are not follows.
-- Both routes require a Clerk session and return `404 USER_NOT_PROVISIONED` if the fan has no D-Sports account.
+`POST /api/v1/passes/google-wallet` returns `{ success: true, data: { saveUrl, jwt, passKind, objectId, classId } }` and `Cache-Control: no-store`. The optional JSON body is capped at 4 KiB. An unknown team or game returns `404 NOT_FOUND`; missing or invalid signing configuration returns `503 CONFIGURATION_ERROR`. It requires a Clerk session and returns `404 USER_NOT_PROVISIONED` if the fan has no D-Sports account.
+
+## Widget snapshot
+
+`GET /api/v1/widgets/snapshot` accepts a Clerk session or a `wgt_` bearer scoped to `widgets:snapshot:read`. The snapshot returns `404 USER_NOT_PROVISIONED` if the authenticated fan has no D-Sports account.
+
+- `rankOrPoints` includes Fan Rep, global rank by earned points (nullable), an update timestamp, and a relative leaderboard link.
+- `hqLive` selects the latest non-demo live game by start time among the fan’s favorite or followed clubs, or returns `null`. An active card includes club `slug`, home and away scores, raster logos, team colors, period, clock, and nullable `lastPlay` and `squadLabel`. If there is no raster logo, the logo is `null`; colors prefer the team theme color, then the first nonblank gradient color.
+- `hqLive.deepLink` remains the relative web locker-room link. `appDeepLink` uses `engagenative://hq/match/<gameId>?slug=<slug>`; the query is omitted if the slug is unavailable.
+- `?include=clubs` adds up to six favorite or followed clubs (HQ stars are not follows). Each card includes branding and a non-demo game summary, including its native deep link. The server prioritizes live, then soonest upcoming, then latest final, with no-game cards last (`game: null`). The array is omitted unless requested and is empty if requested with no eligible clubs.
+
+Successful responses vary by `Authorization, Cookie` and are private: `max-age=60` when the returned HQ Live card or an included club game is live, and `max-age=3600` otherwise. The weak `ETag` ignores `updatedAt`. A matching `If-None-Match` returns `304` with no body and with the cache headers preserved; never share the local cache across users.
+
+A widget credential is issued once for an installation and expires after 90 days without use. Snapshot reads using it are limited to 60 per hour per token, including conditional reads. Issuance requires a Clerk session and is limited to 20 per hour per user. Exceeding either limit returns `429`; an unavailable limiter returns `503`. See [the widget API](/api-reference/domains/platform-infra#widget-api) for the token endpoints.
 
 ## Android Live Update tone
 

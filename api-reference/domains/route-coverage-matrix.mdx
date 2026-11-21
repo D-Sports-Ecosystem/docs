@@ -29,6 +29,7 @@ Route documentation status uses:
 | `/api/v1/passes/apple-wallet` | Publish | Authenticated Apple Wallet `.pkpass` issuance (fan ID, club membership, arena event). |
 | `/api/v1/app-clips/arena/{id}` | Publish | Public iOS App Clip arena preview (no auth, weak ETag, no writes). |
 | `/api/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, me/player-me, and client-safe earn. Direct kinds on `/earn` return 403. |
+| `/api/admin/users/{userId}/widget-tokens` | Publish with redaction | Platform admin only; token metadata and audited revocation, never raw tokens or hashes. |
 | `/api/admin/users/{userId}/rep` | Publish with redaction | D-Sports Direct grant (`isAdmin`). Document amount/reason contract only. |
 | `/api/rewards`, `/api/rewards/claim`, `/api/rewards/redeem` | Publish | Public reward flow contracts. |
 | `/api/teams`, `/api/teams/followed`, `/api/teams/{id}`, `/api/teams/{id}/follow`, `/api/leagues` | Publish | Team/league integrations for all clients. `GET /api/teams/{id}` resolves id, then slug. |
@@ -86,7 +87,8 @@ Route documentation status uses:
 | `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{address}/attestation` | Publish | Wallet link/reset helpers. Attestation path value is the wallet database id. |
 | `/api/health`, `/api/mobile/version`, `/api/mobile/wallet-callback` | Publish | Liveness and mobile helpers. |
 | `POST /api/v1/passes/google-wallet` | Publish | Authenticated Google Wallet pass issuance. |
-| `GET /api/v1/widgets/snapshot` | Publish | Authenticated Rank / Fan Rep and HQ Live snapshot. |
+| `GET /api/v1/widgets/snapshot` | Publish | Clerk or scoped widget bearer; optional clubs and conditional caching. |
+| `POST /api/v1/widgets/token`, `DELETE /api/v1/widgets/token` | Publish | Issue with Clerk; revoke with Clerk or the presented widget bearer. |
 | `GET /.well-known/assetlinks.json` | Publish | Public Digital Asset Links statement; documented in the platform guide. |
 | `/api/news*`, `/api/pins`, `/api/prompts`, `/api/commerce` | Publish | Public CMS/commerce reads. |
 | `/api/v1/engage/player-challenge/complete` | Publish | Retired. Returns `410`. |

@@ -17,6 +17,16 @@ icon: "workflow"
 - Background synchronization for derived datasets
 - Offline correction/backfill for historical inconsistencies
 
+## Widget authentication and account data
+
+The widget API accepts Clerk sessions and revocable, per-install credentials. The server stores only a token hash. A new token for a device replaces its previous token. This is a backend capability, not a claim that a particular native release uses widget credentials.
+
+`POST /api/webhooks/clerk` verifies the Svix signature and revokes all of the affected user’s widget tokens for `session.revoked`, `user.deleted`, or `user.updated` with a password-update timestamp, locked account, or banned account. Other verified events succeed without revoking tokens.
+
+Platform admins can list metadata with `GET /api/admin/users/{userId}/widget-tokens`. `DELETE` on that route revokes one `tokenId` (query or JSON body), or all active tokens if no ID is supplied, and records staff activity. Neither response exposes raw tokens or hashes.
+
+A user’s GDPR data export includes sanitized `widgetTokens` metadata in `consents-and-sessions.json`, not raw tokens or hashes. Account deletion removes the token rows. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for the read and cache contract.
+
 ## Android App Links
 
 Android verifies content URLs against [the statement on the content host](https://app.d-sports.org/.well-known/assetlinks.json). That host rewrites the well-known path to the API. [The API host](https://api.d-sports.org/.well-known/assetlinks.json) continues to serve the statement for mobile authentication and credential delegation. Both hosts must return JSON without a sign-in redirect.
