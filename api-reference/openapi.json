@@ -172,6 +172,14 @@
     {
       "name": "KYC",
       "description": "Identity verification session helpers"
+    },
+    {
+      "name": "Passes",
+      "description": "Apple Wallet and Google Wallet pass issuance"
+    },
+    {
+      "name": "App Clips",
+      "description": "Public iOS App Clip previews"
     }
   ],
   "paths": {
@@ -7440,7 +7448,7 @@
           "Teams"
         ],
         "summary": "List teams",
-        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }. logo is the raster crest (logoPng when the stored logo is SVG, else logo); logoSvg carries the stored vector logo when a logoPng sibling exists, else null. Joinability: joinable (boolean), isGlobal (boolean), teamCategory (e.g. dsports_official). D-Sports is joinable:false / isGlobal:true / teamCategory:\"dsports_official\" — not a club membership board. source (dsports = partner club with the full social surface; provider = pulled data-only HQ) and providerId (api-sports team id, the dedupe key) are included per team. rosterVerifiedByClubAt is an ISO-8601 timestamp or null (null until a club admin confirms the roster). ?leagueId= filters, ?search= matches name/slug server-side, ?limit=/?page= paginate (opt-in; omitted returns the whole filtered list with { teams, season, total }).",
+        "description": "List teams with enriched stats, or look up one team with ?slug=. Archived slugs 404 regardless of casing. Payload includes fans, totalPoints, rank, lastWinner, isOfficial, league, themeColor, leaderboardId, leagueInfo, leagueColors, never-null sport, plus _count { packs, collectibles }. logo is the raster crest (logoPng when the stored logo is SVG, else logo); logoSvg carries the stored vector logo when a logoPng sibling exists, else null. Joinability: joinable (boolean), isGlobal (boolean), teamCategory (e.g. dsports_official). D-Sports is joinable:false / isGlobal:true / teamCategory:\"dsports_official\" — not a club membership board. source (dsports = partner club with the full social surface; provider = pulled data-only HQ) and providerId (api-sports team id, the dedupe key) are included per team. rosterVerifiedByClubAt is an ISO-8601 timestamp or null (null until a club admin confirms the roster). nickname is the admin-set short club name (for example Milano for Milano HC), or null when unset; clients then derive the short name from name. ?leagueId= filters, ?search= matches name/slug server-side, ?limit=/?page= paginate (opt-in; omitted returns the whole filtered list with { teams, season, total }).",
         "security": [
           {
             "bearerAuth": []
@@ -7758,7 +7766,7 @@
           "Teams"
         ],
         "summary": "Search teams",
-        "description": "Cursor-paginated team search. Query: q (max 64), sport, league, cursor, limit (1-50), sort (rank | name | fans). Each team includes rosterVerifiedByClubAt (ISO-8601 or null).",
+        "description": "Cursor-paginated team search. Query: q (max 64), sport, league, cursor, limit (1-50), sort (rank | name | fans). Each team includes rosterVerifiedByClubAt (ISO-8601 or null) and nickname (admin-set short club name, or null to derive it from name).",
         "parameters": [
           {
             "name": "q",
@@ -24789,6 +24797,330 @@
           }
         }
       }
+    },
+    "/api/v1/passes/apple-wallet": {
+      "post": {
+        "tags": [
+          "Passes",
+          "Engage"
+        ],
+        "summary": "Issue a signed Apple Wallet pass",
+        "description": "Authenticated. Issues a signed Apple Wallet .pkpass for the caller (pass type pass.com.dsports.wallet). passKind is fan_id (default), club_membership (teamId required; only for an Engage partner club the caller has joined, else 403) or arena_event (gameId and/or teamId). format binary (default) returns application/vnd.apple.pkpass bytes as an attachment; format base64 returns { success, data: { passTypeIdentifier, serialNumber, passKind, contentType, filename, pkpassBase64 } } for PKAddPassesViewController. Both responses send Cache-Control: no-store. The body is capped at 4 KB. Returns 503 CONFIGURATION_ERROR until the pass signing certificates are configured on the server.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "passKind": {
+                    "type": "string",
+                    "enum": [
+                      "fan_id",
+                      "club_membership",
+                      "arena_event"
+                    ],
+                    "default": "fan_id"
+                  },
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "gameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "binary",
+                      "base64"
+                    ],
+                    "default": "binary"
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "passKind": {
+                      "const": "club_membership"
+                    }
+                  },
+                  "required": [
+                    "passKind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed pass: application/vnd.apple.pkpass bytes (format binary) or { success, data: { pkpassBase64, ... } } (format base64)",
+            "content": {
+              "application/vnd.apple.pkpass": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppleWalletPassBase64Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (invalid JSON, unknown field, or teamId missing for club_membership)"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN (club_membership pass for a non-partner club, or a partner club the caller has not joined)"
+          },
+          "404": {
+            "description": "NOT_FOUND (team or game not found)"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE (body over 4 KB)"
+          },
+          "503": {
+            "description": "CONFIGURATION_ERROR (pass signing not configured)"
+          }
+        }
+      }
+    },
+    "/api/v1/passes/google-wallet": {
+      "post": {
+        "tags": [
+          "Passes",
+          "Engage"
+        ],
+        "summary": "Issue a signed Google Wallet pass",
+        "description": "Authenticated. Returns a signed savetowallet JWT and Google Wallet Save URL for the caller. Omit the body or passKind for a fan ID. Only Engage partner clubs the caller has joined qualify for club_membership. arena_event uses the game, the team, or a general pass when neither is supplied; signing does not perform arena check-in. The body is capped at 4 KiB.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "passKind": {
+                    "type": "string",
+                    "enum": [
+                      "fan_id",
+                      "club_membership",
+                      "arena_event"
+                    ],
+                    "default": "fan_id"
+                  },
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "\\S",
+                    "description": "Team ID or slug; trimmed before validation. Required for club_membership."
+                  },
+                  "gameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "\\S",
+                    "description": "Game event ID; trimmed before validation."
+                  }
+                },
+                "if": {
+                  "required": [
+                    "passKind"
+                  ],
+                  "properties": {
+                    "passKind": {
+                      "const": "club_membership"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed Google Wallet pass details",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleWalletPassSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (invalid JSON or fields, or club_membership without teamId)"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN (not a member of the requested Engage partner club)"
+          },
+          "404": {
+            "description": "NOT_FOUND (team or game not found) or USER_NOT_PROVISIONED"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE (body exceeds 4 KiB)"
+          },
+          "500": {
+            "description": "Unexpected error issuing the pass"
+          },
+          "503": {
+            "description": "CONFIGURATION_ERROR (missing or invalid Google Wallet signing configuration)"
+          }
+        }
+      }
+    },
+    "/api/v1/widgets/snapshot": {
+      "get": {
+        "tags": [
+          "Engage"
+        ],
+        "summary": "Get the signed-in fan’s widget snapshot",
+        "description": "Compact, on-demand refresh for the Rank / Fan Rep and HQ Live widgets. The rank is global and is ordered by earned points; Fan Rep also includes applicable ledger amounts. The live slice uses the latest live match for any of the fan’s favorite or followed clubs, or null if there is no qualifying match.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personalized widget snapshot",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetSnapshotSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "USER_NOT_PROVISIONED"
+          },
+          "500": {
+            "description": "Unexpected error building the snapshot"
+          }
+        }
+      }
+    },
+    "/api/v1/app-clips/arena/{id}": {
+      "get": {
+        "tags": [
+          "App Clips",
+          "Engage"
+        ],
+        "summary": "Public App Clip arena preview",
+        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs (and, for games, live or upcoming status); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "description": "GameEvent.id, Team.id, or Team.slug"
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public arena preview with a weak ETag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppClipArenaPreviewSuccess"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified (If-None-Match matched)",
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (malformed id)"
+          },
+          "404": {
+            "description": "NOT_FOUND (no game or club matches id)"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -28280,6 +28612,450 @@
           "success",
           "data"
         ]
+      },
+      "AppClipArenaPreview": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "game_event",
+              "team"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "venue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startTime": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "themeColor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "homeTeam": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "abbr": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "abbr",
+              "score"
+            ]
+          },
+          "awayTeam": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "abbr": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "abbr",
+              "score"
+            ]
+          },
+          "team": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "nickname": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "location": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "nickname",
+              "location"
+            ]
+          },
+          "checkInAvailable": {
+            "type": "boolean"
+          },
+          "fullAppUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "checkInEndpoint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "subtitle",
+          "venue",
+          "status",
+          "startTime",
+          "themeColor",
+          "logoUrl",
+          "homeTeam",
+          "awayTeam",
+          "team",
+          "checkInAvailable",
+          "fullAppUrl",
+          "checkInEndpoint"
+        ]
+      },
+      "AppClipArenaPreviewSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppClipArenaPreview"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AppleWalletPassBase64": {
+        "type": "object",
+        "properties": {
+          "passTypeIdentifier": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "passKind": {
+            "type": "string",
+            "enum": [
+              "fan_id",
+              "club_membership",
+              "arena_event"
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "application/vnd.apple.pkpass"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "pkpassBase64": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        },
+        "required": [
+          "passTypeIdentifier",
+          "serialNumber",
+          "passKind",
+          "contentType",
+          "filename",
+          "pkpassBase64"
+        ]
+      },
+      "AppleWalletPassBase64Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppleWalletPassBase64"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "GoogleWalletPassSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "saveUrl",
+              "jwt",
+              "passKind",
+              "objectId",
+              "classId"
+            ],
+            "properties": {
+              "saveUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "Google Wallet Save URL containing the signed JWT."
+              },
+              "jwt": {
+                "type": "string",
+                "description": "Signed Google Wallet savetowallet JWT."
+              },
+              "passKind": {
+                "type": "string",
+                "enum": [
+                  "fan_id",
+                  "club_membership",
+                  "arena_event"
+                ]
+              },
+              "objectId": {
+                "type": "string"
+              },
+              "classId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WidgetSnapshotSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "rankOrPoints",
+              "hqLive"
+            ],
+            "properties": {
+              "rankOrPoints": {
+                "type": "object",
+                "required": [
+                  "fanRep",
+                  "rank",
+                  "updatedAt",
+                  "deepLink"
+                ],
+                "properties": {
+                  "fanRep": {
+                    "type": "integer",
+                    "description": "Earned points plus Fan Rep ledger amounts."
+                  },
+                  "rank": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "description": "Global rank by earned points (not combined Fan Rep), or null when unavailable."
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Snapshot creation time."
+                  },
+                  "deepLink": {
+                    "type": "string",
+                    "const": "/leaderboard"
+                  }
+                }
+              },
+              "hqLive": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "gameId",
+                  "status",
+                  "home",
+                  "away",
+                  "period",
+                  "clock",
+                  "deepLink"
+                ],
+                "properties": {
+                  "gameId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "live"
+                  },
+                  "home": {
+                    "type": "object",
+                    "required": [
+                      "abbr",
+                      "name",
+                      "score"
+                    ],
+                    "properties": {
+                      "abbr": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "score": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "away": {
+                    "type": "object",
+                    "required": [
+                      "abbr",
+                      "name",
+                      "score"
+                    ],
+                    "properties": {
+                      "abbr": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "score": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "period": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "clock": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "deepLink": {
+                    "type": "string",
+                    "description": "Relative app path under /locker-room/game/."
+                  }
+                },
+                "description": "A live match involving a favorite or followed club, or null if none qualifies."
+              }
+            }
+          }
+        }
       }
     }
   }
