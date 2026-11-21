@@ -164,6 +164,17 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 
 ## Android integration contracts
 
+### Android NFC
+
+PR #1425 adds an Android caller of existing preview and check-in clients, not a new endpoint.
+`hooks/use-android-nfc-host.android.ts` calls `useApi().quests.getAppClipArenaPreview` and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
+Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
+Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
+The hook passes the preview's `team.id`, not the game ID in an event URL.
+It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`.
+The server remains authoritative for eligibility and rewards.
+See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
+
 ### Google Wallet
 
 Use the existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) for authentication, responses, and server errors. For a `fan_id`, omit the body. For `club_membership`, send the `teamId` (ID or slug) of an Engage partner club the fan has joined. Any other club is forbidden. For `arena_event`, send a `gameId` or `teamId` to scope the pass, or omit both for a general pass. The shipped Android client from PR #1421 uses `walletPass.issueGoogleWalletPass` in `lib/api/wallet-pass-api.ts`; it does not generate or sign passes. Saving an event pass does not check the fan in.
