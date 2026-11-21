@@ -175,7 +175,7 @@
     },
     {
       "name": "Passes",
-      "description": "Apple Wallet pass issuance"
+      "description": "Apple Wallet and Google Wallet pass issuance"
     },
     {
       "name": "App Clips",
@@ -24904,6 +24904,156 @@
         }
       }
     },
+    "/api/v1/passes/google-wallet": {
+      "post": {
+        "tags": [
+          "Passes",
+          "Engage"
+        ],
+        "summary": "Issue a signed Google Wallet pass",
+        "description": "Authenticated. Returns a signed savetowallet JWT and Google Wallet Save URL for the caller. Omit the body or passKind for a fan ID. Only Engage partner clubs the caller has joined qualify for club_membership. arena_event uses the game, the team, or a general pass when neither is supplied; signing does not perform arena check-in. The body is capped at 4 KiB.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "passKind": {
+                    "type": "string",
+                    "enum": [
+                      "fan_id",
+                      "club_membership",
+                      "arena_event"
+                    ],
+                    "default": "fan_id"
+                  },
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "\\S",
+                    "description": "Team ID or slug; trimmed before validation. Required for club_membership."
+                  },
+                  "gameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "\\S",
+                    "description": "Game event ID; trimmed before validation."
+                  }
+                },
+                "if": {
+                  "required": [
+                    "passKind"
+                  ],
+                  "properties": {
+                    "passKind": {
+                      "const": "club_membership"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed Google Wallet pass details",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleWalletPassSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (invalid JSON or fields, or club_membership without teamId)"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN (not a member of the requested Engage partner club)"
+          },
+          "404": {
+            "description": "NOT_FOUND (team or game not found) or USER_NOT_PROVISIONED"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE (body exceeds 4 KiB)"
+          },
+          "500": {
+            "description": "Unexpected error issuing the pass"
+          },
+          "503": {
+            "description": "CONFIGURATION_ERROR (missing or invalid Google Wallet signing configuration)"
+          }
+        }
+      }
+    },
+    "/api/v1/widgets/snapshot": {
+      "get": {
+        "tags": [
+          "Engage"
+        ],
+        "summary": "Get the signed-in fan’s widget snapshot",
+        "description": "Compact, on-demand refresh for the Rank / Fan Rep and HQ Live widgets. The rank is global and is ordered by earned points; Fan Rep also includes applicable ledger amounts. The live slice uses the latest live match for any of the fan’s favorite or followed clubs, or null if there is no qualifying match.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personalized widget snapshot",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetSnapshotSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "404": {
+            "description": "USER_NOT_PROVISIONED"
+          },
+          "500": {
+            "description": "Unexpected error building the snapshot"
+          }
+        }
+      }
+    },
     "/api/v1/app-clips/arena/{id}": {
       "get": {
         "tags": [
@@ -28720,6 +28870,192 @@
           "success",
           "data"
         ]
+      },
+      "GoogleWalletPassSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "saveUrl",
+              "jwt",
+              "passKind",
+              "objectId",
+              "classId"
+            ],
+            "properties": {
+              "saveUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "Google Wallet Save URL containing the signed JWT."
+              },
+              "jwt": {
+                "type": "string",
+                "description": "Signed Google Wallet savetowallet JWT."
+              },
+              "passKind": {
+                "type": "string",
+                "enum": [
+                  "fan_id",
+                  "club_membership",
+                  "arena_event"
+                ]
+              },
+              "objectId": {
+                "type": "string"
+              },
+              "classId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WidgetSnapshotSuccess": {
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "rankOrPoints",
+              "hqLive"
+            ],
+            "properties": {
+              "rankOrPoints": {
+                "type": "object",
+                "required": [
+                  "fanRep",
+                  "rank",
+                  "updatedAt",
+                  "deepLink"
+                ],
+                "properties": {
+                  "fanRep": {
+                    "type": "integer",
+                    "description": "Earned points plus Fan Rep ledger amounts."
+                  },
+                  "rank": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "description": "Global rank by earned points (not combined Fan Rep), or null when unavailable."
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Snapshot creation time."
+                  },
+                  "deepLink": {
+                    "type": "string",
+                    "const": "/leaderboard"
+                  }
+                }
+              },
+              "hqLive": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "gameId",
+                  "status",
+                  "home",
+                  "away",
+                  "period",
+                  "clock",
+                  "deepLink"
+                ],
+                "properties": {
+                  "gameId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "const": "live"
+                  },
+                  "home": {
+                    "type": "object",
+                    "required": [
+                      "abbr",
+                      "name",
+                      "score"
+                    ],
+                    "properties": {
+                      "abbr": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "score": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "away": {
+                    "type": "object",
+                    "required": [
+                      "abbr",
+                      "name",
+                      "score"
+                    ],
+                    "properties": {
+                      "abbr": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "score": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "period": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "clock": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "deepLink": {
+                    "type": "string",
+                    "description": "Relative app path under /locker-room/game/."
+                  }
+                },
+                "description": "A live match involving a favorite or followed club, or null if none qualifies."
+              }
+            }
+          }
+        }
       }
     }
   }

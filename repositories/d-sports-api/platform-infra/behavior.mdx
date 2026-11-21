@@ -23,6 +23,25 @@ icon: "list-checks"
 - Maintenance scripts reconcile historical inconsistencies without changing primary route contracts.
 - Unbuilt `/api/*` paths hit a catch-all that returns JSON `404` with code `NOT_FOUND` instead of the HTML app 404.
 
+## Pass issuance and widget refresh
+
+- `POST /api/v1/passes/google-wallet` returns `{ success: true, data: { saveUrl, jwt, passKind, objectId, classId } }` and `Cache-Control: no-store`. The optional JSON body is capped at 4 KiB. An unknown team or game returns `404 NOT_FOUND`; missing or invalid signing configuration returns `503 CONFIGURATION_ERROR`.
+- `GET /api/v1/widgets/snapshot` returns `{ success: true, data: { rankOrPoints, hqLive } }` and `Cache-Control: private, no-store`. `hqLive` selects the latest live game by start time among the fan’s favorite or followed clubs, or is `null` when none qualifies. HQ stars are not follows.
+- Both routes require a Clerk session and return `404 USER_NOT_PROVISIONED` if the fan has no D-Sports account.
+
+## Android Live Update tone
+
+The Android push payload adds `live_notification.event_updates.semanticTone` without changing the game status or the iOS payload. The first matching rule wins:
+
+| Tone | When the backend sends it |
+| --- | --- |
+| `final` | End event or terminal game status. |
+| `urgent` | Live scoring update, overtime, shootout, or a third-period score gap of at most one when both scores are known. |
+| `info` | Other live play. |
+| `neutral` | All other states. |
+
+This is a styling hint for Android 17 ProgressStyle. Older clients can ignore it, and clients must handle pushes without the field.
+
 ## Script categories in current backend
 
 - backfills (points, onboarding, packs, quests)

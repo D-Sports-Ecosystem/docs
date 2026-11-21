@@ -31,6 +31,16 @@ Unknown `/api/*` paths return JSON `404` with code `NOT_FOUND`. They do not fall
 - Internal cron/debug operations are intentionally excluded from public API docs.
 - Teams/leagues sync internals are documented in public-safe terms only.
 
+## Android integration endpoints
+
+| Endpoint | Contract |
+| --- | --- |
+| `POST /api/v1/passes/google-wallet` | Clerk-authenticated pass issuance. Returns a signed Google Wallet Save URL and JWT, not a pass file. |
+| `GET /api/v1/widgets/snapshot` | Clerk-authenticated, on-demand snapshot of the fan’s global rank, Fan Rep, and qualifying live match. |
+| `GET /.well-known/assetlinks.json` | Public Digital Asset Links statement for Android App Links and credential delegation. |
+
+See [Android integration contracts](/repositories/d-sports-engage-native/integration-contracts#android-integration-contracts) for client behavior and [Android App Links](/repositories/d-sports-api/platform-infra/architecture#android-app-links) for signing-certificate setup.
+
 ## Deep-dive documentation
 
 - [Platform and infrastructure overview](/repositories/d-sports-api/platform-infra/index)
