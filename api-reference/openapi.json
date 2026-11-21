@@ -24846,6 +24846,21 @@
                     ],
                     "default": "binary"
                   }
+                },
+                "if": {
+                  "properties": {
+                    "passKind": {
+                      "const": "club_membership"
+                    }
+                  },
+                  "required": [
+                    "passKind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "teamId"
+                  ]
                 }
               }
             }
@@ -24903,8 +24918,10 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "description": "GameEvent.id, Team.id, or Team.slug"
           },
           {
             "name": "If-None-Match",
@@ -24925,10 +24942,26 @@
                   "$ref": "#/components/schemas/AppClipArenaPreviewSuccess"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
           "304": {
-            "description": "Not modified (If-None-Match matched)"
+            "description": "Not modified (If-None-Match matched)",
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "VALIDATION_ERROR (malformed id)"
