@@ -172,6 +172,14 @@
     {
       "name": "KYC",
       "description": "Identity verification session helpers"
+    },
+    {
+      "name": "Passes",
+      "description": "Apple Wallet pass issuance"
+    },
+    {
+      "name": "App Clips",
+      "description": "Public iOS App Clip previews"
     }
   ],
   "paths": {
@@ -24789,6 +24797,180 @@
           }
         }
       }
+    },
+    "/api/v1/passes/apple-wallet": {
+      "post": {
+        "tags": [
+          "Passes",
+          "Engage"
+        ],
+        "summary": "Issue a signed Apple Wallet pass",
+        "description": "Authenticated. Issues a signed Apple Wallet .pkpass for the caller (pass type pass.com.dsports.wallet). passKind is fan_id (default), club_membership (teamId required; only for an Engage partner club the caller has joined, else 403) or arena_event (gameId and/or teamId). format binary (default) returns application/vnd.apple.pkpass bytes as an attachment; format base64 returns { success, data: { passTypeIdentifier, serialNumber, passKind, contentType, filename, pkpassBase64 } } for PKAddPassesViewController. Both responses send Cache-Control: no-store. The body is capped at 4 KB. Returns 503 CONFIGURATION_ERROR until the pass signing certificates are configured on the server.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "passKind": {
+                    "type": "string",
+                    "enum": [
+                      "fan_id",
+                      "club_membership",
+                      "arena_event"
+                    ],
+                    "default": "fan_id"
+                  },
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "gameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "binary",
+                      "base64"
+                    ],
+                    "default": "binary"
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "passKind": {
+                      "const": "club_membership"
+                    }
+                  },
+                  "required": [
+                    "passKind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed pass: application/vnd.apple.pkpass bytes (format binary) or { success, data: { pkpassBase64, ... } } (format base64)",
+            "content": {
+              "application/vnd.apple.pkpass": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppleWalletPassBase64Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (invalid JSON, unknown field, or teamId missing for club_membership)"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN (club_membership pass for a non-partner club, or a partner club the caller has not joined)"
+          },
+          "404": {
+            "description": "NOT_FOUND (team or game not found)"
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE (body over 4 KB)"
+          },
+          "503": {
+            "description": "CONFIGURATION_ERROR (pass signing not configured)"
+          }
+        }
+      }
+    },
+    "/api/v1/app-clips/arena/{id}": {
+      "get": {
+        "tags": [
+          "App Clips",
+          "Engage"
+        ],
+        "summary": "Public App Clip arena preview",
+        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs (and, for games, live or upcoming status); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "description": "GameEvent.id, Team.id, or Team.slug"
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public arena preview with a weak ETag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppClipArenaPreviewSuccess"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified (If-None-Match matched)",
+            "headers": {
+              "ETag": {
+                "description": "Weak ETag for the preview; send it back as If-None-Match",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR (malformed id)"
+          },
+          "404": {
+            "description": "NOT_FOUND (no game or club matches id)"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -28274,6 +28456,264 @@
               "requiredSlots",
               "existing"
             ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AppClipArenaPreview": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "game_event",
+              "team"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "venue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startTime": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "themeColor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "homeTeam": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "abbr": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "abbr",
+              "score"
+            ]
+          },
+          "awayTeam": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "abbr": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "abbr",
+              "score"
+            ]
+          },
+          "team": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "nickname": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "location": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "nickname",
+              "location"
+            ]
+          },
+          "checkInAvailable": {
+            "type": "boolean"
+          },
+          "fullAppUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "checkInEndpoint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "subtitle",
+          "venue",
+          "status",
+          "startTime",
+          "themeColor",
+          "logoUrl",
+          "homeTeam",
+          "awayTeam",
+          "team",
+          "checkInAvailable",
+          "fullAppUrl",
+          "checkInEndpoint"
+        ]
+      },
+      "AppClipArenaPreviewSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppClipArenaPreview"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AppleWalletPassBase64": {
+        "type": "object",
+        "properties": {
+          "passTypeIdentifier": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "passKind": {
+            "type": "string",
+            "enum": [
+              "fan_id",
+              "club_membership",
+              "arena_event"
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "application/vnd.apple.pkpass"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "pkpassBase64": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        },
+        "required": [
+          "passTypeIdentifier",
+          "serialNumber",
+          "passKind",
+          "contentType",
+          "filename",
+          "pkpassBase64"
+        ]
+      },
+      "AppleWalletPassBase64Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppleWalletPassBase64"
           }
         },
         "required": [
