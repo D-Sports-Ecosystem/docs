@@ -234,11 +234,13 @@ The local module depends on AppCompat 1.7.0, Core KTX 1.15.0, AndroidX Credentia
 
 PR #1454 reads static shortcut labels from `locales/{en,fr,it}/app-shell.json`, sharing translation keys with iOS Quick Actions.
 `plugins/withAndroidPlatformCapabilities.js` writes English defaults to `res/values/strings.xml` and translations to `res/values-fr/strings.xml` and `res/values-it/strings.xml` during prebuild.
-The generator preserves unrelated localized strings and falls back to built-in English labels for missing/blank keys or missing/malformed catalogs.
+The generator preserves unrelated localized strings and falls back to built-in English labels for missing/blank keys, missing catalogs, or unparseable JSON.
+A catalog that parses to JSON `null` throws on key lookup instead.
 Every launcher alias retains the same `@xml/shortcuts` metadata.
 Packs now targets `engagenative://market/packs`.
 Arena QR now targets `engagenative://leaderboard/scan-qr`.
-`lib/android/shortcuts.android.ts` localizes dynamic/pin labels with the active app language.
+`lib/android/shortcuts.android.ts` localizes dynamic and pin labels with the active app language.
+Language changes republish dynamic shortcuts only; a pin keeps the label from its request time.
 `AndroidCapabilitiesHost.android.tsx` refreshes device locale on mount/foreground and passes `activeLanguage()` when `localeRevision` triggers dynamic republishing.
 Static menus instead use packaged resources resolved by Android from the system locale.
 The PR does not prove per-app-only locale updates in every launcher.
@@ -304,6 +306,8 @@ You still need the installed package/signing certificate in the host's associati
 `NdefUrlCodec.extractUrlFromIntent` now requires `ACTION_NDEF_DISCOVERED`, a Parcelable `NfcAdapter.EXTRA_TAG`, and a decodable URI from `EXTRA_NDEF_MESSAGES`.
 It rejects missing extras and undecodable messages without falling back to `intent.dataString`.
 This prevents treating a browser's bare data-URI intent as an NFC tag read.
+A tag scan the system delivers as `ACTION_VIEW` instead of `ACTION_NDEF_DISCOVERED` is handled as an App Link: it navigates like a URL-only link and does not take the NFC claim path.
+Which Android versions dispatch HTTPS tags that way is not established by the source tests.
 It does not prove physical attendance or change server check-in eligibility.
 The plugin tests check combined actions/categories/autoVerify, deduplication, emptied-filter removal, and repeated Expo `setAndroidIntentFilters` plus NFC-plugin passes against `app.json`.
 The Kotlin guard test checks source markers rather than executing Parcelable extraction.
