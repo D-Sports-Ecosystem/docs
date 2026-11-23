@@ -162,6 +162,34 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
 
+## iOS widget refresh
+
+On iOS, PR #1453 fetches `GET /api/v1/widgets/snapshot` with a scoped widget bearer.
+The app mints it with Clerk auth via `POST /api/v1/widgets/token`.
+The token mint body includes `deviceId` (a stable per-install ID) and `platform: "ios"` per the [Widget API contract](/api-reference/domains/platform-infra#widget-api).
+These fields apply only to token minting, not snapshot fetching.
+The app shares the bearer through the App Group Data Protection Keychain.
+Non-secret metadata lives in App Group UserDefaults.
+
+The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
+The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
+A 401/403 clears the native token.
+The host JS provider does not retry that request with Clerk.
+ETags are per target.
+HQ 304 freshness checks game identity.
+Expired tokens and 401/403 responses cause credential deletion.
+These failures mark cached data stale.
+Missing credentials skip fetch.
+Offline/server failures retain stale data.
+Sign-out/account changes attempt revocation.
+They wipe local credentials, validators, and timelines.
+
+During an HQ refresh, an explicit `hqLive: null` idles an active live card.
+It preserves a retained final card.
+A rank refresh does not perform this idle reset.
+See [iOS widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for cadence, rebuild requirements, and test limits.
+Android's file storage, WorkManager, backoff, and total JS timeout budget below do not describe iOS.
+
 ## Android integration contracts
 
 ### Arena preview and install referrer
