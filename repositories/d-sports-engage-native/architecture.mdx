@@ -32,7 +32,11 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Clerk (`@clerk/expo`) owns the session after login.
 - Login supports Google OAuth, Apple Sign In, email/password, and MFA (TOTP, SMS, or email code).
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
-- Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`). iOS also claims `applinks:app.d-sports.org`.
+- Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`, `/clip/arena`).
+  PR #1455 combines VIEW and NDEF dispatch for three paths in the [NFC App Links filter](#android-nfc-configuration).
+  Verify the installed signing certificate against the host's `/.well-known/assetlinks.json`.
+  Client manifest changes do not deploy that statement.
+  iOS also claims `applinks:app.d-sports.org`.
 
 ## Native configuration and iOS capabilities
 
@@ -284,6 +288,24 @@ The local module depends on AppCompat 1.7.0, Core KTX 1.15.0, AndroidX Credentia
 | Restore Credentials | API 28+ bridge accepts server-supplied WebAuthn JSON, tries cloud creation with local-only E2EE-unavailable fallback, retrieves using a sole `GetRestoreCredentialOption`, and clears `TYPE_CLEAR_RESTORE_CREDENTIAL`. Wrappers keep an MMKV synced flag. Only sign-out cleanup is wired into the host; create/get have no application callers and no new automatic session-restoration flow or API contract. |
 | Play in-app updates | `AndroidInAppUpdates.kt` wraps Play `AppUpdateManager`. Once `inApp` opens and the existing update gate is `force`/`soft`, the host checks once per mount. Forced updates use immediate when allowed, otherwise flexible if allowed; soft uses flexible only. Native foreground handling re-emits downloaded readiness or resumes an in-progress immediate flow. Unavailable/error cases fail open in this wrapper; the existing update gate still applies. |
 
+PR #1454 reads static shortcut labels from `locales/{en,fr,it}/app-shell.json`, sharing translation keys with iOS Quick Actions.
+`plugins/withAndroidPlatformCapabilities.js` writes English defaults to `res/values/strings.xml` and translations to `res/values-fr/strings.xml` and `res/values-it/strings.xml` during prebuild.
+The generator preserves unrelated localized strings and falls back to built-in English labels for missing/blank keys, missing catalogs, or unparseable JSON.
+A catalog that parses to JSON `null` throws on key lookup instead.
+Every launcher alias retains the same `@xml/shortcuts` metadata.
+Packs now targets `engagenative://market/packs`.
+Arena QR now targets `engagenative://leaderboard/scan-qr`.
+`lib/android/shortcuts.android.ts` localizes dynamic and pin labels with the active app language.
+Language changes republish dynamic shortcuts only; a pin keeps the label from its request time.
+`AndroidCapabilitiesHost.android.tsx` refreshes device locale on mount/foreground and passes `activeLanguage()` when `localeRevision` triggers dynamic republishing.
+Static menus instead use packaged resources resolved by Android from the system locale.
+The PR does not prove per-app-only locale updates in every launcher.
+`lib/__tests__/android-shortcuts-sync.test.ts` checks explicit FR/IT labels and foreground locale resync with source assertions for host wiring.
+`lib/__tests__/pending-deep-link.test.ts` exercises `captureDeepLinkUrl` for Packs, Arena QR, hostname-only Market, public HQ exclusion, and callback exclusion.
+Plugin tests cover generated EN/FR/IT resources, existing-string preservation, routes, and shortcut metadata.
+They do not exercise the generator's missing/malformed-catalog English fallback.
+These tests do not prove native launcher delivery or device menu refresh.
+
 All manifest/resource, native dependency/module, and packaged-asset changes require a rebuilt signed binary, not OTA alone. Later JS-only routing/copy/controller changes require an already compatible binary/runtime. A Play update installs a native store build; it is not an Expo OTA. Launcher visibility, system UI, verified links, and Play eligibility are not guaranteed by configuration alone. See [Android behavior](/repositories/d-sports-engage-native/feature-mapping#android-tier-1-platform-behavior) for routes, auth gates, share draft handling, and restart consent.
 
 Focused tests: `plugins/__tests__/withAndroidPlatformCapabilities.test.ts` covers asset statements/deduplication/escaping, shortcut XML/routes, manifest idempotence, PiP registration, and predictive-back config; `plugins/__tests__/withAndroidManifestOverrides.test.ts` covers the back-callback flag; `lib/__tests__/android-tier1-capabilities.test.ts` covers locale normalization, share normal/empty/store cases, Android-only module registration, and Kotlin source markers for restore/shortcuts/updates. These tests do not compile Kotlin, inspect a merged APK, verify live certificate associations, or exercise system gestures, PiP, URI-copy limits, launchers, Credential Manager, composer auth flows, or Play downloads/restarts. The maintained source guide is `docs/android-native-capabilities.md` in engage-native.
@@ -328,7 +350,27 @@ Generated `res/xml/nfc_aid_list.xml` requires device unlock and uses category `o
 It registers the standard Type 4 NDEF AID `D2760000850101` and custom AID `F04453504F52545301`.
 There is no user-facing rollout flag or Android 16/17 API-level gate in this bridge.
 
-`NDEF_DISCOVERED` filters accept HTTPS `/clip/arena`, `/profile`, and `/binder` prefixes on `extra.appWebHost`, defaulting to `app.d-sports.org`.
+PR #1455 configures one MainActivity `android:autoVerify="true"` intent filter for HTTPS `/clip/arena`, `/profile`, and `/binder` prefixes on `extra.appWebHost`, defaulting to `app.d-sports.org`.
+`plugins/withAndroidNfc.js` puts both `android.intent.action.VIEW` and `android.nfc.action.NDEF_DISCOVERED` in that filter with `DEFAULT` and `BROWSABLE` categories.
+It removes duplicate entries for those HTTPS host/prefix pairs from other VIEW filters while preserving unrelated entries.
+It removes a prior VIEW filter if that move leaves it empty.
+This replaces the standalone HTTPS NDEF filter that Play Console flagged for missing App Links declarations.
+The merge requests verification without establishing Play Console acceptance.
+It does not deploy or verify `assetlinks.json`.
+You still need the installed package/signing certificate in the host's association statement.
+
+`NdefUrlCodec.extractUrlFromIntent` now requires `ACTION_NDEF_DISCOVERED`, a Parcelable `NfcAdapter.EXTRA_TAG`, and a decodable URI from `EXTRA_NDEF_MESSAGES`.
+It rejects missing extras and undecodable messages without falling back to `intent.dataString`.
+This prevents treating a browser's bare data-URI intent as an NFC tag read.
+If Android delivers a tag scan to Engage as `ACTION_VIEW` instead of `ACTION_NDEF_DISCOVERED`, Engage handles it as an App Link: it navigates like a URL-only link and does not take the NFC claim path.
+Which Android versions dispatch HTTPS tags that way is not established by the source tests.
+It does not prove physical attendance or change server check-in eligibility.
+The plugin tests check combined actions/categories/autoVerify, deduplication, emptied-filter removal, and repeated Expo `setAndroidIntentFilters` plus NFC-plugin passes against `app.json`.
+The Kotlin guard test checks source markers rather than executing Parcelable extraction.
+Rebuild the Android binary to ship this manifest/Kotlin change.
+OTA cannot install it.
+These tests do not establish device dispatch on Android 15 or Android 16+, real tag interoperability, or Play approval.
+
 The plugin writes that host to `com.dsports.engage.NFC_ALLOWED_HOST` metadata.
 Native and JS validators accept production/configured hosts and reject non-HTTPS or unsupported paths.
 The native codec rejects `..` and URLs longer than 512 characters.
