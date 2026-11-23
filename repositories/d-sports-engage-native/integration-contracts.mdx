@@ -190,6 +190,15 @@ A rank refresh does not perform this idle reset.
 See [iOS widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for cadence, rebuild requirements, and test limits.
 Android's file storage, WorkManager, backoff, and total JS timeout budget below do not describe iOS.
 
+## iOS Core NFC arena check-in
+
+PR #1450 adds an iOS caller of the existing preview and check-in clients, not a new endpoint.
+`hooks/use-ios-nfc-host.ios.ts` calls `useApi().quests.getAppClipArenaPreview` (`GET /api/v1/app-clips/arena/{id}`, `404` expected) and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
+It requires a preview `kind` of `game_event` or `team` with an `id` before navigating.
+It claims with the preview's `team.id` only when `checkInAvailable` is true, unlike the [Android NFC](#android-nfc) host.
+A tag URL is not proof of attendance; the server remains authoritative for eligibility, daily limits, and rewards.
+See [Core NFC behavior](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for authentication deferral, feedback, and retry limits.
+
 ## Android integration contracts
 
 ### Arena preview and install referrer
@@ -213,7 +222,7 @@ PR #1425 adds an Android caller of existing preview and check-in clients, not a 
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
 Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
 The hook passes the preview's `team.id`, not the game ID in an event URL.
-It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`.
+It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`; the [iOS Core NFC](#ios-core-nfc-arena-check-in) host does gate on it.
 The server remains authoritative for eligibility and rewards.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
 
