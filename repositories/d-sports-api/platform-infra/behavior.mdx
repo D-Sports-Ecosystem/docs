@@ -18,6 +18,12 @@ icon: "list-checks"
 
 ## Runtime behavior highlights
 
+The public arena preview also serves engage-native's [no-install web preview and Android install handoff](/repositories/d-sports-engage-native/feature-mapping#arena-web-preview-and-install-handoff).
+Game previews include `homeTeam` and `awayTeam` score summaries; club previews return these as null.
+Loading the web card never claims a check-in.
+Its signed-in/onboarded primary CTA can explicitly claim when eligible.
+An Android Play Install Referrer resumes navigation only, regardless of its `check_in` flag.
+
 - Stream routes deliver incremental updates and require reconnect-aware clients.
 - Sync routes refresh derived data used by dashboard and ranking experiences.
 - Maintenance scripts reconcile historical inconsistencies without changing primary route contracts.

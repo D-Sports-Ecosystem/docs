@@ -56,7 +56,7 @@ Shop and wallet pack reveals call `lib/store-review.ts` after a Rare, Epic, Lege
 - **Locker-room PiP:** the full-screen media viewer and inline video tiles opt in with `allowsPictureInPicture`. Inline tiles preserve active PiP playback when they leave the viewport or Reduce Motion is enabled. This is not an app-wide PiP guarantee for every video surface.
 - **Rank and Fan Rep widgets:** `widgets/ios/RankOrPointsWidget.tsx` supports small/medium Home Screen layouts and circular, rectangular, and inline Lock Screen accessories. The small layout initially prefers a valid team rank. On iOS 17+, when both stats exist, its metric-toggle button switches between **Team rank** and **Fan Rep** inside the extension, even without the host app running. Medium layouts have a refresh button; Lock Screen accessories have no buttons. Taps outside buttons retain the supplied `engagenative://` deep link, otherwise opening the leaderboard for a valid rank or the wallet as fallback.
 - **Live status widget:** `widgets/ios/LiveStatusActivityWidget.tsx` opens the match for a supplied `gameId`, otherwise the locker room. Its small layout keeps the **LIVE** label on one line. On iOS 17+, its medium layout has a refresh button; small and Lock Screen layouts do not. WidgetKit Home/Lock Screen layouts remain separate from ActivityKit Live Activities and Android widgets; keep platform-specific imports.
-- **Widget refresh limits:** button callbacks reload App Group timeline data without inventing a new update timestamp. When the host listener receives a refresh event, it rewrites the cached rank/Fan Rep or live-game snapshot, not a fresh server response. Without a live snapshot it leaves retained final/APNs cards intact. These controls do not guarantee current scores/rank or schedule a network fetch. The metric toggle changes widget props, not account settings.
+- **Widget server refresh:** PR #1453 lets Refresh buttons and WidgetKit timelines fetch server snapshots with a shared scoped widget token even without React Native JS. Missing credentials leave cached data; expired/rejected credentials and failed requests preserve data with stale feedback. Signed-in timelines request server-cache-aware refreshes, with a 15-minute rank/idle floor or five-minute HQ floor when a game ID is cached; WidgetKit controls actual delivery. The host listener also attempts an authenticated fetch, falling back to cached redraws without replacing retained final/APNs cards with idle data. The metric toggle stays local and does not change account settings. Rebuild for the native bridge/patch; see [widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for scheduling and test limits.
 - **Scan Arena QR control:** on iOS 18+, you can use the control in Control Center, Lock Screen quick actions, or supported Action Buttons. It launches the app at `engagenative://leaderboard/scan-qr` through normal auth/onboarding gates. It does not scan or submit a check-in inside the control. This uses the existing widget target and is separate from the Siri shortcut. A rebuilt binary is required; see [widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration).
 - **Add to calendar:** upcoming HQ cards and pre-game match actions open the system event editor on iOS/Android, not web. `lib/hq/add-to-calendar.ts` builds an event from the fixture start time with a 150-minute duration, optional venue, match deep link in notes, and a 30-minute pre-game alarm. Invalid dates or unavailable APIs do not create an event. The helper distinguishes saved, opened, canceled, and error outcomes: Android's `done` response means the editor was opened, not confirmed saving. There is no silent calendar write or server-side calendar synchronization.
 
@@ -64,7 +64,7 @@ See [native configuration](/repositories/d-sports-engage-native/architecture#nat
 
 ## Share Extension drafts
 
-On iOS 17+, use the system share sheet to send plain text, an HTTP(S) link, and up to four media items to **D-Sports Engage**. Share up to four photos without a video, or one video with up to three photos. The extension keeps the first nonempty text and first supported URL. It downscales photos to a maximum 2048-pixel dimension and converts them to JPEG at quality 0.85. It copies supported videos (MP4, QuickTime, or WebM) without transcoding and skips videos larger than 50 MiB. This is a local staging limit, not an upload allowance. Arbitrary files are not supported.
+On iOS 17+, use the system share sheet to send plain text, an HTTP(S) link, and up to four media items to **D-Sports Engage**. Share up to four photos without a video, or one video with up to three photos. The extension keeps the first nonempty text and first supported URL. It downscales photos to a maximum 2048-pixel dimension and converts them to JPEG at quality 0.85. It copies supported videos (MP4, MOV, or WebM) without transcoding and skips videos larger than 50 MiB. This is a local staging limit, separate from upload validation. Arbitrary files are not supported.
 
 Activation rules limit eligible shares. Intake skips excess, unsupported, unreadable, or oversized media; text, a link, or other supported media can still form a draft. If nothing usable remains, or App Group access/manifest writing fails, the extension closes without an error message or opening the app. Otherwise it saves a local handoff and requests the app's `/share-inbox` route. Only the handoff ID travels in the URL, not shared content.
 
@@ -72,9 +72,24 @@ The route waits for authentication/onboarding and validates the handoff. Once **
 
 Missing, invalid, empty, expired (over 24 hours), or unavailable-native handoffs fall back to **Locker Room** without a shared draft. Thrown intake failures are logged, not shown as a toast. Media-staging failures preserve the original App Group handoff but do not automatically retry. Shared and temporary directories receive stale cleanup; the pending composer queue is in memory and does not survive app termination. Android has a separate [share target](#share-into-locker-room); this extension is iOS-only. You need a rebuilt binary with the target, entitlements, and bridge; see [Share Extension configuration](/repositories/d-sports-engage-native/architecture#share-extension-configuration).
 
+## Siri App Intents
+
+Siri and Shortcuts can run five App Shortcuts in an updated iOS binary. These cover the same actions as [Android Gemini AppFunctions](#android-appsearch-and-appfunctions), but iOS separates answers from navigation.
+
+| App Shortcut | Behavior |
+| --- | --- |
+| **Live Score** | Reads one cached live or recent score without opening the app. An optional team filter matches the cached team slug, name, or abbreviation. If no score is cached or the team does not match, it says so. |
+| **Fan Rep** | Reads your cached points and rank when available, without opening the app. If no Fan Rep is cached, it prompts you to sign in. |
+| **Search Collectibles** | Searches up to 250 cached owned cards and returns matching card entities plus a spoken summary without opening the app. The default is 10 results, capped at 50. |
+| **Open Packs** | Opens Wallet. It does not purchase or open a pack. |
+| **Scan Arena QR** | Opens the leaderboard scanner. It does not scan or submit a check-in automatically. |
+
+Answers can be stale because these intents read the on-device cache, not the backend. Separate **Open Live Score**, **Open Leaderboard**, and **Open Collectible** intents open the match or Team HQ, the leaderboard, and the binder (not an individual card), respectively. **Open Live Score** uses a validated explicit or cached match ID, then the tracked live match if no ID was supplied, and falls back to `/hq` without a valid target. Navigation waits for sign-in and onboarding; a burst of invocations navigates to the newest recognized destination.
+
+See [Siri App Intents integration](/repositories/d-sports-engage-native/architecture#siri-app-intents-integration) for cache sync, cleanup, and native build requirements.
+
 ## Tier 2 iOS behavior
 
-- **App Shortcuts:** Open Packs opens the wallet; Scan Arena QR opens the leaderboard scanner; Live Score opens a validated explicit match ID or the tracked live match, falling back to `/hq`. The shipped Swift Live Score shortcut supplies no ID. These actions open the app and navigate; they do not open packs, submit check-ins, or speak a fetched score. Pending invocations wait for the in-app auth/onboarding gate; a burst navigates to the newest recognized target, and unknown intent names have no target.
 - **Live Game accessory:** a tracked live snapshot shows a score/status bar above native tabs, or a compact inline score beside minimized tabs. Tapping opens the match. While mounted, it fetches the tracked match through existing `GET /api/events/{id}` immediately, every 30 seconds while active, and on foreground. Network failures keep the last score; final, canceled, or postponed games clear the accessory while preserving the MMKV snapshot for ActivityKit cleanup. It does not discover live matches.
 - **Preview and share:** market `ListingCard` and `TradeListingCard`, plus the team browse card's details link, use `Link.Preview` and open/share menus for native iOS interactions. Sharing strips Expo route groups and defaults to `https://app.d-sports.org`; the team share action requires a string href. This is not an app-wide preview or external metadata service.
 - **Sheets and resizing:** HQ game summaries and the legacy wheel/player-guess routes use native iOS form-sheet detents. Match routes and engine game routes are not converted wholesale. Large iOS media-viewer windows remain free of programmatic orientation locking under the 600-dp shortest-side heuristic; compact iOS and Android keep existing viewer behavior.
@@ -133,6 +148,7 @@ Android 16+ exposes these declarations in `appfunctions/BaseDSportsAppFunctionSe
 | `getLiveScore(teamId?)` | Reads one cached live/recent HQ score with a match launch handle. Optional normalized text matches cached team slug, names, or abbreviations. A mismatch throws element-not-found. Missing cache returns `hasLiveGame: false` and an HQ launch handle. A safe match ID opens match detail and retains a safe context slug. |
 | `getFanRep()` | Reads cached signed-in Fan Rep, optional rank/name, a summary, and a leaderboard launch handle. Missing signed-in cache throws element-not-found. |
 | `openArenaQr()` | Returns scanner metadata and a launch handle. It does not scan, check in, or award Rep. |
+| `openPacks()` | Returns a Wallet deep link and launch handle, preserving the pending deep link through sign-in. It does not purchase or open a pack. |
 | `searchCollectibles(query, limit)` | Prefix-searches only indexed cards. Blank queries throw invalid-argument. Nonpositive limits default to 10; positive limits cap at 50. Returns the first result page with metadata and card launch handles, or an empty list for no matches. |
 
 The immutable launch handles target this app's package and `engagenative` routes.
@@ -150,7 +166,7 @@ Cleanup failures are not a guarantee of immediate OS deletion.
 Non-Android wrappers and missing native modules no-op.
 
 See [Android integration](/repositories/d-sports-engage-native/architecture#android-appsearch-and-appfunctions-integration) for schemas, identifiers, native dependencies, rebuild requirements, and tests.
-Compare [iOS Spotlight](#spotlight-search-and-handoff) and [iOS App Intents](/repositories/d-sports-engage-native/architecture#tier-2-native-integration).
+Compare [iOS Spotlight](#spotlight-search-and-handoff) and [Siri App Intents](#siri-app-intents).
 The Android implementation does not add Handoff or a new API contract.
 
 ## Spotlight search and Handoff
@@ -161,7 +177,7 @@ Team search results open `/hq/{slug}`; binder results open `/binder/{id}`; card 
 
 Focused HQ clubs, non-global team boards, binder/card detail, visible or owned market listings, and ready post detail publish Handoff activities. The activity clears on blur. Sign-out, settled signed-out/session-revoked startup, and account switching invoke index and activity cleanup, including cancellation of pending index updates. Native failures are logged; cleanup is not a guarantee of synchronous OS deletion. Handoff offers continuation, not cross-device state synchronization or a new search API.
 
-See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#tier-2-native-integration) and [Spotlight integration](/repositories/d-sports-engage-native/architecture#core-spotlight-and-handoff-integration) for source ownership and native-build requirements.
+See [Spotlight and Handoff integration](/repositories/d-sports-engage-native/architecture#core-spotlight-and-handoff-integration) for source ownership and native-build requirements. [Siri App Intents](/repositories/d-sports-engage-native/architecture#siri-app-intents-integration) use a separate integration.
 
 ## Apple Wallet passes
 
@@ -189,9 +205,43 @@ Only native `saved` sets the mounted hook's added state and success feedback. Ca
 
 See [native configuration](/repositories/d-sports-engage-native/architecture#google-wallet-pass-configuration) and [native integration](/repositories/d-sports-engage-native/integration-contracts#google-wallet). The existing [Platform API](/api-reference/domains/platform-infra) and [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#pass-issuance-and-widget-refresh) own issuance contracts.
 
+## Arena web preview and install handoff
+
+Open `https://app.d-sports.org/clip/arena/<id>` for a public no-install browser preview from PR #1452.
+`/clip/<id>` and `/clip?arenaId=<id>` or `?id=<id>` also work.
+`resolveArenaParamId` ignores a literal `arena` captured by the short route, allowing `/clip/arena?arenaId=<id>`.
+The EN/FR/IT screen shows a club/match card with available scores, venue, and start time.
+Scores are a fetched snapshot, not a live subscription.
+Missing IDs show a scan prompt.
+Invalid IDs, missing arenas, and network/10-second timeout failures show errors.
+You can retry when the ID is valid.
+Loading the preview never submits a check-in.
+
+Once signed in and onboarded (`gates.inApp`), tapping the primary CTA claims only if `checkInAvailable` and `preview.team.id` are present.
+Success/already-claimed responses set the arena badge and invalidate the daily quest summary cache.
+Success also shows earned Rep.
+Other failures show feedback, and thrown failures log.
+Navigation still follows a failed claim.
+Without eligibility or a team ID, the signed-in CTA only navigates.
+
+Outside `inApp`, Android's primary CTA tries the installed app using `intent://` with a Play Store fallback carrying an encoded arena referrer.
+After Play installation and sign-in/onboarding, that referrer resolves a fresh preview and opens the match or club.
+The referrer's `captured_at` is set when the fan taps the browser CTA, and the app rejects it 24 hours later, so a fan who finishes onboarding later lands in the app without the arena handoff.
+It never auto-claims, even when the decoded `check_in` flag requests it.
+iOS browser CTAs use the App Store; other browsers use Play with the referrer.
+Footer **Get App** opens the platform store without preserving arena context.
+Browser redirects and Play delivery depend on the actual browser/install path and are not proven by source tests.
+
+Installed-app clip URLs also remain navigation-only after the normal auth/onboarding gate.
+The [iOS App Clip](#app-clip) instead uses its own saved App Group context and can retain a requested check-in.
+The [Android NFC event path](#android-nfc-sharing-and-arena-check-in) can claim as documented there and is not the install-referrer consumer.
+See [architecture](/repositories/d-sports-engage-native/architecture#arena-web-preview-and-android-install-handoff) for expiry, deduplication, retry, and deployment limits.
+
 ## App Clip
 
-For Android's separate tag-reader and authenticated claim flow using the same arena URL family, see [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
+For the browser/Android counterpart, see [arena web preview and install handoff](#arena-web-preview-and-install-handoff).
+
+For the full app's tag reader using the same arena URL family, see [iOS Core NFC arena check-in](#ios-core-nfc-arena-check-in) and Android's separate [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
 
 An arena invocation such as `https://app.d-sports.org/clip/arena/<id>` opens the iOS 17+ **D-Sports Arena** clip without installing full Engage. Its SwiftUI card displays a public event/club preview, including available team branding, status, venue/start time, and match scores. It does not sign you in, subscribe to live scores, claim a check-in, or award Rep. Invalid links, missing arenas, and network/server failures show **Couldn't Load Arena**; **Try Again** appears when a valid arena ID was extracted. API requests use 10-second request and 15-second resource timeouts.
 
@@ -217,18 +267,33 @@ Android system **App Languages** (API 33+) and the in-app language preference sy
 
 ### Launcher shortcuts
 
-Long-press the app icon to access the four packaged static shortcuts, subject to launcher support. Their generated labels are English:
+Long-press the app icon to access four packaged static shortcuts, subject to launcher support.
+PR #1454 generates English, French, and Italian labels from the same `app-shell.json` keys as [iOS Home Screen Quick Actions](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions).
+Android resolves these packaged labels from the device's system locale rather than re-registering them through JS.
+Source tests do not establish per-app-only language behavior or launcher refresh timing.
 
-| Label | Target and limits |
+| Label (EN / FR / IT) | Target and limits |
 | --- | --- |
-| **Live Game** | `engagenative://hq` opens HQ, not a selected tracked match. |
-| **Packs** | `engagenative://(tabs)/wallet` opens the wallet without opening/buying a pack. This differs from the iOS **Open Packs** Quick Action's pack-market destination. |
-| **Arena QR** | `engagenative://(tabs)/leaderboard/scan-qr` opens the scanner without submitting a check-in. |
-| **Market** | `engagenative://market` opens the marketplace without a transaction. |
+| **Live Game** / **Match en direct** / **Partita live** | `engagenative://hq` opens HQ, not a selected tracked match. |
+| **Open Packs** / **Ouvrir des packs** / **Apri pacchetti** | `engagenative://market/packs` opens the pack market, matching iOS without opening/buying a pack. |
+| **Scan Arena QR** / **Scanner un QR** / **Scansiona QR** | `engagenative://leaderboard/scan-qr` opens the scanner without submitting a check-in. |
+| **Market** / **Marché** / **Mercato** | `engagenative://market` opens the marketplace without a transaction. |
 
 After sign-in/onboarding, dynamic requests include **Locker Room** (`engagenative://(tabs)/locker-room`) and up to three unique favorite clubs resolved through the teams catalog (`engagenative://hq/<slug>`). Club labels use the catalog name, truncated to 18 characters. The launcher may show fewer or none: static shortcuts consume quota first. The same dynamic entries are long-lived Direct Share candidates, not guaranteed share-sheet placement. Sign-out after an authenticated session removes dynamic entries, not packaged static or pinned shortcuts. Pin APIs exist for a club/scanner, but no product UI calls them.
 
-These intents use normal Expo Router/deep-link auth handling, not the [iOS Quick Actions](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions) forced pending-route path. The pending-link helper does not restore explicit `(tabs)` routes, excludes public HQ paths, and ignores hostname-only targets in its capture helper. Do not assume every destination survives a cold signed-out onboarding flow.
+Dynamic long labels follow the active app language and are republished on a language change. A pin request uses the active language at request time; existing pins do not relabel.
+The Locker Room short label stays `Locker Room`, and club short labels stay catalog names.
+The host refreshes device locale on mount/foreground and republishes dynamic entries when `localeRevision` changes.
+The pin helpers localize club long labels and both scanner labels, but no product UI calls them.
+
+The Packs and Arena QR targets omit `(tabs)` so the pending-link helper can restore them after sign-in/onboarding.
+`captureDeepLinkUrl` now also captures hostname-only `engagenative://market`.
+Public HQ stays outside pending restoration, and auth callbacks remain excluded.
+These intents use normal Expo Router/deep-link auth handling rather than iOS Quick Actions' forced pending-route path.
+The pending state is in memory, not a durable queue.
+Rebuild to ship static labels/targets.
+Compatible dynamic-label and bootstrap JS changes can use OTA.
+Source tests cover parsing/restoration helpers, not native launcher taps on a device.
 
 ### Share into Locker Room
 
@@ -260,7 +325,7 @@ Locked taps request device unlock, then launch the app through existing route/au
 
 The **D-Sports Rank** and **D-Sports Live** widgets use native Jetpack Glance receivers. **Refresh** (`↻`) runs without opening the app: `RefreshWidgetAction` dispatches to `WidgetRefreshRequests`, which queues native WorkManager refresh when a valid installation widget bearer is stored. This can run without React Native JS. Without that token, the callback marks the data stale, notifies the active JS listener if present, and redraws cached state. The JS path can use the cached, unexpired Clerk bearer. Body taps still open package-scoped app links through normal route/auth gates; live layouts show last-play text when space permits.
 
-Authenticated refresh unwraps the API envelope and reads nested team scores and enriched HQ decorations. Successful writes or covered 304 revalidation clear stale state. Missing credentials, failed requests, and invalid responses retain data and mark it **Not updated** rather than implying a successful refresh. Validators are per target; HQ revalidation also checks the game ID. Native periodic refresh defaults to hourly, adjusts to server max-age within 15 minutes–24 hours, requires connectivity, and is cancelled when no widgets are placed. Provider/resize rendering reads local files; the worker separately performs networking. Android scheduling, offline state, and server authorization still limit freshness. Compare [iOS widget refresh](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar), which rewrites cached snapshots without this Android network path. See [native configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration) and the [integration contract](/repositories/d-sports-engage-native/integration-contracts#widget-refresh).
+Authenticated refresh unwraps the API envelope and reads nested team scores and enriched HQ decorations. Successful writes or covered 304 revalidation clear stale state. Missing credentials, failed requests, and invalid responses retain data and mark it **Not updated** rather than implying a successful refresh. Validators are per target; HQ revalidation also checks the game ID. Native periodic refresh defaults to hourly, adjusts to server max-age within 15 minutes–24 hours, requires connectivity, and is cancelled when no widgets are placed. Provider/resize rendering reads local files; the worker separately performs networking. Android scheduling, offline state, and server authorization still limit freshness. Compare [iOS widget refresh](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar), which uses the same server API through WidgetKit rather than Android WorkManager. See [native configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration) and the [integration contract](/repositories/d-sports-engage-native/integration-contracts#widget-refresh).
 
 ### Live Update colors
 
@@ -276,6 +341,9 @@ See [Tier 2 configuration](/repositories/d-sports-engage-native/architecture#and
 
 ## Android NFC sharing and arena check-in
 
+This tag event path is distinct from the [web preview/install handoff](#arena-web-preview-and-install-handoff).
+NFC can submit a claim; installed URL-only links and Play referrers only navigate.
+
 PR #1425 adds **Tap to share** to your own Fan Profile through `features/profile/screen/OwnProfileScreen.tsx` and `components/nfc/NfcTapToShareButton.android.tsx`.
 The payload is a public HTTPS link such as `https://app.d-sports.org/profile/<handle>`.
 `buildFanProfileNfcUrl` uses the configured app web origin and strips leading `@` characters.
@@ -290,7 +358,7 @@ The modal distinguishes NFC-off and HCE-unavailable states.
 Sharing requires enabled NFC, HCE, and a current activity.
 Scanning requires enabled NFC and a current activity.
 **Share link instead** uses the existing share-link fallback.
-iOS/web components no-op.
+iOS/web tap-to-share components no-op; iOS reads tags through its separate [Core NFC reader](#ios-core-nfc-arena-check-in).
 Native start failures return `false`, but the modal ignores that return value.
 A ready label therefore does not prove a session started.
 Unsupported reader URLs show an error toast; unreadable tags can remain silent.
@@ -300,7 +368,7 @@ Profile and binder links open their local routes.
 An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
 The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
 If the preview supplies `team.id`, it submits an authenticated quest check-in with that team ID.
-It does not check `checkInAvailable` before calling the claim client.
+It does not check `checkInAvailable` before calling the claim client, unlike the [iOS Core NFC reader](#ios-core-nfc-arena-check-in).
 Success sets the arena badge and shows earned Rep.
 Already-claimed responses set the badge without another earn toast.
 Other claim errors show feedback; thrown errors also log.
@@ -310,9 +378,42 @@ An allowlisted URL is not proof of attendance or permission to earn rewards.
 See the [NFC integration](/repositories/d-sports-engage-native/integration-contracts#android-nfc) for the reused API clients and server-owned contracts.
 
 The [iOS App Clip](/repositories/d-sports-engage-native/feature-mapping#app-clip) uses the same arena URL family with a different handoff flow.
+The full iOS app reads the same URLs through [Core NFC](#ios-core-nfc-arena-check-in).
 [Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes) are signed pass presentation, not this public-link NFC transport.
 See [NFC configuration](/repositories/d-sports-engage-native/architecture#android-nfc-configuration) for permissions, lifecycle, native build requirements, and test limits.
 Cross-platform phone reading and physical-device interoperability remain unverified by the source tests.
+
+## iOS Core NFC arena check-in
+
+PR #1450 adds foreground Core NFC tag reading to the full iOS app.
+It is the iOS counterpart of [Android arena NFC check-in](#android-nfc-sharing-and-arena-check-in), not of Android's tap-to-share.
+Engage adds no outbound phone-to-phone NFC sharing on iOS, because Apple restricts Core NFC card emulation to specific entitlements.
+The App Clip does not use this reader.
+
+On the arena scanner, **Scan NFC tag** appears beside manual entry, including when camera access is denied.
+It renders only where `NFCNDEFReaderSession.readingAvailable` is true, so the Simulator and iPads without an NFC reader never show it.
+Tapping it opens the system NFC sheet for one read.
+The sheet reads arena tags; reading the URL a nearby Android phone shares is intended but unverified on physical devices.
+
+The reader accepts only an HTTPS `app.d-sports.org` (or configured app host) URL of at most 512 characters.
+The path must be one safe identifier after `/clip/arena/`, `/profile/`, or `/binder/`, with no `..`.
+An unsupported tag closes the sheet with an error message and also shows an error toast.
+Timeouts, a busy reader, and read errors show an error toast; cancelling is silent.
+
+The app waits for sign-in/onboarding before routing and keeps only the latest tag.
+The same URL read again within three seconds is ignored.
+Profile and binder links open their local routes.
+Arena links fetch the public preview and navigate using `resolveHandoffRoute`.
+A missing, invalid, or failed preview shows an error toast without navigating.
+The app submits an authenticated check-in only when the preview has `checkInAvailable` and `team.id`.
+Android, by contrast, attempts the claim whenever `team.id` exists.
+Success sets the arena badge and shows earned Rep.
+Already-claimed responses set the badge without another earn toast.
+Other claim errors show feedback, and there is no durable retry queue.
+
+This reader only runs while its sheet is open.
+A tag URL that iOS opens in the background or as a universal link follows the [App Clip](#app-clip) or installed-app link path instead of this reader's claim logic.
+See the [Core NFC integration](/repositories/d-sports-engage-native/integration-contracts#ios-core-nfc-arena-check-in) for API clients and [Core NFC configuration](/repositories/d-sports-engage-native/architecture#ios-core-nfc-configuration) for entitlements, build requirements, and test limits.
 
 ## Notifications and legal
 

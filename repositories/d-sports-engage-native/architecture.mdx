@@ -32,7 +32,11 @@ The native app is structured around Expo Router screens, feature-oriented compon
 - Clerk (`@clerk/expo`) owns the session after login.
 - Login supports Google OAuth, Apple Sign In, email/password, and MFA (TOTP, SMS, or email code).
 - Mobile OAuth can land a 128-char hex token in the URL fragment. `+native-intent.tsx` and `captureDeepLinkUrl` parse it, `takePendingMobileSessionToken()` stashes it in memory (not MMKV), and `consumePendingMobileSessionToken` redeems it at `POST /api/mobile/exchange`.
-- Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`). iOS also claims `applinks:app.d-sports.org`.
+- Android App Links cover `api.d-sports.org` mobile callbacks and `app.d-sports.org` paths (`/locker-room`, `/profile`, `/market`, `/quests`, `/binder`, `/leaderboard`, `/rate`, `/clip/arena`).
+  PR #1455 combines VIEW and NDEF dispatch for three paths in the [NFC App Links filter](#android-nfc-configuration).
+  Verify the installed signing certificate against the host's `/.well-known/assetlinks.json`.
+  Client manifest changes do not deploy that statement.
+  iOS also claims `applinks:app.d-sports.org`.
 
 ## Native configuration and iOS capabilities
 
@@ -77,7 +81,15 @@ PR #1404 registers `plugins/withControlCenterWidget.js` after `expo-widgets` in 
 
 The **Scan Arena QR** control supports Control Center, Lock Screen quick actions, and supported Action Buttons on iOS 18+. Its non-discoverable `AppIntent` sets `openAppWhenRun` and opens `engagenative://leaderboard/scan-qr` through the host URL handler. It does not duplicate the Siri shortcut or perform a check-in within the extension.
 
-Interactive Home Screen widgets use the existing `expo-widgets` dependency and its iOS 17+ `WidgetUserInteraction` intent. `widgets/ios/bootstrap.ts` registers serialized layouts and initial props in App Group storage and installs the iOS interaction listener once per process. Button callbacks run in the extension, merge returned props into its stored timeline, and reload it. `lib/ios/widget-interactions.ts` handles host-observed refresh events using safe cached-snapshot writers. Unknown sources/targets are ignored; failures use `logger.error`. No new network endpoint or background fetch is added.
+`app.json` configures `expo-widgets` with bundle ID `com.dsports.wallet.beta.ExpoWidgets` and App Group `group.com.dsports.wallet.beta.dengage`. `widgets/ios/bootstrap.ts` registers layouts/initial props and the host interaction listener. The iOS 17+ metric toggle still merges props locally without the host app. PR #1453 patches `expo-widgets` so Refresh AppIntents and WidgetKit timeline requests call native `WidgetSnapshotRefresher` for `RankOrPointsWidget` and `LiveStatusActivity`. It fetches `GET /api/v1/widgets/snapshot` without React Native JS, using per-target ETags; HQ 304 revalidation checks the cached game ID.
+
+`useIosWidgetTokenSync`, mounted by `useUserProvider`, ensures an installation token on sign-in/account changes and foreground, re-minting within seven days of recorded expiry. `lib/ios/widget-token.ios.ts` calls `POST /api/v1/widgets/token` with `platform: "ios"`. The local `modules/expo-ios-widget-refresh/` bridge stores the raw `wgt_` bearer in the shared App Group Data Protection Keychain (`AfterFirstUnlockThisDeviceOnly`); API origin, expiry, and refresh metadata use App Group UserDefaults, not the raw bearer. Sign-out/account-switch cleanup attempts server revocation and wipes credentials, validators, and widget timelines.
+
+Timeline requests skip fresh cached data; button taps force a fetch. Native requests have a six-second timeout. Scheduling uses server `max-age` (default one hour, clamped to 60 seconds–24 hours), with a 15-minute floor for rank/idle HQ and five minutes for HQ with a cached game ID; see `WidgetSnapshotRefresher` (`patches/expo-widgets+58.0.29.patch` in engage-native) for the timing constants. WidgetKit receives `.after(nextDate)` with valid credentials, otherwise `.atEnd`; these are scheduling requests, not guaranteed refresh intervals. Missing credentials leave cached data without a fetch. Expired tokens or 401/403 delete the bearer and mark cached data stale; offline/server failures and responses that cannot be decoded as JSON objects retain cached data with stale feedback. An empty JSON object is accepted as fresh cache metadata without updating either widget. Successful covered 304s clear stale state. During an HQ refresh, an explicit `hqLive: null` replaces an active live card with idle data but retains final cards; a rank refresh does not perform this idle reset.
+
+The host listener in `lib/ios/widget-interactions.ts` also tries `refreshIosWidgetSnapshot` using the Keychain bearer, selecting a cached Clerk JWT only when the Keychain read returns no token. A 401/403 clears the native token without retrying that request with Clerk. Its fetch uses a four-second abort timer; this is not a total auth/parse budget. If refresh fails, it redraws cached rank or an available app live snapshot without overwriting retained final/APNs cards with idle data. Native/JS writes reject responses from a changed session. This updates WidgetKit Home/Lock Screen widgets, not ActivityKit Live Activities.
+
+The patch and local native bridge require a rebuilt signed binary; OTA cannot add them. New tests in `lib/__tests__/widget-token.ios.test.ts` cover device ID, iOS mint/reuse/account change, revocation/cleanup, and auth-provider fallback. `widget-refresh.ios.test.ts` covers 200/304 mapping/ETags, retained final scores, sign-out races, 401, and missing auth. `ios-widget-snapshot-refresher.test.ts` checks patch wiring and, on macOS only, compiles the Swift refresher against stubs with mocked URLSession responses for 200/304/401/500, fresh-cache deduplication, and unauthenticated scheduling. These do not prove real Keychain sharing/signing, on-device WidgetKit scheduling/background execution, live API delivery, or TestFlight behavior.
 
 Neither #1404 nor #1400 changes `app.config.ts` or `package.json`. The environment wrapper retains the base plugins; widgets reuse the existing package and the share bridge is a local Expo module. Rebuild the iOS binary for the Swift sources, generated bundle registration, Share Extension, and native bridge; OTA alone cannot install them. Tests in `plugins/__tests__/withControlCenterWidget.test.ts`, `widgets/ios/__tests__/interactive-widgets.test.ts`, and `lib/ios/__tests__/widget-interactions.test.ts` cover plugin order/idempotency, availability, button callbacks/families, and refresh dispatch. They do not establish device control discovery, signing, or real background execution.
 
@@ -93,9 +105,17 @@ The local iOS Expo module `modules/expo-share-handoff/` stages photos and videos
 
 The extension target, entitlements, and native bridge require a new binary, not OTA alone. `plugins/__tests__/withIosShareExtension.test.ts` covers registration, activation rules, template presence, App Group merging, EAS metadata, the single `BUILT_PRODUCTS_DIR` `.appex` embed, and reuse of an existing **Embed Foundation Extensions** phase. `lib/locker-room/__tests__/share-handoff.test.ts` covers validation, TTL, empty/error cases, media caps, video attachment mapping, formatting, queueing, and restore suppression. These tests do not run a Release archive or prove signed extension discovery, Swift media staging, or device/auth handoff.
 
-## Tier 2 native integration
+## Siri App Intents integration
 
-PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers `expo-app-intents` and `experiments.inlineModules.watchedDirectories: ["app-intents"]`; `package.json` includes the native package. `AppIntentsSetup.swift` refreshes shortcut parameters. `AppIntentsHost`, mounted by `RootAuthStack`, processes invocations only after the authenticated/onboarded `inApp` route gate opens. The resolver lives in `lib/ios/app-intents.ts`.
+PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers the `expo-app-intents` plugin and `experiments.inlineModules.watchedDirectories: ["app-intents"]`. PR #1451 reuses the installed package for [Siri action parity with Android AppFunctions](/repositories/d-sports-engage-native/feature-mapping#siri-app-intents), without a new module or backend endpoint.
+
+`AppShortcuts.swift` declares five shortcuts. Three read-only intents use `AppIntentEntityStore.shared` to read the native `liveScore`, `fanRep`, and `collectible` catalogs without booting React Native or making a network request. The iOS-only `useIosAppIntentsSync` hook mirrors signed-in profile and owned-card data and seeds the score from the Live Activity or HQ widget snapshot. Snapshot writes update the score catalog. Clearing HQ widget data or taking the Live Activity sweep's immediate-end path clears the cached score; ending an activity or clearing its stored snapshot does not by itself clear it. Sign-out, account deletion, cold-start session revocation, and account switches request cleanup of all three catalogs. Native failures can prevent immediate cleanup. Android and web use no-op sync implementations.
+
+Separate navigation intents dispatch to `AppIntentsHost`, mounted by `RootAuthStack`. The host waits until the authenticated/onboarded `inApp` gate opens, then resolves the destination through `lib/ios/app-intents.ts`. Read-only intents do not use this routing path.
+
+The updated Swift sources and shortcut metadata require a rebuilt iOS binary; an OTA alone cannot install them. `lib/ios/__tests__/app-intents.test.ts` and `app-intents-cache.test.ts` cover routing, mapping, and cache sync/cleanup, not Siri invocation or device discovery.
+
+## Tier 2 native integration
 
 The iOS tab layout enables `minimizeBehavior="onScrollDown"` and conditionally mounts `LiveGameBottomAccessory` for a live snapshot. `services/live-game-accessory-store.ts` holds the in-memory state, synchronized by Live Activity snapshot writes/clears and restored from MMKV by the intent host. This iOS 26+ tab accessory is separate from ActivityKit and WidgetKit.
 
@@ -115,7 +135,7 @@ The module and subscriber require a new binary. Once the installed binary contai
 
 ## Android AppSearch and AppFunctions integration
 
-PR #1423 adds Android counterparts to [iOS Spotlight](#core-spotlight-and-handoff-integration) and [App Intents](#tier-2-native-integration).
+PR #1423 adds Android counterparts to [iOS Spotlight](#core-spotlight-and-handoff-integration) and [Siri App Intents](#siri-app-intents-integration). The assistant actions match, but Android uses platform-specific caches and launch handles rather than separate native query and navigation intents.
 It does not implement Android Handoff.
 `AndroidCapabilitiesHost.android.tsx` calls `hooks/use-android-search-sync.android.ts` with the authenticated/onboarded `inApp` gate.
 The hook reuses `lib/spotlight/` mappers for `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles.
@@ -137,7 +157,7 @@ Native sources live under `modules/expo-android-capabilities/android/src/main/ja
 | --- | --- |
 | `AndroidAppSearch.kt` | Database `dsports_engage_search`; schemas `DSportsTeam`, `DSportsCard`, `DSportsBinder`; namespaces `teams`, `cards`, `binders`. Stores title, subtitle, keywords, deep link, domain identifier, entity type, and optional thumbnail URL. |
 | `ExpoAndroidCapabilitiesModule.kt` | Index/delete/clear/search operations, cache methods, availability gates, and AppSearch session closure on module destroy. |
-| `appfunctions/BaseDSportsAppFunctionService.kt` | API 36+ declarations for `getLiveScore`, `getFanRep`, `openArenaQr`, and `searchCollectibles`. |
+| `appfunctions/BaseDSportsAppFunctionService.kt` | API 36+ declarations for `getLiveScore`, `getFanRep`, `searchCollectibles`, `openPacks`, and `openArenaQr`. |
 | `appfunctions/DSportsAppFunctionModels.kt` | Serializable results with immutable, package-scoped launch `PendingIntent`s. |
 | `appfunctions/AndroidAppFunctionsCache.kt` | Private SharedPreferences snapshots for Fan Rep and one HQ score, readable without starting React Native JS. |
 
@@ -157,10 +177,10 @@ It references generated schema/service metadata and `res/xml/app_metadata.xml`.
 PR #1446 fixes Google Play rejecting the AAB's incomplete AppFunctions metadata.
 `modules/expo-android-capabilities/android/src/main/res/xml/app_metadata.xml` declares `app:displayDescription="@string/appfunctions_display_description"` and `app:instructions` under `xmlns:app="http://schemas.android.com/apk/res-auto"`.
 It replaces the former `appfn:instructions` with res-auto instructions and a legacy `appfn:description` under `xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"`.
-Both instruction/description attributes carry the same operational guidance for the four functions, read-only on-device caches, and signed-out personal-data limits.
+Both instruction/description attributes originally covered four functions. PR #1448 added `openPacks` to both, so they now describe all five functions, read-only on-device caches, and signed-out personal-data limits.
 These declarations describe behavior; they do not add runtime enforcement.
 The localizable `appfunctions_display_description` resource lives in `modules/expo-android-capabilities/android/src/main/res/values/strings.xml`.
-Its default English value is “Check live game scores, view your Fan Rep, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
+Its current default English value is “Check live game scores, view your Fan Rep, open your packs, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
 PR #1446 adds no locale-specific `values-*` translations, manifest changes, ProGuard changes, or tests.
 Shipping this XML/string resource fix requires a rebuilt Android binary/AAB, not an OTA update.
 
@@ -199,7 +219,47 @@ PR #1421 adds Android Google Wallet presentation inside the existing Android-onl
 
 Focused tests live in `lib/google-wallet/__tests__/native.test.ts`, `hooks/__tests__/use-google-wallet-pass.test.ts`, and `lib/api/__tests__/wallet-pass-api.test.ts`. They do not establish Play account eligibility, native sheet delivery, or Wallet persistence on a device. See [Google Wallet behavior](/repositories/d-sports-engage-native/feature-mapping#google-wallet-passes) for entry points and fallback limits.
 
+## Arena web preview and Android install handoff
+
+PR #1452 adds public Expo Router shells at `app/clip/arena/[id].tsx`, `app/clip/[id].tsx`, and `app/clip/index.tsx` in engage-native itself.
+These are not new d-sports-api or marketing-site web routes.
+`features/app-clip-handoff/screen/ArenaPreviewScreen.tsx` renders the preview using `useArenaPreviewScreen.ts`.
+`lib/pending-deep-link.ts` marks `/clip` public.
+`RootAuthStack` bypasses its auth-ready spinner for `/clip` paths.
+Expo Router discovers the screens outside the explicit protected screen list.
+The [iOS App Clip](#app-clip-configuration) remains a separate SwiftUI target and App Group handoff.
+
+`arena-preview-links.ts` builds Android `intent://` links targeting package `com.dsports.engage` and the HTTPS `/clip/arena/<id>` path on the configured app web host.
+`S.browser_fallback_url` contains an encoded Play listing URL with an encoded `referrer` query value.
+The decoded value is `arena_clip_id=<id>&check_in=<1|0>&captured_at=<milliseconds>`.
+The iOS browser target is App Store ID `6755374760`.
+Other browser primary CTAs use Play with the referrer.
+Footer **Get App** uses a bare store URL with no arena handoff.
+
+`android-install-referrer.android.ts` reads `Application.getInstallReferrerAsync()` through already-bundled `expo-application`.
+Non-Android wrappers no-op; unavailable/sideload/non-arena referrers produce no handoff.
+`android-install-referrer-parser.ts` requires a 1–128-character ASCII alphanumeric/underscore/hyphen ID and finite millisecond timestamp.
+It rejects ages over 24 hours and timestamps more than one minute ahead.
+`check_in=1` or `true` is parsed but does not authorize a mutation.
+`useAppClipHandoff(inApp)` waits for Android authentication/onboarding and resolves a fresh public preview.
+It forces `checkInRequested: false` before mapping local match/club routes.
+MMKV instance `android-arena-clip-referrer` stores `last_consumed_signature` as `id:flag:truncatedTimestamp` before navigation.
+`useAppClipHandoff` also marks the referrer consumed when the preview returns `NOT_FOUND`/`VALIDATION_ERROR`.
+Other failures reset the in-memory guard for a later effect/mount, not a scheduled retry.
+Persistence failure can allow replay, so this is not an exactly-once guarantee.
+
+The PR adds no dependency, native module, manifest, plugin, or ProGuard change.
+Its JS can use OTA on compatible binaries already containing `expo-application` and MMKV.
+The public pages need a web deployment to `app.d-sports.org`; OTA does not deploy them.
+Changing the existing native App Link configuration would still require a rebuilt binary.
+`features/app-clip-handoff/__tests__/arena-preview-links.test.ts` covers referrer parsing/expiry, encoded store/intent links, platform targets, route parameters, and CTA contrast.
+Existing `handoff-parser.test.ts` covers route/handoff helpers.
+These tests do not execute screen/auth effects, signed-in claims, MMKV persistence, Chrome redirects, or real Play referrer delivery.
+See [preview behavior](/repositories/d-sports-engage-native/feature-mapping#arena-web-preview-and-install-handoff) and [API integration](/repositories/d-sports-engage-native/integration-contracts#arena-preview-and-install-referrer).
+
 ## App Clip configuration
+
+Android/browser parity uses the separate [web preview and Play Install Referrer flow](#arena-web-preview-and-android-install-handoff), not this native clip target.
 
 `app.json` registers `plugins/withIosAppClip.js`. Prebuild copies `plugins/app-clip/*.swift` into **DSportsAppClip**, embeds the target through **Embed App Clips**, and adds EAS `appExtensions` signing metadata while preserving sibling extensions. The target uses the parent bundle ID plus `.Clip` (`com.dsports.wallet.beta.Clip`). It is a pure-SwiftUI iOS 17.0+ app with no CocoaPods or React Native dependencies. The root `package.json` does not change. `scripts/sync-ios-extension-versions.js` synchronizes its version/build number.
 
@@ -230,6 +290,24 @@ The local module depends on AppCompat 1.7.0, Core KTX 1.15.0, AndroidX Credentia
 | Restore Credentials | API 28+ bridge accepts server-supplied WebAuthn JSON, tries cloud creation with local-only E2EE-unavailable fallback, retrieves using a sole `GetRestoreCredentialOption`, and clears `TYPE_CLEAR_RESTORE_CREDENTIAL`. Wrappers keep an MMKV synced flag. Only sign-out cleanup is wired into the host; create/get have no application callers and no new automatic session-restoration flow or API contract. |
 | Play in-app updates | `AndroidInAppUpdates.kt` wraps Play `AppUpdateManager`. Once `inApp` opens and the existing update gate is `force`/`soft`, the host checks once per mount. Forced updates use immediate when allowed, otherwise flexible if allowed; soft uses flexible only. Native foreground handling re-emits downloaded readiness or resumes an in-progress immediate flow. Unavailable/error cases fail open in this wrapper; the existing update gate still applies. |
 
+PR #1454 reads static shortcut labels from `locales/{en,fr,it}/app-shell.json`, sharing translation keys with iOS Quick Actions.
+`plugins/withAndroidPlatformCapabilities.js` writes English defaults to `res/values/strings.xml` and translations to `res/values-fr/strings.xml` and `res/values-it/strings.xml` during prebuild.
+The generator preserves unrelated localized strings and falls back to built-in English labels for missing/blank keys, missing catalogs, or unparseable JSON.
+A catalog that parses to JSON `null` throws on key lookup instead.
+Every launcher alias retains the same `@xml/shortcuts` metadata.
+Packs now targets `engagenative://market/packs`.
+Arena QR now targets `engagenative://leaderboard/scan-qr`.
+`lib/android/shortcuts.android.ts` localizes dynamic and pin labels with the active app language.
+Language changes republish dynamic shortcuts only; a pin keeps the label from its request time.
+`AndroidCapabilitiesHost.android.tsx` refreshes device locale on mount/foreground and passes `activeLanguage()` when `localeRevision` triggers dynamic republishing.
+Static menus instead use packaged resources resolved by Android from the system locale.
+The PR does not prove per-app-only locale updates in every launcher.
+`lib/__tests__/android-shortcuts-sync.test.ts` checks explicit FR/IT labels and foreground locale resync with source assertions for host wiring.
+`lib/__tests__/pending-deep-link.test.ts` exercises `captureDeepLinkUrl` for Packs, Arena QR, hostname-only Market, public HQ exclusion, and callback exclusion.
+Plugin tests cover generated EN/FR/IT resources, existing-string preservation, routes, and shortcut metadata.
+They do not exercise the generator's missing/malformed-catalog English fallback.
+These tests do not prove native launcher delivery or device menu refresh.
+
 All manifest/resource, native dependency/module, and packaged-asset changes require a rebuilt signed binary, not OTA alone. Later JS-only routing/copy/controller changes require an already compatible binary/runtime. A Play update installs a native store build; it is not an Expo OTA. Launcher visibility, system UI, verified links, and Play eligibility are not guaranteed by configuration alone. See [Android behavior](/repositories/d-sports-engage-native/feature-mapping#android-tier-1-platform-behavior) for routes, auth gates, share draft handling, and restart consent.
 
 Focused tests: `plugins/__tests__/withAndroidPlatformCapabilities.test.ts` covers asset statements/deduplication/escaping, shortcut XML/routes, manifest idempotence, PiP registration, and predictive-back config; `plugins/__tests__/withAndroidManifestOverrides.test.ts` covers the back-callback flag; `lib/__tests__/android-tier1-capabilities.test.ts` covers locale normalization, share normal/empty/store cases, Android-only module registration, and Kotlin source markers for restore/shortcuts/updates. These tests do not compile Kotlin, inspect a merged APK, verify live certificate associations, or exercise system gestures, PiP, URI-copy limits, launchers, Credential Manager, composer auth flows, or Play downloads/restarts. The maintained source guide is `docs/android-native-capabilities.md` in engage-native.
@@ -259,6 +337,7 @@ Focused #1409 tests are `lib/__tests__/tier2-android.test.ts` (tokens, tile mani
 PR #1425 adds `modules/expo-android-nfc/` and registers `plugins/withAndroidNfc.js` in `app.json`.
 This is a separate link transport from [Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes).
 It reuses the arena URL family of the [iOS App Clip](/repositories/d-sports-engage-native/architecture#app-clip-configuration).
+The full iOS app reads the same URLs with [Core NFC](#ios-core-nfc-configuration).
 
 `ExpoAndroidNfcModule.kt`, `DsportsNfcHceService.kt`, and `NdefUrlCodec.kt` live under `modules/expo-android-nfc/android/src/main/java/expo/modules/androidnfc/`.
 The service emulates a read-only NFC Forum Type 4 Tag containing one NDEF URI record.
@@ -274,7 +353,27 @@ Generated `res/xml/nfc_aid_list.xml` requires device unlock and uses category `o
 It registers the standard Type 4 NDEF AID `D2760000850101` and custom AID `F04453504F52545301`.
 There is no user-facing rollout flag or Android 16/17 API-level gate in this bridge.
 
-`NDEF_DISCOVERED` filters accept HTTPS `/clip/arena`, `/profile`, and `/binder` prefixes on `extra.appWebHost`, defaulting to `app.d-sports.org`.
+PR #1455 configures one MainActivity `android:autoVerify="true"` intent filter for HTTPS `/clip/arena`, `/profile`, and `/binder` prefixes on `extra.appWebHost`, defaulting to `app.d-sports.org`.
+`plugins/withAndroidNfc.js` puts both `android.intent.action.VIEW` and `android.nfc.action.NDEF_DISCOVERED` in that filter with `DEFAULT` and `BROWSABLE` categories.
+It removes duplicate entries for those HTTPS host/prefix pairs from other VIEW filters while preserving unrelated entries.
+It removes a prior VIEW filter if that move leaves it empty.
+This replaces the standalone HTTPS NDEF filter that Play Console flagged for missing App Links declarations.
+The merge requests verification without establishing Play Console acceptance.
+It does not deploy or verify `assetlinks.json`.
+You still need the installed package/signing certificate in the host's association statement.
+
+`NdefUrlCodec.extractUrlFromIntent` now requires `ACTION_NDEF_DISCOVERED`, a Parcelable `NfcAdapter.EXTRA_TAG`, and a decodable URI from `EXTRA_NDEF_MESSAGES`.
+It rejects missing extras and undecodable messages without falling back to `intent.dataString`.
+This prevents treating a browser's bare data-URI intent as an NFC tag read.
+If Android delivers a tag scan to Engage as `ACTION_VIEW` instead of `ACTION_NDEF_DISCOVERED`, Engage handles it as an App Link: it navigates like a URL-only link and does not take the NFC claim path.
+Which Android versions dispatch HTTPS tags that way is not established by the source tests.
+It does not prove physical attendance or change server check-in eligibility.
+The plugin tests check combined actions/categories/autoVerify, deduplication, emptied-filter removal, and repeated Expo `setAndroidIntentFilters` plus NFC-plugin passes against `app.json`.
+The Kotlin guard test checks source markers rather than executing Parcelable extraction.
+Rebuild the Android binary to ship this manifest/Kotlin change.
+OTA cannot install it.
+These tests do not establish device dispatch on Android 15 or Android 16+, real tag interoperability, or Play approval.
+
 The plugin writes that host to `com.dsports.engage.NFC_ALLOWED_HOST` metadata.
 Native and JS validators accept production/configured hosts and reject non-HTTPS or unsupported paths.
 The native codec rejects `..` and URLs longer than 512 characters.
@@ -294,6 +393,36 @@ Compatible JS-only changes can use OTA only after that binary exists.
 `plugins/__tests__/withAndroidNfc.test.ts` covers AIDs/unlock, optional hardware, protected service registration, filters/host metadata, idempotence, and app registration.
 These tests do not execute Kotlin APDUs, modal lifecycle, auth/check-in effects, or physical-device interoperability.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for the shipped entry point and failure limits.
+
+## iOS Core NFC configuration
+
+PR #1450 adds the local Swift module `modules/expo-ios-nfc/` and registers `plugins/withIosNfc.js` in `app.json`.
+It is separate from `plugins/withAndroidNfc.js` and from the [App Clip](#app-clip-configuration) target.
+See [iOS Core NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for the user-facing flow.
+
+At prebuild, the plugin merges `TAG` into `com.apple.developer.nfc.readersession.formats` without duplicates and strips the deprecated `NDEF` value.
+It keeps an existing non-empty `NFCReaderUsageDescription` unless the plugin's `usageDescription` option overrides it.
+It writes `DSportsNfcAllowedHost` as a bare lowercase host from `extra.appWebHost`, defaulting to `app.d-sports.org`.
+The App ID and provisioning profile must also enable NFC Tag Reading; the plugin does not provision it.
+
+`ExpoIosNfcModule.swift` exposes `getStatus`, `isNfcAvailable`, `startScan`, `stopScan`, and the `onNfcUrlDiscovered` / `onNfcError` events.
+The podspec targets iOS 17.0 and links `CoreNFC`.
+`IosNfcReaderCoordinator.swift` runs one `NFCNDEFReaderSession` at a time with `invalidateAfterFirstRead: true`; a new scan invalidates the previous session.
+`IosNfcUrlValidator.swift` reads only the first non-empty well-known URI or absolute-URI record; if that URL fails validation, the tag counts as unsupported even when a later record would pass.
+It requires HTTPS, `app.d-sports.org` or `DSportsNfcAllowedHost`, at most 512 characters, and no raw or percent-decoded `..`.
+The path must be exactly one segment after `/clip/arena/`, `/profile/`, or `/binder/`.
+Arena IDs must match `^[A-Za-z0-9_-]{1,128}$`; profile and binder IDs must match `^[A-Za-z0-9._@-]{1,128}$`.
+These path rules are stricter than Android's `NdefUrlCodec.kt`, which checks the allowed prefix and a non-empty path suffix and leaves identifier formats to the JavaScript route parser.
+Errors use the codes `UNSUPPORTED_TAG`, `SCAN_TIMEOUT`, `NFC_BUSY`, and `NFC_READ_ERROR`; cancellation is silent.
+
+`lib/ios/nfc.ios.ts` re-validates event URLs with the shared `lib/android/nfc-url.ts` parser.
+`RootAuthStack` mounts `hooks/use-ios-nfc-host.ios.ts` through `context/app-providers/IosNfcHost.ios.tsx`.
+`features/leaderboard/screen/ScanQrScreen.tsx` renders `components/nfc/NfcArenaScanButton.ios.tsx`.
+Non-iOS builds use no-op bridge, host, and button implementations.
+
+Plugin, bridge, host, and button tests do not run Swift, Core NFC, or a real tag.
+The Simulator has no NFC reader, so physical arena tags and Android HCE reads need a signed physical-device build.
+The module, entitlement, and `Info.plist` keys need a new native binary; an OTA update cannot add them.
 
 ## Wallet signing
 

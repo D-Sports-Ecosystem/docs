@@ -77,6 +77,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
 
+### Shared videos
+
+On iOS and Android, the share target stages a local video file and opens the Locker Room composer. Sharing does not publish the draft.
+
+On publish, use [the direct upload flow](/repositories/d-sports-api/social-locker-room/behavior#direct-video-uploads) for native video files up to 50 MiB. Keep the Clerk token on the API calls only. Add the finalized video URL and any extracted thumbnail URL to the existing post body. Do not attach a placeholder as a thumbnail.
+
 ## Marketplace contracts
 
 - Prefer `GET /api/v1/marketplace/me/listings`. `GET /api/v1/marketplace/listings/mine` is a native alias for the same handler. Create listings with `x-listing-pin-token`.
@@ -162,7 +168,58 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 - Avoid silent failures for mutation endpoints.
 - Use retry/backoff for transient network failures; avoid retry storms on authorization or validation errors.
 
+## iOS widget refresh
+
+On iOS, PR #1453 fetches `GET /api/v1/widgets/snapshot` with a scoped widget bearer.
+The app mints it with Clerk auth via `POST /api/v1/widgets/token`.
+The token mint body includes `deviceId` (a stable per-install ID) and `platform: "ios"` per the [Widget API contract](/api-reference/domains/platform-infra#widget-api).
+These fields apply only to token minting, not snapshot fetching.
+The app shares the bearer through the App Group Data Protection Keychain.
+Non-secret metadata lives in App Group UserDefaults.
+
+The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
+The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
+A 401/403 clears the native token.
+The host JS provider does not retry that request with Clerk.
+ETags are per target.
+HQ 304 freshness checks game identity.
+Expired tokens and 401/403 responses cause credential deletion.
+These failures mark cached data stale.
+Missing credentials skip fetch.
+Offline/server failures retain stale data.
+Sign-out/account changes attempt revocation.
+They wipe local credentials, validators, and timelines.
+
+During an HQ refresh, an explicit `hqLive: null` idles an active live card.
+It preserves a retained final card.
+A rank refresh does not perform this idle reset.
+See [iOS widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for cadence, rebuild requirements, and test limits.
+Android's file storage, WorkManager, backoff, and total JS timeout budget below do not describe iOS.
+
+## iOS Core NFC arena check-in
+
+PR #1450 adds an iOS caller of the existing preview and check-in clients, not a new endpoint.
+`hooks/use-ios-nfc-host.ios.ts` calls `useApi().quests.getAppClipArenaPreview` (`GET /api/v1/app-clips/arena/{id}`, `404` expected) and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
+It requires a preview `kind` of `game_event` or `team` with an `id` before navigating.
+It claims with the preview's `team.id` only when `checkInAvailable` is true, unlike the [Android NFC](#android-nfc) host.
+A tag URL is not proof of attendance; the server remains authoritative for eligibility, daily limits, and rewards.
+See [Core NFC behavior](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for authentication deferral, feedback, and retry limits.
+
 ## Android integration contracts
+
+### Arena preview and install referrer
+
+PR #1452 reuses `useApi().quests.getAppClipArenaPreview` from `lib/api/quests-api.ts` for both the public web card and Android post-install navigation.
+The engage-native API client now marks preview 404s as expected statuses.
+Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) and [Platform API](/api-reference/domains/platform-infra) for the existing read-only preview contract.
+The required, nullable `homeTeam`/`awayTeam` score summaries already exist on API main.
+The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available.
+Use [Gamification API](/api-reference/domains/gamification) for the existing authenticated claim and server-owned daily limit.
+The Android Play referrer is untrusted navigation input and never calls the claim client.
+Its `check_in` flag does not grant eligibility or prove attendance.
+The `/clip` web routes belong to engage-native, not another repository.
+No new API route or server change is required by this PR.
+See [handoff architecture](/repositories/d-sports-engage-native/architecture#arena-web-preview-and-android-install-handoff) for encoding, expiry, and consumption.
 
 ### Android NFC
 
@@ -171,7 +228,7 @@ PR #1425 adds an Android caller of existing preview and check-in clients, not a 
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
 Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
 The hook passes the preview's `team.id`, not the game ID in an event URL.
-It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`.
+It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`; the [iOS Core NFC](#ios-core-nfc-arena-check-in) host does gate on it.
 The server remains authoritative for eligibility and rewards.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
 
