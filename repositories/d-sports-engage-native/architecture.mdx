@@ -91,9 +91,17 @@ Activation rules advertise four images, one web URL, and plain text. The extensi
 
 The extension target, entitlements, and native bridge require a new binary, not OTA alone. `plugins/__tests__/withIosShareExtension.test.ts` covers registration, activation rules, template presence, App Group merging, EAS metadata, the single `BUILT_PRODUCTS_DIR` `.appex` embed, and reuse of an existing **Embed Foundation Extensions** phase. `lib/locker-room/__tests__/share-handoff.test.ts` covers validation, TTL, empty/error cases, caps, formatting, queueing, and restore suppression. These tests do not run a Release archive or prove signed extension discovery, Swift photo staging, or device/auth handoff.
 
-## Tier 2 native integration
+## Siri App Intents integration
 
-PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers `expo-app-intents` and `experiments.inlineModules.watchedDirectories: ["app-intents"]`; `package.json` includes the native package. `AppIntentsSetup.swift` refreshes shortcut parameters. `AppIntentsHost`, mounted by `RootAuthStack`, processes invocations only after the authenticated/onboarded `inApp` route gate opens. The resolver lives in `lib/ios/app-intents.ts`.
+PR #1397 adds app-target Swift sources under `app-intents/`, not a separate shortcut extension. `app.json` registers the `expo-app-intents` plugin and `experiments.inlineModules.watchedDirectories: ["app-intents"]`. PR #1451 reuses the installed package for [Siri action parity with Android AppFunctions](/repositories/d-sports-engage-native/feature-mapping#siri-app-intents), without a new module or backend endpoint.
+
+`AppShortcuts.swift` declares five shortcuts. Three read-only intents use `AppIntentEntityStore.shared` to read the native `liveScore`, `fanRep`, and `collectible` catalogs without booting React Native or making a network request. The iOS-only `useIosAppIntentsSync` hook mirrors signed-in profile and owned-card data and seeds the score from the Live Activity or HQ widget snapshot. Snapshot writes update the score catalog. Clearing HQ widget data or taking the Live Activity sweep's immediate-end path clears the cached score; ending an activity or clearing its stored snapshot does not by itself clear it. Sign-out, account deletion, cold-start session revocation, and account switches request cleanup of all three catalogs. Native failures can prevent immediate cleanup. Android and web use no-op sync implementations.
+
+Separate navigation intents dispatch to `AppIntentsHost`, mounted by `RootAuthStack`. The host waits until the authenticated/onboarded `inApp` gate opens, then resolves the destination through `lib/ios/app-intents.ts`. Read-only intents do not use this routing path.
+
+The updated Swift sources and shortcut metadata require a rebuilt iOS binary; an OTA alone cannot install them. `lib/ios/__tests__/app-intents.test.ts` and `app-intents-cache.test.ts` cover routing, mapping, and cache sync/cleanup, not Siri invocation or device discovery.
+
+## Tier 2 native integration
 
 The iOS tab layout enables `minimizeBehavior="onScrollDown"` and conditionally mounts `LiveGameBottomAccessory` for a live snapshot. `services/live-game-accessory-store.ts` holds the in-memory state, synchronized by Live Activity snapshot writes/clears and restored from MMKV by the intent host. This iOS 26+ tab accessory is separate from ActivityKit and WidgetKit.
 
@@ -113,7 +121,7 @@ The module and subscriber require a new binary. Once the installed binary contai
 
 ## Android AppSearch and AppFunctions integration
 
-PR #1423 adds Android counterparts to [iOS Spotlight](#core-spotlight-and-handoff-integration) and [App Intents](#tier-2-native-integration).
+PR #1423 adds Android counterparts to [iOS Spotlight](#core-spotlight-and-handoff-integration) and [Siri App Intents](#siri-app-intents-integration). The assistant actions match, but Android uses platform-specific caches and launch handles rather than separate native query and navigation intents.
 It does not implement Android Handoff.
 `AndroidCapabilitiesHost.android.tsx` calls `hooks/use-android-search-sync.android.ts` with the authenticated/onboarded `inApp` gate.
 The hook reuses `lib/spotlight/` mappers for `user.favoriteTeams`, active-wallet binder summaries, and owned collectibles.
@@ -135,7 +143,7 @@ Native sources live under `modules/expo-android-capabilities/android/src/main/ja
 | --- | --- |
 | `AndroidAppSearch.kt` | Database `dsports_engage_search`; schemas `DSportsTeam`, `DSportsCard`, `DSportsBinder`; namespaces `teams`, `cards`, `binders`. Stores title, subtitle, keywords, deep link, domain identifier, entity type, and optional thumbnail URL. |
 | `ExpoAndroidCapabilitiesModule.kt` | Index/delete/clear/search operations, cache methods, availability gates, and AppSearch session closure on module destroy. |
-| `appfunctions/BaseDSportsAppFunctionService.kt` | API 36+ declarations for `getLiveScore`, `getFanRep`, `openArenaQr`, and `searchCollectibles`. |
+| `appfunctions/BaseDSportsAppFunctionService.kt` | API 36+ declarations for `getLiveScore`, `getFanRep`, `searchCollectibles`, `openPacks`, and `openArenaQr`. |
 | `appfunctions/DSportsAppFunctionModels.kt` | Serializable results with immutable, package-scoped launch `PendingIntent`s. |
 | `appfunctions/AndroidAppFunctionsCache.kt` | Private SharedPreferences snapshots for Fan Rep and one HQ score, readable without starting React Native JS. |
 
@@ -155,10 +163,10 @@ It references generated schema/service metadata and `res/xml/app_metadata.xml`.
 PR #1446 fixes Google Play rejecting the AAB's incomplete AppFunctions metadata.
 `modules/expo-android-capabilities/android/src/main/res/xml/app_metadata.xml` declares `app:displayDescription="@string/appfunctions_display_description"` and `app:instructions` under `xmlns:app="http://schemas.android.com/apk/res-auto"`.
 It replaces the former `appfn:instructions` with res-auto instructions and a legacy `appfn:description` under `xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"`.
-Both instruction/description attributes carry the same operational guidance for the four functions, read-only on-device caches, and signed-out personal-data limits.
+Both instruction/description attributes originally covered four functions. PR #1448 added `openPacks` to both, so they now describe all five functions, read-only on-device caches, and signed-out personal-data limits.
 These declarations describe behavior; they do not add runtime enforcement.
 The localizable `appfunctions_display_description` resource lives in `modules/expo-android-capabilities/android/src/main/res/values/strings.xml`.
-Its default English value is “Check live game scores, view your Fan Rep, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
+Its current default English value is “Check live game scores, view your Fan Rep, open your packs, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
 PR #1446 adds no locale-specific `values-*` translations, manifest changes, ProGuard changes, or tests.
 Shipping this XML/string resource fix requires a rebuilt Android binary/AAB, not an OTA update.
 
