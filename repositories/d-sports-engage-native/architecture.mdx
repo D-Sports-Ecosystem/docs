@@ -163,10 +163,10 @@ It references generated schema/service metadata and `res/xml/app_metadata.xml`.
 PR #1446 fixes Google Play rejecting the AAB's incomplete AppFunctions metadata.
 `modules/expo-android-capabilities/android/src/main/res/xml/app_metadata.xml` declares `app:displayDescription="@string/appfunctions_display_description"` and `app:instructions` under `xmlns:app="http://schemas.android.com/apk/res-auto"`.
 It replaces the former `appfn:instructions` with res-auto instructions and a legacy `appfn:description` under `xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"`.
-Both instruction/description attributes carry the same operational guidance for the four functions, read-only on-device caches, and signed-out personal-data limits.
+Both instruction/description attributes originally covered four functions. PR #1448 added `openPacks` to both, so they now describe all five functions, read-only on-device caches, and signed-out personal-data limits.
 These declarations describe behavior; they do not add runtime enforcement.
 The localizable `appfunctions_display_description` resource lives in `modules/expo-android-capabilities/android/src/main/res/values/strings.xml`.
-Its default English value is “Check live game scores, view your Fan Rep, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
+Its current default English value is “Check live game scores, view your Fan Rep, open your packs, search your collectible cards, and open the Arena QR scanner in D-Sports Engage.”
 PR #1446 adds no locale-specific `values-*` translations, manifest changes, ProGuard changes, or tests.
 Shipping this XML/string resource fix requires a rebuilt Android binary/AAB, not an OTA update.
 
