@@ -413,13 +413,13 @@ Arena IDs must match `^[A-Za-z0-9_-]{1,128}$`; profile and binder IDs must match
 Errors use the codes `UNSUPPORTED_TAG`, `SCAN_TIMEOUT`, `NFC_BUSY`, and `NFC_READ_ERROR`; cancellation is silent.
 
 `lib/ios/nfc.ios.ts` re-validates event URLs with the shared `lib/android/nfc-url.ts` parser.
-`hooks/use-ios-nfc-host.ios.ts` is mounted from `RootAuthStack` through `context/app-providers/IosNfcHost.ios.tsx`.
-`components/nfc/NfcArenaScanButton.ios.tsx` is rendered by `features/leaderboard/screen/ScanQrScreen.tsx`.
+`RootAuthStack` mounts `hooks/use-ios-nfc-host.ios.ts` through `context/app-providers/IosNfcHost.ios.tsx`.
+`features/leaderboard/screen/ScanQrScreen.tsx` renders `components/nfc/NfcArenaScanButton.ios.tsx`.
 Non-iOS builds use no-op bridge, host, and button implementations.
 
 Plugin, bridge, host, and button tests do not run Swift, Core NFC, or a real tag.
 The Simulator has no NFC reader, so physical arena tags and Android HCE reads need a signed physical-device build.
-The module, entitlement, and Info.plist keys need a new native binary; an OTA update cannot add them.
+The module, entitlement, and `Info.plist` keys need a new native binary; an OTA update cannot add them.
 
 ## Wallet signing
 

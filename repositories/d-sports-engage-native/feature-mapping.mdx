@@ -387,13 +387,13 @@ Cross-platform phone reading and physical-device interoperability remain unverif
 
 PR #1450 adds foreground Core NFC tag reading to the full iOS app.
 It is the iOS counterpart of [Android arena NFC check-in](#android-nfc-sharing-and-arena-check-in), not of Android's tap-to-share.
-iOS has no outbound phone-to-phone NFC sharing because Apple limits card emulation to payment, transit, access, and ID entitlements.
+Engage adds no outbound phone-to-phone NFC sharing on iOS, because Apple restricts Core NFC card emulation to specific entitlements.
 The App Clip does not use this reader.
 
 On the arena scanner, **Scan NFC tag** appears beside manual entry, including when camera access is denied.
 It renders only where `NFCNDEFReaderSession.readingAvailable` is true, so the Simulator and iPads without an NFC reader never show it.
 Tapping it opens the system NFC sheet for one read.
-The sheet can read an arena tag or the URL a nearby Android phone shares.
+The sheet reads arena tags; reading the URL a nearby Android phone shares is intended but unverified on physical devices.
 
 The reader accepts only an HTTPS `app.d-sports.org` (or configured app host) URL of at most 512 characters.
 The path must be one safe identifier after `/clip/arena/`, `/profile/`, or `/binder/`, with no `..`.
@@ -412,7 +412,7 @@ Already-claimed responses set the badge without another earn toast.
 Other claim errors show feedback, and there is no durable retry queue.
 
 This reader only runs while its sheet is open.
-A tag URL that iOS opens in the background or as a universal link follows the [App Clip](#app-clip) or installed-app link path, which never checks in automatically.
+A tag URL that iOS opens in the background or as a universal link follows the [App Clip](#app-clip) or installed-app link path instead of this reader's claim logic.
 See the [Core NFC integration](/repositories/d-sports-engage-native/integration-contracts#ios-core-nfc-arena-check-in) for API clients and [Core NFC configuration](/repositories/d-sports-engage-native/architecture#ios-core-nfc-configuration) for entitlements, build requirements, and test limits.
 
 ## Notifications and legal
