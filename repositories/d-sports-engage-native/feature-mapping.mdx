@@ -72,9 +72,24 @@ The route waits for authentication/onboarding, validates the handoff, and opens 
 
 Missing, invalid, empty, expired (over 24 hours), or unavailable-native handoffs fall back to **Locker Room** without a shared draft. Thrown intake failures are logged, not shown as a toast. Photo-staging failures preserve the original App Group handoff but do not automatically retry. Shared and temporary directories receive stale cleanup; the pending composer queue is in memory and does not survive app termination. This is an iOS extension, not an Android/web share target. You need a rebuilt binary with the target, entitlements, and bridge; see [Share Extension configuration](/repositories/d-sports-engage-native/architecture#share-extension-configuration).
 
+## Siri App Intents
+
+Siri and Shortcuts can run five App Shortcuts in an updated iOS binary. These cover the same actions as [Android Gemini AppFunctions](#android-appsearch-and-appfunctions), but iOS separates answers from navigation.
+
+| App Shortcut | Behavior |
+| --- | --- |
+| **Live Score** | Reads one cached live or recent score without opening the app. An optional team filter matches the cached team slug, name, or abbreviation. If no score is cached or the team does not match, it says so. |
+| **Fan Rep** | Reads your cached points and rank when available, without opening the app. If no Fan Rep is cached, it prompts you to sign in. |
+| **Search Collectibles** | Searches up to 250 cached owned cards and returns matching card entities plus a spoken summary without opening the app. The default is 10 results, capped at 50. |
+| **Open Packs** | Opens Wallet. It does not purchase or open a pack. |
+| **Scan Arena QR** | Opens the leaderboard scanner. It does not scan or submit a check-in automatically. |
+
+Answers can be stale because these intents read the on-device cache, not the backend. Separate **Open Live Score**, **Open Leaderboard**, and **Open Collectible** intents open the match or Team HQ, the leaderboard, and the binder (not an individual card), respectively. **Open Live Score** uses a validated explicit or cached match ID, then the tracked live match if no ID was supplied, and falls back to `/hq` without a valid target. Navigation waits for sign-in and onboarding; a burst of invocations navigates to the newest recognized destination.
+
+See [Siri App Intents integration](/repositories/d-sports-engage-native/architecture#siri-app-intents-integration) for cache sync, cleanup, and native build requirements.
+
 ## Tier 2 iOS behavior
 
-- **App Shortcuts:** Open Packs opens the wallet; Scan Arena QR opens the leaderboard scanner; Live Score opens a validated explicit match ID or the tracked live match, falling back to `/hq`. The shipped Swift Live Score shortcut supplies no ID. These actions open the app and navigate; they do not open packs, submit check-ins, or speak a fetched score. Pending invocations wait for the in-app auth/onboarding gate; a burst navigates to the newest recognized target, and unknown intent names have no target.
 - **Live Game accessory:** a tracked live snapshot shows a score/status bar above native tabs, or a compact inline score beside minimized tabs. Tapping opens the match. While mounted, it fetches the tracked match through existing `GET /api/events/{id}` immediately, every 30 seconds while active, and on foreground. Network failures keep the last score; final, canceled, or postponed games clear the accessory while preserving the MMKV snapshot for ActivityKit cleanup. It does not discover live matches.
 - **Preview and share:** market `ListingCard` and `TradeListingCard`, plus the team browse card's details link, use `Link.Preview` and open/share menus for native iOS interactions. Sharing strips Expo route groups and defaults to `https://app.d-sports.org`; the team share action requires a string href. This is not an app-wide preview or external metadata service.
 - **Sheets and resizing:** HQ game summaries and the legacy wheel/player-guess routes use native iOS form-sheet detents. Match routes and engine game routes are not converted wholesale. Large iOS media-viewer windows remain free of programmatic orientation locking under the 600-dp shortest-side heuristic; compact iOS and Android keep existing viewer behavior.
@@ -133,6 +148,7 @@ Android 16+ exposes these declarations in `appfunctions/BaseDSportsAppFunctionSe
 | `getLiveScore(teamId?)` | Reads one cached live/recent HQ score with a match launch handle. Optional normalized text matches cached team slug, names, or abbreviations. A mismatch throws element-not-found. Missing cache returns `hasLiveGame: false` and an HQ launch handle. A safe match ID opens match detail and retains a safe context slug. |
 | `getFanRep()` | Reads cached signed-in Fan Rep, optional rank/name, a summary, and a leaderboard launch handle. Missing signed-in cache throws element-not-found. |
 | `openArenaQr()` | Returns scanner metadata and a launch handle. It does not scan, check in, or award Rep. |
+| `openPacks()` | Returns a Wallet deep link and launch handle, preserving the pending deep link through sign-in. It does not purchase or open a pack. |
 | `searchCollectibles(query, limit)` | Prefix-searches only indexed cards. Blank queries throw invalid-argument. Nonpositive limits default to 10; positive limits cap at 50. Returns the first result page with metadata and card launch handles, or an empty list for no matches. |
 
 The immutable launch handles target this app's package and `engagenative` routes.
@@ -150,7 +166,7 @@ Cleanup failures are not a guarantee of immediate OS deletion.
 Non-Android wrappers and missing native modules no-op.
 
 See [Android integration](/repositories/d-sports-engage-native/architecture#android-appsearch-and-appfunctions-integration) for schemas, identifiers, native dependencies, rebuild requirements, and tests.
-Compare [iOS Spotlight](#spotlight-search-and-handoff) and [iOS App Intents](/repositories/d-sports-engage-native/architecture#tier-2-native-integration).
+Compare [iOS Spotlight](#spotlight-search-and-handoff) and [Siri App Intents](#siri-app-intents).
 The Android implementation does not add Handoff or a new API contract.
 
 ## Spotlight search and Handoff
