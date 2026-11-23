@@ -231,7 +231,7 @@ Source tests do not establish per-app-only language behavior or launcher refresh
 
 After sign-in/onboarding, dynamic requests include **Locker Room** (`engagenative://(tabs)/locker-room`) and up to three unique favorite clubs resolved through the teams catalog (`engagenative://hq/<slug>`). Club labels use the catalog name, truncated to 18 characters. The launcher may show fewer or none: static shortcuts consume quota first. The same dynamic entries are long-lived Direct Share candidates, not guaranteed share-sheet placement. Sign-out after an authenticated session removes dynamic entries, not packaged static or pinned shortcuts. Pin APIs exist for a club/scanner, but no product UI calls them.
 
-Dynamic/pinned long labels follow the active app language.
+Dynamic long labels follow the active app language and are republished on a language change. A pin request uses the active language at request time; existing pins do not relabel.
 The Locker Room short label stays `Locker Room`, and club short labels stay catalog names.
 The host refreshes device locale on mount/foreground and republishes dynamic entries when `localeRevision` changes.
 The pin helpers localize club long labels and both scanner labels, but no product UI calls them.

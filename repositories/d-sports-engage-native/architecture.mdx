@@ -306,7 +306,7 @@ You still need the installed package/signing certificate in the host's associati
 `NdefUrlCodec.extractUrlFromIntent` now requires `ACTION_NDEF_DISCOVERED`, a Parcelable `NfcAdapter.EXTRA_TAG`, and a decodable URI from `EXTRA_NDEF_MESSAGES`.
 It rejects missing extras and undecodable messages without falling back to `intent.dataString`.
 This prevents treating a browser's bare data-URI intent as an NFC tag read.
-A tag scan the system delivers as `ACTION_VIEW` instead of `ACTION_NDEF_DISCOVERED` is handled as an App Link: it navigates like a URL-only link and does not take the NFC claim path.
+If Android delivers a tag scan to Engage as `ACTION_VIEW` instead of `ACTION_NDEF_DISCOVERED`, Engage handles it as an App Link: it navigates like a URL-only link and does not take the NFC claim path.
 Which Android versions dispatch HTTPS tags that way is not established by the source tests.
 It does not prove physical attendance or change server check-in eligibility.
 The plugin tests check combined actions/categories/autoVerify, deduplication, emptied-filter removal, and repeated Expo `setAndroidIntentFilters` plus NFC-plugin passes against `app.json`.
