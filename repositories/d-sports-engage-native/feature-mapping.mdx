@@ -217,18 +217,33 @@ Android system **App Languages** (API 33+) and the in-app language preference sy
 
 ### Launcher shortcuts
 
-Long-press the app icon to access the four packaged static shortcuts, subject to launcher support. Their generated labels are English:
+Long-press the app icon to access four packaged static shortcuts, subject to launcher support.
+PR #1454 generates English, French, and Italian labels from the same `app-shell.json` keys as [iOS Home Screen Quick Actions](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions).
+Android resolves these packaged labels from the device's system locale rather than re-registering them through JS.
+Source tests do not establish per-app-only language behavior or launcher refresh timing.
 
-| Label | Target and limits |
+| Label (EN / FR / IT) | Target and limits |
 | --- | --- |
-| **Live Game** | `engagenative://hq` opens HQ, not a selected tracked match. |
-| **Packs** | `engagenative://(tabs)/wallet` opens the wallet without opening/buying a pack. This differs from the iOS **Open Packs** Quick Action's pack-market destination. |
-| **Arena QR** | `engagenative://(tabs)/leaderboard/scan-qr` opens the scanner without submitting a check-in. |
-| **Market** | `engagenative://market` opens the marketplace without a transaction. |
+| **Live Game** / **Match en direct** / **Partita live** | `engagenative://hq` opens HQ, not a selected tracked match. |
+| **Open Packs** / **Ouvrir des packs** / **Apri pacchetti** | `engagenative://market/packs` opens the pack market, matching iOS without opening/buying a pack. |
+| **Scan Arena QR** / **Scanner un QR** / **Scansiona QR** | `engagenative://leaderboard/scan-qr` opens the scanner without submitting a check-in. |
+| **Market** / **Marché** / **Mercato** | `engagenative://market` opens the marketplace without a transaction. |
 
 After sign-in/onboarding, dynamic requests include **Locker Room** (`engagenative://(tabs)/locker-room`) and up to three unique favorite clubs resolved through the teams catalog (`engagenative://hq/<slug>`). Club labels use the catalog name, truncated to 18 characters. The launcher may show fewer or none: static shortcuts consume quota first. The same dynamic entries are long-lived Direct Share candidates, not guaranteed share-sheet placement. Sign-out after an authenticated session removes dynamic entries, not packaged static or pinned shortcuts. Pin APIs exist for a club/scanner, but no product UI calls them.
 
-These intents use normal Expo Router/deep-link auth handling, not the [iOS Quick Actions](/repositories/d-sports-engage-native/feature-mapping#home-screen-quick-actions) forced pending-route path. The pending-link helper does not restore explicit `(tabs)` routes, excludes public HQ paths, and ignores hostname-only targets in its capture helper. Do not assume every destination survives a cold signed-out onboarding flow.
+Dynamic/pinned long labels follow the active app language.
+The Locker Room short label stays `Locker Room`, and club short labels stay catalog names.
+The host refreshes device locale on mount/foreground and republishes dynamic entries when `localeRevision` changes.
+The pin helpers localize club long labels and both scanner labels, but no product UI calls them.
+
+The Packs and Arena QR targets omit `(tabs)` so the pending-link helper can restore them after sign-in/onboarding.
+`captureDeepLinkUrl` now also captures hostname-only `engagenative://market`.
+Public HQ stays outside pending restoration, and auth callbacks remain excluded.
+These intents use normal Expo Router/deep-link auth handling rather than iOS Quick Actions' forced pending-route path.
+The pending state is in memory, not a durable queue.
+Rebuild to ship static labels/targets.
+Compatible dynamic-label and bootstrap JS changes can use OTA.
+Source tests cover parsing/restoration helpers, not native launcher taps on a device.
 
 ### Share into Locker Room
 
