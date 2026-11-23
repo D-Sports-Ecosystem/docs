@@ -335,6 +335,7 @@ Focused #1409 tests are `lib/__tests__/tier2-android.test.ts` (tokens, tile mani
 PR #1425 adds `modules/expo-android-nfc/` and registers `plugins/withAndroidNfc.js` in `app.json`.
 This is a separate link transport from [Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes).
 It reuses the arena URL family of the [iOS App Clip](/repositories/d-sports-engage-native/architecture#app-clip-configuration).
+The full iOS app reads the same URLs with [Core NFC](#ios-core-nfc-configuration).
 
 `ExpoAndroidNfcModule.kt`, `DsportsNfcHceService.kt`, and `NdefUrlCodec.kt` live under `modules/expo-android-nfc/android/src/main/java/expo/modules/androidnfc/`.
 The service emulates a read-only NFC Forum Type 4 Tag containing one NDEF URI record.
@@ -390,6 +391,36 @@ Compatible JS-only changes can use OTA only after that binary exists.
 `plugins/__tests__/withAndroidNfc.test.ts` covers AIDs/unlock, optional hardware, protected service registration, filters/host metadata, idempotence, and app registration.
 These tests do not execute Kotlin APDUs, modal lifecycle, auth/check-in effects, or physical-device interoperability.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for the shipped entry point and failure limits.
+
+## iOS Core NFC configuration
+
+PR #1450 adds the local Swift module `modules/expo-ios-nfc/` and registers `plugins/withIosNfc.js` in `app.json`.
+It is separate from `plugins/withAndroidNfc.js` and from the [App Clip](#app-clip-configuration) target.
+See [iOS Core NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for the user-facing flow.
+
+At prebuild, the plugin merges `TAG` into `com.apple.developer.nfc.readersession.formats` without duplicates and strips the deprecated `NDEF` value.
+It keeps an existing non-empty `NFCReaderUsageDescription` unless the plugin's `usageDescription` option overrides it.
+It writes `DSportsNfcAllowedHost` as a bare lowercase host from `extra.appWebHost`, defaulting to `app.d-sports.org`.
+The App ID and provisioning profile must also enable NFC Tag Reading; the plugin does not provision it.
+
+`ExpoIosNfcModule.swift` exposes `getStatus`, `isNfcAvailable`, `startScan`, `stopScan`, and the `onNfcUrlDiscovered` / `onNfcError` events.
+The podspec targets iOS 17.0 and links `CoreNFC`.
+`IosNfcReaderCoordinator.swift` runs one `NFCNDEFReaderSession` at a time with `invalidateAfterFirstRead: true`; a new scan invalidates the previous session.
+`IosNfcUrlValidator.swift` reads only the first non-empty well-known URI or absolute-URI record; if that URL fails validation, the tag counts as unsupported even when a later record would pass.
+It requires HTTPS, `app.d-sports.org` or `DSportsNfcAllowedHost`, at most 512 characters, and no raw or percent-decoded `..`.
+The path must be exactly one segment after `/clip/arena/`, `/profile/`, or `/binder/`.
+Arena IDs must match `^[A-Za-z0-9_-]{1,128}$`; profile and binder IDs must match `^[A-Za-z0-9._@-]{1,128}$`.
+These path rules are stricter than Android's `NdefUrlCodec.kt`, which checks the allowed prefix and a non-empty path suffix and leaves identifier formats to the JavaScript route parser.
+Errors use the codes `UNSUPPORTED_TAG`, `SCAN_TIMEOUT`, `NFC_BUSY`, and `NFC_READ_ERROR`; cancellation is silent.
+
+`lib/ios/nfc.ios.ts` re-validates event URLs with the shared `lib/android/nfc-url.ts` parser.
+`RootAuthStack` mounts `hooks/use-ios-nfc-host.ios.ts` through `context/app-providers/IosNfcHost.ios.tsx`.
+`features/leaderboard/screen/ScanQrScreen.tsx` renders `components/nfc/NfcArenaScanButton.ios.tsx`.
+Non-iOS builds use no-op bridge, host, and button implementations.
+
+Plugin, bridge, host, and button tests do not run Swift, Core NFC, or a real tag.
+The Simulator has no NFC reader, so physical arena tags and Android HCE reads need a signed physical-device build.
+The module, entitlement, and `Info.plist` keys need a new native binary; an OTA update cannot add them.
 
 ## Wallet signing
 

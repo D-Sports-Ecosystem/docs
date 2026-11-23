@@ -241,7 +241,7 @@ See [architecture](/repositories/d-sports-engage-native/architecture#arena-web-p
 
 For the browser/Android counterpart, see [arena web preview and install handoff](#arena-web-preview-and-install-handoff).
 
-For Android's separate tag-reader and authenticated claim flow using the same arena URL family, see [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
+For the full app's tag reader using the same arena URL family, see [iOS Core NFC arena check-in](#ios-core-nfc-arena-check-in) and Android's separate [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
 
 An arena invocation such as `https://app.d-sports.org/clip/arena/<id>` opens the iOS 17+ **D-Sports Arena** clip without installing full Engage. Its SwiftUI card displays a public event/club preview, including available team branding, status, venue/start time, and match scores. It does not sign you in, subscribe to live scores, claim a check-in, or award Rep. Invalid links, missing arenas, and network/server failures show **Couldn't Load Arena**; **Try Again** appears when a valid arena ID was extracted. API requests use 10-second request and 15-second resource timeouts.
 
@@ -358,7 +358,7 @@ The modal distinguishes NFC-off and HCE-unavailable states.
 Sharing requires enabled NFC, HCE, and a current activity.
 Scanning requires enabled NFC and a current activity.
 **Share link instead** uses the existing share-link fallback.
-iOS/web components no-op.
+iOS/web tap-to-share components no-op; iOS reads tags through its separate [Core NFC reader](#ios-core-nfc-arena-check-in).
 Native start failures return `false`, but the modal ignores that return value.
 A ready label therefore does not prove a session started.
 Unsupported reader URLs show an error toast; unreadable tags can remain silent.
@@ -368,7 +368,7 @@ Profile and binder links open their local routes.
 An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
 The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
 If the preview supplies `team.id`, it submits an authenticated quest check-in with that team ID.
-It does not check `checkInAvailable` before calling the claim client.
+It does not check `checkInAvailable` before calling the claim client, unlike the [iOS Core NFC reader](#ios-core-nfc-arena-check-in).
 Success sets the arena badge and shows earned Rep.
 Already-claimed responses set the badge without another earn toast.
 Other claim errors show feedback; thrown errors also log.
@@ -378,9 +378,42 @@ An allowlisted URL is not proof of attendance or permission to earn rewards.
 See the [NFC integration](/repositories/d-sports-engage-native/integration-contracts#android-nfc) for the reused API clients and server-owned contracts.
 
 The [iOS App Clip](/repositories/d-sports-engage-native/feature-mapping#app-clip) uses the same arena URL family with a different handoff flow.
+The full iOS app reads the same URLs through [Core NFC](#ios-core-nfc-arena-check-in).
 [Apple Wallet passes](/repositories/d-sports-engage-native/feature-mapping#apple-wallet-passes) are signed pass presentation, not this public-link NFC transport.
 See [NFC configuration](/repositories/d-sports-engage-native/architecture#android-nfc-configuration) for permissions, lifecycle, native build requirements, and test limits.
 Cross-platform phone reading and physical-device interoperability remain unverified by the source tests.
+
+## iOS Core NFC arena check-in
+
+PR #1450 adds foreground Core NFC tag reading to the full iOS app.
+It is the iOS counterpart of [Android arena NFC check-in](#android-nfc-sharing-and-arena-check-in), not of Android's tap-to-share.
+Engage adds no outbound phone-to-phone NFC sharing on iOS, because Apple restricts Core NFC card emulation to specific entitlements.
+The App Clip does not use this reader.
+
+On the arena scanner, **Scan NFC tag** appears beside manual entry, including when camera access is denied.
+It renders only where `NFCNDEFReaderSession.readingAvailable` is true, so the Simulator and iPads without an NFC reader never show it.
+Tapping it opens the system NFC sheet for one read.
+The sheet reads arena tags; reading the URL a nearby Android phone shares is intended but unverified on physical devices.
+
+The reader accepts only an HTTPS `app.d-sports.org` (or configured app host) URL of at most 512 characters.
+The path must be one safe identifier after `/clip/arena/`, `/profile/`, or `/binder/`, with no `..`.
+An unsupported tag closes the sheet with an error message and also shows an error toast.
+Timeouts, a busy reader, and read errors show an error toast; cancelling is silent.
+
+The app waits for sign-in/onboarding before routing and keeps only the latest tag.
+The same URL read again within three seconds is ignored.
+Profile and binder links open their local routes.
+Arena links fetch the public preview and navigate using `resolveHandoffRoute`.
+A missing, invalid, or failed preview shows an error toast without navigating.
+The app submits an authenticated check-in only when the preview has `checkInAvailable` and `team.id`.
+Android, by contrast, attempts the claim whenever `team.id` exists.
+Success sets the arena badge and shows earned Rep.
+Already-claimed responses set the badge without another earn toast.
+Other claim errors show feedback, and there is no durable retry queue.
+
+This reader only runs while its sheet is open.
+A tag URL that iOS opens in the background or as a universal link follows the [App Clip](#app-clip) or installed-app link path instead of this reader's claim logic.
+See the [Core NFC integration](/repositories/d-sports-engage-native/integration-contracts#ios-core-nfc-arena-check-in) for API clients and [Core NFC configuration](/repositories/d-sports-engage-native/architecture#ios-core-nfc-configuration) for entitlements, build requirements, and test limits.
 
 ## Notifications and legal
 
