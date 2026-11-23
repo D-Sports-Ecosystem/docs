@@ -222,7 +222,7 @@ It rejects ages over 24 hours and timestamps more than one minute ahead.
 `useAppClipHandoff(inApp)` waits for Android authentication/onboarding and resolves a fresh public preview.
 It forces `checkInRequested: false` before mapping local match/club routes.
 MMKV instance `android-arena-clip-referrer` stores `last_consumed_signature` as `id:flag:truncatedTimestamp` before navigation.
-Preview `NOT_FOUND`/`VALIDATION_ERROR` results are consumed too.
+`useAppClipHandoff` also marks the referrer consumed when the preview returns `NOT_FOUND`/`VALIDATION_ERROR`.
 Other failures reset the in-memory guard for a later effect/mount, not a scheduled retry.
 Persistence failure can allow replay, so this is not an exactly-once guarantee.
 

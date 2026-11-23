@@ -167,9 +167,9 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 ### Arena preview and install referrer
 
 PR #1452 reuses `useApi().quests.getAppClipArenaPreview` from `lib/api/quests-api.ts` for both the public web card and Android post-install navigation.
-Preview 404s are now marked expected by the client.
+The engage-native API client now marks preview 404s as expected statuses.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) and [Platform API](/api-reference/domains/platform-infra) for the existing read-only preview contract.
-The optional `homeTeam`/`awayTeam` score summaries already exist on API main.
+The required, nullable `homeTeam`/`awayTeam` score summaries already exist on API main.
 The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available.
 Use [Gamification API](/api-reference/domains/gamification) for the existing authenticated claim and server-owned daily limit.
 The Android Play referrer is untrusted navigation input and never calls the claim client.

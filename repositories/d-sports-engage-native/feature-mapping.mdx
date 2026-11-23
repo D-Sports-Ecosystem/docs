@@ -210,6 +210,7 @@ Without eligibility or a team ID, the signed-in CTA only navigates.
 
 Outside `inApp`, Android's primary CTA tries the installed app using `intent://` with a Play Store fallback carrying an encoded arena referrer.
 After Play installation and sign-in/onboarding, that referrer resolves a fresh preview and opens the match or club.
+The referrer expires 24 hours after capture, so a fan who finishes onboarding later lands in the app without the arena handoff.
 It never auto-claims, even when the decoded `check_in` flag requests it.
 iOS browser CTAs use the App Store; other browsers use Play with the referrer.
 Footer **Get App** opens the platform store without preserving arena context.
