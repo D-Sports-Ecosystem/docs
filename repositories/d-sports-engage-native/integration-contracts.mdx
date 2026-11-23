@@ -77,6 +77,12 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
 
+### Shared videos
+
+On iOS and Android, the share target stages a local video file and opens the Locker Room composer. Sharing does not publish the draft.
+
+On publish, use [the direct upload flow](/repositories/d-sports-api/social-locker-room/behavior#direct-video-uploads) for native video files up to 50 MiB. Keep the Clerk token on the API calls only. Add the finalized video URL and any extracted thumbnail URL to the existing post body. Do not attach a placeholder as a thumbnail.
+
 ## Marketplace contracts
 
 - Prefer `GET /api/v1/marketplace/me/listings`. `GET /api/v1/marketplace/listings/mine` is a native alias for the same handler. Create listings with `x-listing-pin-token`.
