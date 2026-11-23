@@ -174,7 +174,7 @@ Non-secret metadata lives in App Group UserDefaults.
 The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
 The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
 A 401/403 clears the native token.
-That request is not retried with Clerk.
+The host JS provider does not retry that request with Clerk.
 ETags are per target.
 HQ 304 freshness checks game identity.
 Expired tokens and 401/403 responses cause credential deletion.
