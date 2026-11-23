@@ -406,7 +406,8 @@ The App ID and provisioning profile must also enable NFC Tag Reading; the plugin
 `ExpoIosNfcModule.swift` exposes `getStatus`, `isNfcAvailable`, `startScan`, `stopScan`, and the `onNfcUrlDiscovered` / `onNfcError` events.
 The podspec targets iOS 17.0 and links `CoreNFC`.
 `IosNfcReaderCoordinator.swift` runs one `NFCNDEFReaderSession` at a time with `invalidateAfterFirstRead: true`; a new scan invalidates the previous session.
-`IosNfcUrlValidator.swift` reads the first well-known URI or absolute-URI record and mirrors Android's `NdefUrlCodec.kt`.
+`IosNfcUrlValidator.swift` reads only the first non-empty well-known URI or absolute-URI record; if that URL fails validation, the tag counts as unsupported even when a later record would pass.
+Its rules are stricter than Android's `NdefUrlCodec.kt`, which only requires a non-empty path suffix, and match the shared JS parser.
 It requires HTTPS, `app.d-sports.org` or `DSportsNfcAllowedHost`, at most 512 characters, and no raw or percent-decoded `..`.
 The path must be exactly one segment after `/clip/arena/`, `/profile/`, or `/binder/`.
 Arena IDs must match `^[A-Za-z0-9_-]{1,128}$`; profile and binder IDs must match `^[A-Za-z0-9._@-]{1,128}$`.
