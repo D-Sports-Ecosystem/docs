@@ -54,7 +54,7 @@ Use `POST /api/upload/locker-media/video` with a Clerk session that has accepted
 2. Send the raw video bytes to `data.uploadUrl` with a `PUT` and the matching `Content-Type`. Do not send the Clerk token to storage. The URL expires after ten minutes and cannot overwrite an object.
 3. After storage returns a success status, send `{ action: "complete", uploadId, contentType }` as JSON to the API. It returns `data.url`, `data.thumbnailUrl`, and `data.posterKind` for the stored video. Use the finalized URL in the Locker Room post body.
 
-The API verifies the object belongs to the caller. You can retry completion for the same upload without resending its bytes. Use the existing multipart route for clients that do not support direct uploads.
+The API verifies the object belongs to the caller. You can retry completion for the same upload without resending its bytes. The legacy multipart route has a 40 MiB video validation limit, but the hosting platform can reject smaller request bodies before that check. Use direct upload for large clips.
 
 ## Side effects and integration points
 

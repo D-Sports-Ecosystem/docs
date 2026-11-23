@@ -25587,7 +25587,8 @@
                       },
                       "sizeBytes": {
                         "type": "integer",
-                        "exclusiveMinimum": 0
+                        "exclusiveMinimum": 0,
+                        "maximum": 52428800
                       }
                     },
                     "required": [
