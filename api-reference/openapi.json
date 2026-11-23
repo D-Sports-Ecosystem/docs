@@ -25549,6 +25549,398 @@
           }
         }
       }
+    },
+    "/api/upload/locker-media/video": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Prepare or complete a direct Locker Room video upload",
+        "description": "Requires a Clerk session and accepted UGC terms. Prepare with the video MIME type and byte count (1–52,428,800 bytes). PUT the raw file to the returned uploadUrl before it expires (10 minutes); do not attach the Clerk token. When storage returns 2xx, complete with the same MIME type and uploadId. The API resolves the caller's object and generates its video poster. Completion can be retried without reuploading after a receipt exists. The legacy multipart endpoint remains available.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "prepare"
+                        ]
+                      },
+                      "contentType": {
+                        "type": "string",
+                        "enum": [
+                          "video/mp4",
+                          "video/quicktime",
+                          "video/webm"
+                        ]
+                      },
+                      "sizeBytes": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": [
+                      "action",
+                      "contentType",
+                      "sizeBytes"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "complete"
+                        ]
+                      },
+                      "contentType": {
+                        "type": "string",
+                        "enum": [
+                          "video/mp4",
+                          "video/quicktime",
+                          "video/webm"
+                        ]
+                      },
+                      "uploadId": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "action",
+                      "contentType",
+                      "uploadId"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed upload target for prepare, finalized media and poster metadata for complete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "uploadId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "uploadUrl": {
+                              "type": "string",
+                              "format": "uri"
+                            }
+                          },
+                          "required": [
+                            "uploadId",
+                            "uploadUrl"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "video"
+                              ]
+                            },
+                            "url": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "thumbnailUrl": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "posterKind": {
+                              "type": "string",
+                              "enum": [
+                                "extracted",
+                                "placeholder"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "url",
+                            "thumbnailUrl",
+                            "posterKind"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid metadata or stored media",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "UGC terms acceptance required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The authenticated fan's video has not been uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Video exceeds 50 MiB or metadata exceeds 1 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Upload rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Upload or finalization failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Blob storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
