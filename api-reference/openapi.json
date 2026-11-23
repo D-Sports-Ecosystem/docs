@@ -18800,7 +18800,7 @@
           "User"
         ],
         "summary": "Upload locker-room media",
-        "description": "Multipart media for locker-room posts (UGC terms gated). `file` is a JPEG/PNG/WebP/GIF image (≤8MB) or MP4/MOV/WebM video (≤40MB); optional `poster` is a client-supplied video thumbnail image. For videos without a decodable supplied poster the server extracts a real frame server-side; when extraction fails the solid placeholder PNG is stored instead — the upload still succeeds. `data.posterKind` (`supplied` | `extracted` | `placeholder`) reports video poster provenance and is present only when `type` is `video`; photo responses omit it. Provenance is also recorded server-side in the upload ledger and persisted on the media row at post create — clients never submit it.",
+        "description": "Multipart media for locker-room posts (UGC terms gated). `file` is a JPEG/PNG/WebP/GIF image (≤8 MiB) or MP4/MOV/WebM video (≤40 MiB); optional `poster` is a client-supplied video thumbnail image. For videos without a decodable supplied poster the server extracts a real frame server-side; when extraction fails the solid placeholder PNG is stored instead — the upload still succeeds. `data.posterKind` (`supplied` | `extracted` | `placeholder`) reports video poster provenance and is present only when `type` is `video`; photo responses omit it. Provenance is also recorded server-side in the upload ledger and persisted on the media row at post create — clients never submit it.",
         "security": [
           {
             "bearerAuth": []
@@ -18819,7 +18819,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary",
-                    "description": "Image (JPG/PNG/WebP/GIF, ≤8MB) or video (MP4/MOV/WebM, ≤40MB)"
+                    "description": "Image (JPG/PNG/WebP/GIF, ≤8 MiB) or video (MP4/MOV/WebM, ≤40 MiB)"
                   },
                   "poster": {
                     "type": "string",
