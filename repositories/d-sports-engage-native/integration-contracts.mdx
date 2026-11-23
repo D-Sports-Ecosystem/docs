@@ -164,6 +164,20 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET 
 
 ## Android integration contracts
 
+### Arena preview and install referrer
+
+PR #1452 reuses `useApi().quests.getAppClipArenaPreview` from `lib/api/quests-api.ts` for both the public web card and Android post-install navigation.
+The engage-native API client now marks preview 404s as expected statuses.
+Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) and [Platform API](/api-reference/domains/platform-infra) for the existing read-only preview contract.
+The required, nullable `homeTeam`/`awayTeam` score summaries already exist on API main.
+The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available.
+Use [Gamification API](/api-reference/domains/gamification) for the existing authenticated claim and server-owned daily limit.
+The Android Play referrer is untrusted navigation input and never calls the claim client.
+Its `check_in` flag does not grant eligibility or prove attendance.
+The `/clip` web routes belong to engage-native, not another repository.
+No new API route or server change is required by this PR.
+See [handoff architecture](/repositories/d-sports-engage-native/architecture#arena-web-preview-and-android-install-handoff) for encoding, expiry, and consumption.
+
 ### Android NFC
 
 PR #1425 adds an Android caller of existing preview and check-in clients, not a new endpoint.

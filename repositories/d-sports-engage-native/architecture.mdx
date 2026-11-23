@@ -197,7 +197,47 @@ PR #1421 adds Android Google Wallet presentation inside the existing Android-onl
 
 Focused tests live in `lib/google-wallet/__tests__/native.test.ts`, `hooks/__tests__/use-google-wallet-pass.test.ts`, and `lib/api/__tests__/wallet-pass-api.test.ts`. They do not establish Play account eligibility, native sheet delivery, or Wallet persistence on a device. See [Google Wallet behavior](/repositories/d-sports-engage-native/feature-mapping#google-wallet-passes) for entry points and fallback limits.
 
+## Arena web preview and Android install handoff
+
+PR #1452 adds public Expo Router shells at `app/clip/arena/[id].tsx`, `app/clip/[id].tsx`, and `app/clip/index.tsx` in engage-native itself.
+These are not new d-sports-api or marketing-site web routes.
+`features/app-clip-handoff/screen/ArenaPreviewScreen.tsx` renders the preview using `useArenaPreviewScreen.ts`.
+`lib/pending-deep-link.ts` marks `/clip` public.
+`RootAuthStack` bypasses its auth-ready spinner for `/clip` paths.
+Expo Router discovers the screens outside the explicit protected screen list.
+The [iOS App Clip](#app-clip-configuration) remains a separate SwiftUI target and App Group handoff.
+
+`arena-preview-links.ts` builds Android `intent://` links targeting package `com.dsports.engage` and the HTTPS `/clip/arena/<id>` path on the configured app web host.
+`S.browser_fallback_url` contains an encoded Play listing URL with an encoded `referrer` query value.
+The decoded value is `arena_clip_id=<id>&check_in=<1|0>&captured_at=<milliseconds>`.
+The iOS browser target is App Store ID `6755374760`.
+Other browser primary CTAs use Play with the referrer.
+Footer **Get App** uses a bare store URL with no arena handoff.
+
+`android-install-referrer.android.ts` reads `Application.getInstallReferrerAsync()` through already-bundled `expo-application`.
+Non-Android wrappers no-op; unavailable/sideload/non-arena referrers produce no handoff.
+`android-install-referrer-parser.ts` requires a 1–128-character ASCII alphanumeric/underscore/hyphen ID and finite millisecond timestamp.
+It rejects ages over 24 hours and timestamps more than one minute ahead.
+`check_in=1` or `true` is parsed but does not authorize a mutation.
+`useAppClipHandoff(inApp)` waits for Android authentication/onboarding and resolves a fresh public preview.
+It forces `checkInRequested: false` before mapping local match/club routes.
+MMKV instance `android-arena-clip-referrer` stores `last_consumed_signature` as `id:flag:truncatedTimestamp` before navigation.
+`useAppClipHandoff` also marks the referrer consumed when the preview returns `NOT_FOUND`/`VALIDATION_ERROR`.
+Other failures reset the in-memory guard for a later effect/mount, not a scheduled retry.
+Persistence failure can allow replay, so this is not an exactly-once guarantee.
+
+The PR adds no dependency, native module, manifest, plugin, or ProGuard change.
+Its JS can use OTA on compatible binaries already containing `expo-application` and MMKV.
+The public pages need a web deployment to `app.d-sports.org`; OTA does not deploy them.
+Changing the existing native App Link configuration would still require a rebuilt binary.
+`features/app-clip-handoff/__tests__/arena-preview-links.test.ts` covers referrer parsing/expiry, encoded store/intent links, platform targets, route parameters, and CTA contrast.
+Existing `handoff-parser.test.ts` covers route/handoff helpers.
+These tests do not execute screen/auth effects, signed-in claims, MMKV persistence, Chrome redirects, or real Play referrer delivery.
+See [preview behavior](/repositories/d-sports-engage-native/feature-mapping#arena-web-preview-and-install-handoff) and [API integration](/repositories/d-sports-engage-native/integration-contracts#arena-preview-and-install-referrer).
+
 ## App Clip configuration
+
+Android/browser parity uses the separate [web preview and Play Install Referrer flow](#arena-web-preview-and-android-install-handoff), not this native clip target.
 
 `app.json` registers `plugins/withIosAppClip.js`. Prebuild copies `plugins/app-clip/*.swift` into **DSportsAppClip**, embeds the target through **Embed App Clips**, and adds EAS `appExtensions` signing metadata while preserving sibling extensions. The target uses the parent bundle ID plus `.Clip` (`com.dsports.wallet.beta.Clip`). It is a pure-SwiftUI iOS 17.0+ app with no CocoaPods or React Native dependencies. The root `package.json` does not change. `scripts/sync-ios-extension-versions.js` synchronizes its version/build number.
 
