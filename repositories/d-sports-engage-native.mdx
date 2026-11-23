@@ -50,7 +50,7 @@ icon: "smartphone"
 - Auth package is **`@clerk/expo`** `4.6.1` (Clerk Core 3 rename from `@clerk/clerk-expo`). The source README may still mention the old package name.
 - HQ starred clubs sync through `/api/me/starred-teams`. A star is a bookmark, not a follow.
 - The [Game Engine](/repositories/game-engine/client) registers `air-hockey` and `locker-singularity` alongside Pick'em, Trivia, `prize-wheel-spin`, `guess-the-player`, `daily-lineup`, `card-trivia`, `login-streak-scratcher`, and six hockey games. Locker Singularity uses the idle ledger, not session verbs. How-to-Play walkthroughs are local-only and must not spend a daily attempt.
-- Deep links claim `app.d-sports.org` (iOS Universal Links plus Android App Links for locker-room, profile, market, quests, binder, leaderboard, rate). `api.d-sports.org` mobile callbacks are unchanged.
+- Deep links claim `app.d-sports.org` (iOS Universal Links plus Android App Links for locker-room, profile, market, quests, binder, leaderboard, rate, clip/arena). `api.d-sports.org` mobile callbacks are unchanged.
 - About → Settings includes a manual EAS OTA update check.
 - Locker room can attach sport-driven lineups. The API persists `lineup` on `POST /api/locker-room` and serves real rosters from `GET /api/teams/{id}/roster`.
 - Native safety actions call `/api/user/mutes` and `/api/user/blocks` (distinct from Game Center thread mute).
