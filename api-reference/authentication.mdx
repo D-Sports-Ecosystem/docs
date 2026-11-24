@@ -11,6 +11,10 @@ Most non-admin API endpoints use Clerk-backed bearer authentication.
 - Public routes explicitly set no auth requirement.
 - Webhook routes can use separate auth schemes (for example shared secrets).
 
+## Binder share links
+
+`GET /api/binders/shared/{token}` still requires Clerk authentication. The share token belongs in the URL path and grants only the read-only shared view. It is not a Clerk bearer token or Binder PIN proof. Only the owner can manage the link. See [read-only Binder share links](/api-reference/domains/collectibles#read-only-binder-share-links).
+
 ## Scoped widget credentials
 
 Use a Clerk session to issue a device token with `POST /api/v1/widgets/token`. A widget token is not a Clerk JWT. It is valid only for a snapshot read or for revoking itself. Existing snapshot callers can still send a Clerk JWT or use a Clerk session cookie.

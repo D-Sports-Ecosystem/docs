@@ -63,8 +63,9 @@ description: "Backend-facing contracts and behavior expectations for native clie
 
 - Binder PIN is not the wallet PIN and not `POST /api/v1/user/verify-pin`.
 - `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`.
-- Send `token` as `x-binder-pin-token` on `GET /api/binders/{id}`.
-- Missing or expired proof on a PIN binder returns `403 PIN_REQUIRED` with metadata only (no shelves).
+- Send `token` as `x-binder-pin-token` on the owner-only `GET /api/binders/{id}`.
+- Missing or expired proof on that route for a PIN-protected Binder returns `403 PIN_REQUIRED` with metadata only (no shelves).
+- The backend also supports [read-only Binder share links](/api-reference/domains/collectibles#read-only-binder-share-links). Owners manage them at `/api/binders/{id}/share`; signed-in viewers with an active token read `/api/binders/shared/{token}` without Binder PIN proof. This API contract does not imply that the native share button is available.
 
 ## Locker room authoring
 
@@ -140,7 +141,7 @@ On publish, use [the direct upload flow](/repositories/d-sports-api/social-locke
 
 ## Card display fields
 
-Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET /api/binders/{id}` cards carry `finish` and `cardTemplate` side by side.
+Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and the owner and shared Binder reads (`GET /api/binders/{id}` and `GET /api/binders/shared/{token}`) return cards with `finish` and `cardTemplate` side by side.
 
 - `finish` is a card finish id, or `null` when the card has none.
 - `cardTemplate` is `{ key, version }` naming the render template behind the card's current image, for example `{ "key": "card-front-epic-holo", "version": 1 }`.

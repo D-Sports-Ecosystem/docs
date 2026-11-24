@@ -18,6 +18,8 @@ icon: "list-checks"
 - `GET/PUT /api/user/featured-collectibles`
 - `GET/POST /api/binders`, `GET/PATCH/DELETE /api/binders/[id]`
 - `POST /api/binders/[id]/verify-pin`
+- `GET/POST/DELETE /api/binders/{id}/share`
+- `GET /api/binders/shared/{token}`
 - `GET /api/v1/cards/[id]/provenance`
 
 ## Runtime behavior highlights
@@ -30,7 +32,8 @@ icon: "list-checks"
 - User collectible and pack routes expose owned content for client rendering.
 - Featured collectibles expose a public showcase; authenticated replace is capped at 12 slots.
 - Binder routes (`/api/binders*`) are in the generated OpenAPI. Cover upload is `POST /api/upload/binder-cover`.
-- PIN binders require `x-binder-pin-token` from verify-pin. Without it, `GET /api/binders/[id]` returns `403 PIN_REQUIRED` and metadata only.
+- The owner-only `GET /api/binders/[id]` returns `403 PIN_REQUIRED` and metadata only for PIN-protected Binders without valid `x-binder-pin-token` proof from verify-pin.
+- Owners explicitly enable or revoke sharing. Creating or revealing a link for a PIN-protected Binder requires PIN proof; revoking does not. Signed-in viewers with an active link can read an owner's shared shelves without the PIN, unless a block exists in either direction. Wallet address, PIN state, and listing/offer locks are not exposed. See the [share link contract](/api-reference/domains/collectibles#read-only-binder-share-links).
 - `GET /api/v1/cards/[id]/provenance` is public and returns `{ card, currentOwners, transfers, mints }`.
 
 ## Opening manifest and backdrop
@@ -43,7 +46,7 @@ The backdrop does not change the pack art, draw, or `assetVersion`. Changes to t
 
 ## Card display fields
 
-Pack open (including replays), `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET /api/binders/[id]` cards carry `finish` and `cardTemplate` side by side.
+Pack open (including replays), `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and the owner and shared Binder reads (`GET /api/binders/{id}` and `GET /api/binders/shared/{token}`) return cards with `finish` and `cardTemplate` side by side.
 
 - `finish` is a card finish id, or `null` when the card has none.
 - `cardTemplate` is `{ key, version }` naming the render template behind the card's current image, for example `{ "key": "card-front-epic-holo", "version": 1 }`.
