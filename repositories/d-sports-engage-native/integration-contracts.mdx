@@ -169,6 +169,11 @@ Pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and the o
 - Persist `notifyTeams`, `notifyMilestones`, and `notifyCommunity` as separate booleans. Do not collapse them.
 - Inbox types include `GAME_ALERT` and `RATING`.
 
+## In-App Assistant contracts
+
+- Read `assistantMode` from the signed-in [context digest](/api-reference/domains/assistant-digests#context) for client rollout: `cloud`, `quick_chips`, or `hidden`. Do not infer the mode from route availability.
+- If you integrate the [cloud chat stream](/api-reference/domains/assistant-chat), use separate chat gating. A `cloud` mode from the digest does not prevent `503 AI_DISABLED` from the chat endpoint.
+
 ## Error handling and fallback UX
 
 - Show user-actionable errors for purchase/open/claim/sign failures.
