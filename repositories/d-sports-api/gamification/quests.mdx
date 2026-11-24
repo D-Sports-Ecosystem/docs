@@ -16,7 +16,7 @@ icon: "list-checks"
 - `POST /api/v1/engage/quests/session/{sessionId}/submit`: submit an answer.
 - `POST /api/v1/engage/quests/session/{sessionId}/forfeit`: burn the UTC-day attempt.
 - `GET /api/v1/engage/quests/daily-summary`: per-followed-team checklist.
-- `POST /api/v1/engage/quests/arena-check-in`: once per team per UTC day.
+- `POST /api/v1/engage/quests/arena-check-in`: send `{ teamId, arenaId }`; once per team per UTC day, only while a fixture at the scanned arena is in its check-in window and `teamId` is playing. See [Gamification API](/api-reference/domains/gamification) for the window and errors.
 
 ## Lifecycle
 
