@@ -28,6 +28,7 @@ Route documentation status uses:
 | `/api/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. Canonical `/api` prefix. |
 | `/api/v1/passes/apple-wallet` | Publish | Authenticated Apple Wallet `.pkpass` issuance (fan ID, club membership, arena event). |
 | `/api/v1/assistant/context`, `/api/v1/assistant/games/{gameId}/brief`, `/api/v1/assistant/collection/search` | Publish | [Read-only Assistant digests](/api-reference/domains/assistant-digests): signed-in context and search, public game brief. |
+| `POST /api/v1/assistant/chat` | Publish | [Streaming Assistant chat](/api-reference/domains/assistant-chat): signed-in read-only chat stream, gated by server flags. |
 | `/api/v1/app-clips/arena/{id}` | Publish | Public iOS App Clip arena preview (no auth, weak ETag, no writes). |
 | `/api/v1/engage/rep/*` | Publish | Fan Rep breakdown, ledger, me/player-me, and client-safe earn. Direct kinds on `/earn` return 403. |
 | `/api/admin/users/{userId}/widget-tokens` | Publish with redaction | Platform admin only; token metadata and audited revocation, never raw tokens or hashes. |

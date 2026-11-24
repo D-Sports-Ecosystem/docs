@@ -3,7 +3,7 @@ title: "Assistant digest API"
 description: "Fetch bounded, cacheable fan context, game briefs, and collection search results."
 ---
 
-The In-App Assistant (AGM) digests return data, not generated replies. All three endpoints are read-only GETs: they do not call a model or write to the database.
+The In-App Assistant (AGM) digests return data, not generated replies. All three endpoints are read-only GETs: they do not call a model or write to the database. For generated replies, use [streaming Assistant chat](/api-reference/domains/assistant-chat).
 
 | GET path | Access | Success JSON budget | `Cache-Control` |
 | --- | --- | ---: | --- |
@@ -20,6 +20,8 @@ Use context for the signed-in fan's locale, `assistantMode`, followed teams, Fan
 ## Game brief
 
 Use the game ID to read the score, status, period and clock, key stats, win probability, final-game performers when available, and up to 10 recent text plays. The brief reads persisted snapshots and does not refresh the sports provider. A malformed ID returns `400`; a game that is not found returns `404`.
+
+The current digest reports a final-result split for games with final scores, and an even split otherwise. It does not calculate an odds-implied probability.
 
 ## Collection search
 
