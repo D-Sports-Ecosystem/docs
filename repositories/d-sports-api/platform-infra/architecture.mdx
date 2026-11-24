@@ -17,6 +17,28 @@ icon: "workflow"
 - Background synchronization for derived datasets
 - Offline correction/backfill for historical inconsistencies
 
+## Shared AI SDK foundation
+
+The API uses Vercel AI SDK and AI Gateway for shared server-side text and schema-backed object generation. This infrastructure does not add routes or imply that writing, creator drafts, alt text, or assistant chat are available to clients.
+
+Feature code applies an atomic per-fan quota before calling the model. The limiter uses Postgres, scopes the quota by feature and optionally by operation, and blocks the call if the quota cannot be checked. Feature code also uses prompt helpers to redact common PII and secrets, delimit untrusted input, and instruct the model to respond in the resolved locale (`en`, `fr-CH`, or `it-IT`). These safeguards are not built into the generation wrappers and do not guarantee output language.
+
+Text and object generation default to a 12-second timeout and can propagate caller cancellation. A separate 30-second timeout constant is available for streaming integrations; this foundation does not provide a streaming endpoint or wrapper. Structured `ai.call` telemetry records the feature, model, locale, token counts when available, latency, outcome, and an optional error code. It excludes raw prompts, generated output, and credentials.
+
+### AI runtime configuration
+
+AI is off by default. To enable a feature that uses this foundation, set `AI_FEATURES_ENABLED` and the matching feature switch to `true`: `AI_WRITING_ENABLED`, `AI_CREATOR_DRAFTS_ENABLED`, `AI_ALT_TEXT_ENABLED`, or `AI_ASSISTANT_CHAT_ENABLED`. The check trims whitespace and ignores case; any value other than `true` leaves the switch off.
+
+AI Gateway prefers a server-side `AI_GATEWAY_API_KEY` when configured. Otherwise the SDK uses Vercel OIDC, including `VERCEL_OIDC_TOKEN` or a request-scoped token in Vercel Functions. The preflight recognizes `VERCEL=1` or nonblank `VERCEL_ENV` as runtime OIDC indicators, not proof of valid credentials. Keep credentials out of clients. Missing credentials do not prevent API startup.
+
+| Model tier | Optional server override | Default Gateway model |
+| --- | --- | --- |
+| Fast | `AI_MODEL_FAST` | `google/gemini-2.5-flash-lite` |
+| Creator | `AI_MODEL_CREATOR` | `google/gemini-2.5-flash` |
+| Vision | `AI_MODEL_VISION` | `google/gemini-2.5-flash` |
+
+See [AI error codes](/api-reference/errors-and-status-codes#ai-error-codes) for disabled features and content blocks.
+
 ## Widget authentication and account data
 
 The widget API accepts Clerk sessions and revocable, per-install credentials. The server stores only a token hash. A new token for a device replaces its previous token. This is a backend capability, not a claim that a particular native release uses widget credentials.

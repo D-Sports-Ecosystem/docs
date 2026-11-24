@@ -24,12 +24,15 @@ icon: "server"
 | Payments   | RevenueCat (purchases-js)     |
 | State      | TanStack Query, TanStack Store |
 | Observability | Sentry                     |
+| Server-side AI | Vercel AI SDK and AI Gateway |
 | Secrets    | Infisical                     |
 | Package    | Bun                           |
 
 <Note>
   Every `dev` / `db:*` / build script runs through `infisical run --env=<env>`. You do not copy `.env` files by hand.
 </Note>
+
+The [shared AI SDK foundation](/repositories/d-sports-api/platform-infra/architecture#shared-ai-sdk-foundation) is off by default and adds no API endpoints. Its [runtime configuration](/repositories/d-sports-api/platform-infra/architecture#ai-runtime-configuration) is server-side only.
 
 ## Features
 
