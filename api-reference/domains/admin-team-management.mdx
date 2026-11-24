@@ -40,6 +40,8 @@ When your role allows you to manage a team's scheduled social posts, send `media
 
 On edit, omit the map to keep descriptions for retained URLs, supply a new map to replace them, or pass `null` or `{}` to clear them. The API stores the map with the scheduled post for review.
 
+Editing an eligible failed post requeues it and clears its last error, even if you change only alt text. If its scheduled time has already passed, the next dispatch run can publish it. The API rejects edits if the post has an external ID or the previous publish outcome is unknown.
+
 X media metadata is sent before publishing only when the publisher has X media IDs for the corresponding URLs. Scheduled dispatch does not upload media to X or supply those IDs today, so it still publishes text only even if descriptions are saved.
 
 ## Team short name
