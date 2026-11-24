@@ -29,6 +29,14 @@ Text and object generation default to a 12-second timeout and can propagate call
 
 AI is off by default. To enable a feature that uses this foundation, set `AI_FEATURES_ENABLED` and the matching feature switch to `true`: `AI_WRITING_ENABLED`, `AI_CREATOR_DRAFTS_ENABLED`, `AI_ALT_TEXT_ENABLED`, or `AI_ASSISTANT_CHAT_ENABLED`. The check trims whitespace and ignores case; any value other than `true` leaves the switch off.
 
+For example, to allow writing but keep alt text off, set the following on the server and leave the other feature switches unset. Writing still needs Gateway credentials.
+
+```dotenv
+AI_FEATURES_ENABLED=true
+AI_WRITING_ENABLED=true
+AI_ALT_TEXT_ENABLED=false
+```
+
 AI Gateway prefers a server-side `AI_GATEWAY_API_KEY` when configured. Otherwise the SDK uses Vercel OIDC, including `VERCEL_OIDC_TOKEN` or a request-scoped token in Vercel Functions. The preflight recognizes `VERCEL=1` or nonblank `VERCEL_ENV` as runtime OIDC indicators, not proof of valid credentials. Keep credentials out of clients. Missing credentials do not prevent API startup.
 
 | Model tier | Optional server override | Default Gateway model |
