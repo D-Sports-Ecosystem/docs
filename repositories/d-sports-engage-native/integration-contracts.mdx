@@ -32,7 +32,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Treat `503 CONFIGURATION_ERROR` from the pass route as "Wallet passes not available yet" and hide or disable the add-to-Wallet entry point.
 - The iOS App Clip (`LU58V6484P.com.dsports.wallet.beta.Clip`) is invoked on `https://app.d-sports.org/clip/arena/<id>`, where `<id>` is a game event ID, team ID, or team slug. Apple reads the association file from the invocation host, so `app.d-sports.org/.well-known/apple-app-site-association` must serve the API's AASA (via the engage-native Vercel rewrite). That file lists `/clip` and `/clip/*` under `applinks` and the clip under `appclips`.
 - The App Clip loads its card from `GET /api/v1/app-clips/arena/{id}` without auth. Send the last `ETag` as `If-None-Match`; you get `304` only while it still matches the current card. A `404` means the ID matches no game or club.
-- The preview never checks a fan in. When `checkInAvailable` is true, hand off to `fullAppUrl` (or sign in) and call `checkInEndpoint` (the authenticated arena check-in above) with `{ "teamId": team.id }` from the preview. For a game event, `team` is the home club, so do not send the game ID from the URL.
+- The preview never checks a fan in. When `checkInAvailable` is true, hand off to `fullAppUrl` (or sign in) and call `checkInEndpoint` (the authenticated arena check-in above). Send both `teamId` (the preview's `team.id`) and `arenaId` (the ID from the invocation URL). For a game event, use the home club's ID as `teamId` and the game event ID as `arenaId`.
 
 ## Fan Rep contracts
 
@@ -202,7 +202,7 @@ Android's file storage, WorkManager, backoff, and total JS timeout budget below 
 PR #1450 adds an iOS caller of the existing preview and check-in clients, not a new endpoint.
 `hooks/use-ios-nfc-host.ios.ts` calls `useApi().quests.getAppClipArenaPreview` (`GET /api/v1/app-clips/arena/{id}`, `404` expected) and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
 It requires a preview `kind` of `game_event` or `team` with an `id` before navigating.
-It claims with the preview's `team.id` only when `checkInAvailable` is true, unlike the [Android NFC](#android-nfc) host.
+The iOS host attempts a claim only when `checkInAvailable` is true, unlike the [Android NFC](#android-nfc) host. The existing caller passes the preview's `team.id` only; the API now requires `arenaId` too, so that request returns `400` until the client sends both.
 A tag URL is not proof of attendance; the server remains authoritative for eligibility, daily limits, and rewards.
 See [Core NFC behavior](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for authentication deferral, feedback, and retry limits.
 
@@ -228,7 +228,7 @@ PR #1425 adds an Android caller of existing preview and check-in clients, not a 
 `hooks/use-android-nfc-host.android.ts` calls `useApi().quests.getAppClipArenaPreview` and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
 Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
-The hook passes the preview's `team.id`, not the game ID in an event URL.
+The existing hook passes only the preview's `team.id`. To satisfy the API, the client must also pass the scanned identifier as `arenaId`.
 It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`; the [iOS Core NFC](#ios-core-nfc-arena-check-in) host does gate on it.
 The server remains authoritative for eligibility and rewards.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
