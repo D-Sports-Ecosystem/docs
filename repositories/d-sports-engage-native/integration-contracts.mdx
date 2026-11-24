@@ -201,7 +201,7 @@ Android's file storage, WorkManager, backoff, and total JS timeout budget below 
 PR #1450 adds an iOS caller of the existing preview and check-in clients, not a new endpoint.
 `hooks/use-ios-nfc-host.ios.ts` calls `useApi().quests.getAppClipArenaPreview` (`GET /api/v1/app-clips/arena/{id}`, `404` expected) and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
 It requires a preview `kind` of `game_event` or `team` with an `id` before navigating.
-It claims with the preview's `team.id` only when `checkInAvailable` is true, unlike the [Android NFC](#android-nfc) host.
+It claims with the preview's `team.id` and the preview `id` as `arenaId` only when `checkInAvailable` is true, like the [Android NFC](#android-nfc) host.
 A tag URL is not proof of attendance; the server remains authoritative for eligibility, daily limits, and rewards.
 See [Core NFC behavior](/repositories/d-sports-engage-native/feature-mapping#ios-core-nfc-arena-check-in) for authentication deferral, feedback, and retry limits.
 
@@ -213,7 +213,7 @@ PR #1452 reuses `useApi().quests.getAppClipArenaPreview` from `lib/api/quests-ap
 The engage-native API client now marks preview 404s as expected statuses.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) and [Platform API](/api-reference/domains/platform-infra) for the existing read-only preview contract.
 The required, nullable `homeTeam`/`awayTeam` score summaries already exist on API main.
-The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available.
+The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id, preview.id)` only when check-in is available.
 Use [Gamification API](/api-reference/domains/gamification) for the existing authenticated claim and server-owned daily limit.
 The Android Play referrer is untrusted navigation input and never calls the claim client.
 Its `check_in` flag does not grant eligibility or prove attendance.
@@ -227,8 +227,8 @@ PR #1425 adds an Android caller of existing preview and check-in clients, not a 
 `hooks/use-android-nfc-host.android.ts` calls `useApi().quests.getAppClipArenaPreview` and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
 Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
-The hook passes the preview's `team.id`, not the game ID in an event URL.
-It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`; the [iOS Core NFC](#ios-core-nfc-arena-check-in) host does gate on it.
+The hook passes the preview's `team.id` as `teamId` and the preview `id` (the scanned arena, which may be a game ID) as `arenaId`.
+It claims only when `checkInAvailable` is true and that team ID exists, like the [iOS Core NFC](#ios-core-nfc-arena-check-in) host.
 The server remains authoritative for eligibility and rewards.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
 
