@@ -65,7 +65,13 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`.
 - Send `token` as `x-binder-pin-token` on the owner-only `GET /api/binders/{id}`.
 - Missing or expired proof on that route for a PIN-protected Binder returns `403 PIN_REQUIRED` with metadata only (no shelves).
-- The backend also supports [read-only Binder share links](/api-reference/domains/collectibles#read-only-binder-share-links). Owners manage them at `/api/binders/{id}/share`; signed-in viewers with an active token read `/api/binders/shared/{token}` without Binder PIN proof. This API contract does not imply that the native share button is available.
+
+## Binder share contract
+
+- `lib/api/binder-api.share.ts` uses `GET/POST/DELETE /api/binders/{id}/share` to read share state, enable sharing, and revoke it. The restored Share button asks the owner to confirm before enabling a link.
+- For PIN-protected Binders, `withPinToken` sends the owner grant on GET and POST when available. Without valid proof, GET hides the active link and POST returns `403 PIN_REQUIRED`. DELETE needs owner auth but not PIN proof.
+- `buildSharedBinderUrl` uses the configured app web origin and a 32-character base64url share token. The token is separate from Clerk auth and Binder PIN proof.
+- The viewer at `app/binder/shared/[token].tsx` uses authenticated `GET /api/binders/shared/{token}` without Binder PIN proof. Revoked, unknown, or blocked links return `404`. The response omits wallet address, PIN state, and listing locks. See the [API contract](/api-reference/domains/collectibles#read-only-binder-share-links).
 
 ## Locker room authoring
 
