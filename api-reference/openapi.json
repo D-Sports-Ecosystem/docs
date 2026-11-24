@@ -2616,6 +2616,350 @@
         }
       }
     },
+    "/api/binders/{id}/share": {
+      "get": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Get the binder's read-only share link state (owner only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-binder-pin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Binder PIN grant from verify-pin; required for a PIN-protected binder."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ shared, token, path, createdAt }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shared": {
+                          "type": "boolean"
+                        },
+                        "token": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "32-char base64url share token; null when not shared."
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "App path /binder/shared/<token>; clients prefix their web origin."
+                        },
+                        "createdAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller does not own the binder."
+          },
+          "404": {
+            "description": "Binder not found."
+          }
+        },
+        "description": "Owner only. For a PIN-protected binder the token and path stay null unless a valid x-binder-pin-token is sent."
+      },
+      "post": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Share a read-only view of the binder (owner consent)",
+        "description": "Owner only. Idempotent: returns the existing link when already shared. A PIN-protected binder needs a valid x-binder-pin-token from verify-pin, else 403 PIN_REQUIRED.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-binder-pin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ shared, token, path, createdAt }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shared": {
+                          "type": "boolean"
+                        },
+                        "token": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "32-char base64url share token; null when not shared."
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "App path /binder/shared/<token>; clients prefix their web origin."
+                        },
+                        "createdAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PIN_REQUIRED: the binder has a PIN and no valid x-binder-pin-token was sent; or the caller does not own the binder."
+          },
+          "404": {
+            "description": "Binder not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Stop sharing the binder (owner only)",
+        "description": "Revokes the token; the old link returns 404 at once.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ shared: false, token: null, path: null, createdAt: null }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shared": {
+                          "type": "boolean"
+                        },
+                        "token": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "32-char base64url share token; null when not shared."
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "App path /binder/shared/<token>; clients prefix their web origin."
+                        },
+                        "createdAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller does not own the binder."
+          },
+          "404": {
+            "description": "Binder not found."
+          }
+        }
+      }
+    },
+    "/api/binders/shared/{token}": {
+      "get": {
+        "tags": [
+          "Binders",
+          "Collectibles and packs"
+        ],
+        "summary": "Read-only view of a shared binder",
+        "description": "Any signed-in fan with the share link. No PIN, wallet address or listing locks. Malformed, unknown or revoked tokens, and owners in a block relationship with the viewer, return 404.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ binder, owner, isOwner, shelves }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "binder": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "coverImage": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "coverStyle": {
+                              "type": [
+                                "object",
+                                "null"
+                              ]
+                            },
+                            "sport": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        },
+                        "owner": {
+                          "type": "object",
+                          "properties": {
+                            "handle": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "image": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        },
+                        "isOwner": {
+                          "type": "boolean"
+                        },
+                        "shelves": {
+                          "type": "object",
+                          "description": "Cards keyed by shelf: the owner-read card shape without lockedBy/lockedQuantity.",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/binders/{id}/card-order": {
       "put": {
         "tags": [
@@ -16436,21 +16780,49 @@
           "Engage"
         ],
         "summary": "Claim arena check-in",
-        "description": "Daily arena check-in for one team. Body: { teamId }. Revalidates the leaderboard tag on success.",
+        "description": "Daily arena check-in for one team. Body: { teamId, arenaId }, where arenaId is the scanned NFC tag / App Clip / arena preview id (GameEvent.id, or the host club Team.id or Team.slug). Granted only while a non-demo fixture at that arena is in its check-in window (live, from 2h before the start, or up to 30 min after the final) and teamId is playing in it; otherwise 403. Revalidates the leaderboard tag on success.",
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "teamId",
+                  "arenaId"
+                ],
+                "properties": {
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "arenaId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,128}$",
+                    "description": "Scanned NFC tag / App Clip / arena preview id: GameEvent.id, or the host club Team.id or Team.slug"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "{ success, data }"
           },
           "400": {
-            "description": "teamId is required"
+            "description": "teamId or arenaId is missing or invalid"
           },
           "401": {
             "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not a partner club the fan follows, no event on at that arena, or the club is not playing in it"
           }
         }
       }
@@ -25489,7 +25861,7 @@
           "Engage"
         ],
         "summary": "Public App Clip arena preview",
-        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs (and, for games, live or upcoming status); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
+        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs with a non-demo fixture in its check-in window (live, from 2h before the start, or up to 30 min after the final; for a club id, a home fixture); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
         "parameters": [
           {
             "name": "id",

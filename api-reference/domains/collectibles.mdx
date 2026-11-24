@@ -24,27 +24,44 @@ Collectibles APIs include pack browsing, purchase lifecycle, opening packs, user
 ## Binders
 
 - `GET/POST /api/binders` — list and create (optional `?walletAddress=`)
-- `GET/PATCH/DELETE /api/binders/{id}` — contents, rename/cover, delete
+- `GET/PATCH/DELETE /api/binders/{id}` — owner-only contents, rename/cover, delete
 - `PUT /api/binders/{id}/cards` — assign/transfer cards (1–20 items, idempotency key)
 - `PUT /api/binders/{id}/card-order` — persist display order
 - `POST /api/binders/{id}/transfer-card` — move a card to another binder
 - `POST /api/binders/{id}/verify-pin` — binder PIN (not the wallet PIN and not `POST /api/v1/user/verify-pin`)
+- `GET/POST/DELETE /api/binders/{id}/share` — owner-only share state, enable, revoke
+- `GET /api/binders/shared/{token}` — read-only view for signed-in fans with an active link
 
 Cover upload is `POST /api/upload/binder-cover`. Binder-cover library is `GET /api/user/binder-covers`.
 
 ### Binder PIN gate
 
-PIN-protected binders do not return shelves or card payloads until you prove the binder PIN.
+On the owner-only `GET /api/binders/{id}`, PIN-protected Binders return shelves only after you prove the Binder PIN.
 
 1. `POST /api/binders/{id}/verify-pin` with `{ pin }`. Success returns `{ granted, token, expiresIn: 300 }`.
 2. Send that `token` as the `x-binder-pin-token` header on `GET /api/binders/{id}`.
 3. Do not put the token in `Authorization`. Clerk bearer auth still proves who you are; the binder token only proves this binder's PIN.
 
-Without a valid token, a PIN-protected binder returns `403` with code `PIN_REQUIRED` and binder metadata only (`hasPin: true`, no shelves). Binders with no PIN return full contents after the ownership check. Ownership `403` is unchanged.
+On this route, a PIN-protected Binder without a valid PIN token returns `403` with code `PIN_REQUIRED` and binder metadata only (`hasPin: true`, no shelves). Binders with no PIN return full contents after the ownership check. Ownership `403` is unchanged.
 
 The generated OpenAPI still describes verify-pin as `{ granted }` only. Treat the token + header contract above as the live behavior.
 
 Card league labels on binder contents come from `Team.leagueRelation`, not a client-side league map.
+
+### Read-only Binder share links
+
+Sharing is off until you enable it as the owner. To open a shared Binder, the viewer must be signed in and have the active link, but does not need your PIN.
+
+| Method and path | Behavior |
+|---|---|
+| `GET /api/binders/{id}/share` | Reads share state. For an active PIN-protected Binder, `shared` stays true, but `token` and `path` are null without valid `x-binder-pin-token` proof. |
+| `POST /api/binders/{id}/share` | Enables sharing without a request body and returns the existing link if already enabled. For a PIN-protected Binder, send valid `x-binder-pin-token` proof even if sharing is already enabled, or the API returns `403 PIN_REQUIRED`. |
+| `DELETE /api/binders/{id}/share` | Revokes sharing without PIN proof. The old token stops working immediately. |
+| `GET /api/binders/shared/{token}` | Reads the shared view with Clerk authentication and an active 32-character base64url share token. Malformed, unknown, and revoked tokens return `404`, as does a block in either direction between the owner and viewer. |
+
+The owner operations return `data: { shared, token, path, createdAt }`. If the Binder is not shared, `shared` is false and the other fields are null. Prepend the app web origin to the returned app-relative `/binder/shared/<token>` path to build the share link. The read endpoint is on the API origin, not that app path.
+
+The shared view contains Binder metadata (ID, name, cover image/style, sport), the owner's handle, name, and image, an `isOwner` flag, and shelves of display cards. It omits the wallet address, PIN state, and listing/offer locks. The link does not authorize any mutations.
 
 ## 3D pack-opening manifest
 
@@ -54,7 +71,7 @@ The optional `data.backdropColour` is `tier` for rarity colours or `neutral` for
 
 ## Card finish and template
 
-Cards from pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and `GET /api/binders/{id}` include `finish` and `cardTemplate`.
+Cards from pack open, `GET /api/user/packs/opened`, `GET /api/user/collectibles`, and the owner and shared Binder reads (`GET /api/binders/{id}` and `GET /api/binders/shared/{token}`) include `finish` and `cardTemplate`.
 
 - `finish` is a card finish id, or `null` when the card has none.
 - `cardTemplate` is `{ key, version }` naming the render template behind the card's current image, for example `{ "key": "card-front-epic-holo", "version": 1 }`.
