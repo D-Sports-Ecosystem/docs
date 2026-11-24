@@ -25,8 +25,8 @@ Fan Rep lives on a separate ledger. See [Fan Rep](/api-reference/domains/fan-rep
 - `GET /api/v1/engage/quests/daily-summary` returns the per-followed-team checklist.
 - `POST /api/v1/engage/quests/arena-check-in` takes `{ teamId, arenaId }`. `arenaId` is the scanned NFC tag, App Clip, or arena preview ID: a game event ID, or the host club's team ID or slug.
 - Arena check-in grants once per team per UTC day, only while a non-demo fixture at that arena is in its check-in window and `teamId` is its home or away team.
-- The window is open for a live fixture (up to 6 hours after the start), an upcoming or delayed fixture from 2 hours before the start, and a final for 30 minutes after it ends. Postponed, suspended, and cancelled fixtures never qualify.
-- A missing or malformed `arenaId` returns `400`. A club that is not a partner or that you do not follow, no open fixture, or a club that is not playing returns `403`.
+- The window is open for a live fixture until 6 hours after the start (or with no start time), an upcoming or delayed fixture from 2 hours before the start until 6 hours after it, and a final for 30 minutes after it ends. Postponed, suspended, and cancelled fixtures never qualify.
+- A missing or malformed `arenaId` returns `400`. A club that is not a partner or that you have not favorited or followed, no open fixture, or a club that is not playing returns `403`.
 - Amount and Rep type for arena check-in and daily-quest completion are server-authoritative. Do not send those through `POST /api/v1/engage/rep/earn`.
 
 ## Revamped quest endpoint map
