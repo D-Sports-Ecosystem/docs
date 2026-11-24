@@ -2644,7 +2644,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Binder PIN grant from verify-pin; required for a PIN-protected binder."
+            "description": "Binder PIN grant from verify-pin. Optional for reading share state; required to reveal the token and path for a PIN-protected binder."
           }
         ],
         "responses": {
@@ -2946,7 +2946,7 @@
                           "additionalProperties": {
                             "type": "array",
                             "items": {
-                              "type": "object"
+                              "$ref": "#/components/schemas/SharedBinderDisplayCard"
                             }
                           }
                         }
@@ -2956,6 +2956,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Binder not found: the share token is malformed, unknown, or revoked, or the viewer and owner have a block in either direction."
           }
         }
       }
@@ -16780,7 +16783,7 @@
           "Engage"
         ],
         "summary": "Claim arena check-in",
-        "description": "Daily arena check-in for one team. Body: { teamId, arenaId }, where arenaId is the scanned NFC tag / App Clip / arena preview id (GameEvent.id, or the host club Team.id or Team.slug). Granted only while a non-demo fixture at that arena is in its check-in window (live, from 2h before the start, or up to 30 min after the final) and teamId is playing in it; otherwise 403. Revalidates the leaderboard tag on success.",
+        "description": "Daily arena check-in for one team. Body: { teamId, arenaId }, where arenaId is the scanned NFC tag / App Clip / arena preview id (GameEvent.id, or the host club Team.id or Team.slug). Granted only while a non-demo fixture at that arena is in its check-in window (live until 6h after the start, or with no start time; upcoming or delayed from 2h before the start until 6h after it; or a final up to 30 min after it ends) and teamId is playing in it; otherwise 403. Revalidates the leaderboard tag on success.",
         "security": [
           {
             "bearerAuth": []
@@ -25861,7 +25864,7 @@
           "Engage"
         ],
         "summary": "Public App Clip arena preview",
-        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs with a non-demo fixture in its check-in window (live, from 2h before the start, or up to 30 min after the final; for a club id, a home fixture); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
+        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs with a non-demo fixture in its check-in window (live until 6h after the start, or with no start time; upcoming or delayed from 2h before the start until 6h after it; or a final up to 30 min after it ends; for a club id, a home fixture); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
         "parameters": [
           {
             "name": "id",
@@ -26487,6 +26490,193 @@
                 }
               }
             }
+          }
+        }
+      },
+      "SharedBinderDisplayCard": {
+        "description": "Display card in a shared Binder. Listing and offer lock fields are not included.",
+        "type": "object",
+        "required": [
+          "id",
+          "binderId",
+          "collectibleId",
+          "quantity",
+          "shelf",
+          "order",
+          "createdAt",
+          "serial",
+          "value",
+          "valueBreakdown",
+          "collectible",
+          "player"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "binderId": {
+            "type": "string"
+          },
+          "collectibleId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "shelf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "serial": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardSerial"
+              }
+            ]
+          },
+          "value": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "valueBreakdown": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardValueBreakdown"
+              }
+            ]
+          },
+          "collectible": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "image",
+              "imageThumbhash",
+              "finish",
+              "cardTemplate",
+              "rarity",
+              "spinVideoUrl",
+              "modelUrl",
+              "team",
+              "league"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              },
+              "imageThumbhash": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "finish": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Card finish id, or null when no finish is set."
+              },
+              "cardTemplate": {
+                "description": "Null when the card image has no verifiable published render.",
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CardTemplate"
+                  }
+                ]
+              },
+              "rarity": {
+                "type": "string"
+              },
+              "spinVideoUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "modelUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "team": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name",
+                  "slug"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                }
+              },
+              "league": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "player": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardPlayer"
+              }
+            ]
           }
         }
       },
