@@ -31,7 +31,7 @@ Native PR #1464 restores Binder sharing. In a Binder you own, choose **Share** a
 
 On Android with NFC, **Share** opens the tap-to-share modal. **Share link instead** opens the system share sheet. On Android without NFC and on iOS, **Share** opens the system share sheet directly. On web, it copies the link to the clipboard.
 
-A signed-in fan opening an active `/binder/shared/<token>` link sees a read-only card grid with no edit, move, or transfer controls. The viewer does not need the owner's PIN. A `404` shows that the link no longer works; other request errors offer a retry. See the [Binder share contract](/repositories/d-sports-engage-native/integration-contracts#binder-share-contract).
+When you open an active `/binder/shared/<token>` link while signed in, you see a read-only card grid with no edit, move, or transfer controls. You don't need the owner's PIN. If you get a `404`, the link no longer works. You can retry after other request errors. See the [Binder share contract](/repositories/d-sports-engage-native/integration-contracts#binder-share-contract).
 
 ## Quest, Fan Rep, rewards, and pass surfaces
 
