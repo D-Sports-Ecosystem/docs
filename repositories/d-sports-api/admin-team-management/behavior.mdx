@@ -48,6 +48,10 @@ Team Management uses the same `SubmissionWorkspace` creator and editor for new a
 - A non-string or a value over 40 characters returns `400`.
 - In the admin team editor, **Short name** shows only when you edit an existing team. Its placeholder is the derived name that applies when the field is blank. `POST /api/admin/teams` does not accept `nickname`.
 
+## Authored locale management
+
+Moderators, admins, and superadmins can list, upsert, or delete authored daily trivia, quest, quest-step, and achievement variants through the [translation locales API](/api-reference/domains/admin-team-management#authored-locale-administration). It is distinct from editing the English base records.
+
 ## Error behavior and safeguards
 
 - Unauthorized and forbidden states are explicit and role-driven.

@@ -13,6 +13,8 @@ Documented behavior includes:
 - Achievement order persistence/update via server action.
 - Static helper usage for specific achievement checks in utility code.
 
+`AchievementLocale` stores `fr-CH` and `it-IT` names and descriptions by achievement key. The user read selects published copy via `Accept-Language` and falls back to English for missing or unpublished variants. See [locale administration](/api-reference/domains/admin-team-management#authored-locale-administration) for moderator access.
+
 ## What this means for integrators
 
 - Treat achievements as profile-associated metadata and ordering behavior today.

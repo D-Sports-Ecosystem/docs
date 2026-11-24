@@ -34,6 +34,8 @@ icon: "list-checks"
 - Auction `reservePrice` is optional and auction-only. Missed reserve ends as `ended-reserve-not-met`.
 - Card provenance is public and assembled from existing ownership, sale, and mint rows.
 
+Listing create and update, offer send, and counter-offer can carry optional [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content). A listing update that omits it preserves the stored value; explicit `null` clears it.
+
 ## Side effects and dependencies
 
 - Successful purchases update purchase models and can affect wallet/inventory-visible state.

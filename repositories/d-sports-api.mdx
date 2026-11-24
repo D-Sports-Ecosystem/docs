@@ -58,6 +58,10 @@ icon: "server"
 - Custodial wallets sign on the server. `POST /api/wallets/private-key` is deprecated and PIN-gated.
 - Fan Rep is a first-class ledger. `dsportsDirectRep` sums `repType = Direct` rows from admin grants.
 
+### Source language and authored locales
+
+The API accepts optional [UGC source language metadata](/api-reference/domains/social-locker-room#source-language-for-composed-content) separately from [authored trivia, quest, and achievement locales](/api-reference/domains/gamification#authored-content-locales). Moderators manage variants through the [translation locales API](/api-reference/domains/admin-team-management#authored-locale-administration).
+
 ## Getting started
 
 1. Clone the repository and install dependencies (`bun install`).

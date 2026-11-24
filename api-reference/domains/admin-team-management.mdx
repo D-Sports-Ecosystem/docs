@@ -41,6 +41,21 @@ Team Management uses the same `SubmissionWorkspace` creator and editor for new a
 - A non-string or a value over 40 characters returns `400`.
 - In the admin team editor, **Short name** shows only when you edit an existing team. Its placeholder is the derived name that applies when the field is blank. `POST /api/admin/teams` does not accept `nickname`.
 
+## Authored locale administration
+
+You need an authenticated moderator, admin, or superadmin session to manage variants at `/api/admin/translation-locales/{entityType}/{entityId}`.
+
+| Entity type | Entity ID | Localized fields |
+| --- | --- | --- |
+| `daily-quest-question` | Trivia question ID | `questionText`, `options` |
+| `quest` | Quest ID | `title`, `description` |
+| `quest-step` | Quest step ID | `title`, `description` |
+| `achievement` | Achievement key | `name`, `description` |
+
+- `GET` lists authored rows, including unpublished ones.
+- `PUT` upserts one variant. Send `locale` (`fr-CH` or `it-IT`) and the fields in the table. The default is `publish: true`; set `publish: false` to save an unpublished row. Keep trivia options in the same order and with the same count as the English options.
+- `DELETE` removes one variant. Pass `?locale=fr-CH` or `?locale=it-IT`. Readers then see English base copy for that entity when requesting the removed locale.
+
 ## RBAC requirements
 
 - Requests require authenticated user context.

@@ -26,6 +26,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
 
+## API content languages
+
+The app sends its active locale in `Accept-Language`. Quest and daily trivia responses use [authored variants and English fallback](/api-reference/domains/gamification#authored-content-locales); use `Content-Language` to identify the applied response locale, not the language of every individual record.
+
+`GET /api/v1/engage/app-open` also selects authored copy in its `user` and `dailyQuest` sections. Its `Content-Language` instead reflects the negotiated request locale because section errors can use that locale even when authored copy falls back to English.
+
+The app does not send [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content) today. This optional UGC field describes the language detected in the text at compose time; it is never inferred from the UI language and does not translate user text.
+
 ## Apple Wallet and App Clip contracts
 
 - Add a pass to Apple Wallet with `POST /api/v1/passes/apple-wallet` and a Clerk bearer token. Send `{ "passKind": "fan_id" | "club_membership" | "arena_event", "teamId"?, "gameId"?, "format": "base64" }` then decode `data.pkpassBase64` to bytes, build a `PKPass` from that `Data`, and present it with `PKAddPassesViewController`. `club_membership` needs the `teamId` of an Engage partner club the fan has joined; a non-partner club or an unjoined club returns `403`. Unknown body fields return `400`.

@@ -26,6 +26,14 @@ Fan Rep lives on a separate ledger. See [Fan Rep](/api-reference/domains/fan-rep
 - `POST /api/v1/engage/quests/arena-check-in` is once per team per UTC day.
 - Amount and Rep type for arena check-in and daily-quest completion are server-authoritative. Do not send those through `POST /api/v1/engage/rep/earn`.
 
+## Authored content locales
+
+Send `Accept-Language` to request published Swiss French (`fr-CH`) or Italian (`it-IT`) variants. Daily trivia questions and answer options, quest and quest-step titles and descriptions, and achievement names and descriptions fall back to English when a requested variant is missing or unpublished. Trivia options keep their original order so answer indices do not change.
+
+Successful responses from `GET /api/quests`, `GET /api/dashboard/quests`, `GET /api/v1/engage/quests/daily-summary`, `POST /api/v1/engage/quests/{questId}/session`, and profile reads from `GET /api/user` include `Vary: Accept-Language` and `Content-Language`. The latter is `en` when no authored variant was applied, or the applied locale when localized copy is included. A localized response can still contain English fallback records.
+
+See [authored locale administration](/api-reference/domains/admin-team-management#authored-locale-administration) for how moderators manage variants.
+
 ## Revamped quest endpoint map
 
 Quest behavior includes team-aware eligibility and pass-aware progression semantics in addition to base step completion flows.
