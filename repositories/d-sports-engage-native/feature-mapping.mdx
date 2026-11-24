@@ -376,7 +376,7 @@ Profile and owner Binder links open their local routes. Shared Binder links open
 An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
 The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
 If the preview has `checkInAvailable` and `team.id`, it submits an authenticated quest check-in with that team ID and the preview ID as `arenaId`, matching the [iOS Core NFC reader](#ios-core-nfc-arena-check-in).
-The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) (open from 2h before the start until 6h after it, or until 30 min after a final) and the club is playing in it.
+The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) and the club is playing in it.
 Success sets the arena badge, refreshes the daily quest summary, and shows earned Rep.
 Already-claimed responses set the badge and refresh the summary without another earn toast.
 Other claim errors show feedback; thrown errors also log.
@@ -415,7 +415,7 @@ Arena links fetch the public preview and navigate using `resolveHandoffRoute`.
 A missing, invalid, or failed preview shows an error toast without navigating.
 The app submits an authenticated check-in, with the preview ID as `arenaId`, only when the preview has `checkInAvailable` and `team.id`.
 Android applies the same gate.
-The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) (open from 2h before the start until 6h after it, or until 30 min after a final) and the club is playing in it.
+The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) and the club is playing in it.
 Success sets the arena badge, refreshes the daily quest summary, and shows earned Rep.
 Already-claimed responses set the badge and refresh the summary without another earn toast.
 Other claim errors show feedback, and there is no durable retry queue.
