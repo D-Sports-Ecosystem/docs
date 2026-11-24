@@ -214,7 +214,7 @@ PR #1452 reuses `useApi().quests.getAppClipArenaPreview` from `lib/api/quests-ap
 The engage-native API client now marks preview 404s as expected statuses.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) and [Platform API](/api-reference/domains/platform-infra) for the existing read-only preview contract.
 The required, nullable `homeTeam`/`awayTeam` score summaries already exist on API main.
-The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available.
+The explicit signed-in preview CTA calls `quests.claimArenaCheckIn(preview.team.id)` only when check-in is available and the preview supplies a team ID. The current client sends only `teamId`, so that request returns `400` until the client also sends the arena identifier as `arenaId`.
 Use [Gamification API](/api-reference/domains/gamification) for the existing authenticated claim and server-owned daily limit.
 The Android Play referrer is untrusted navigation input and never calls the claim client.
 Its `check_in` flag does not grant eligibility or prove attendance.
@@ -228,7 +228,7 @@ PR #1425 adds an Android caller of existing preview and check-in clients, not a 
 `hooks/use-android-nfc-host.android.ts` calls `useApi().quests.getAppClipArenaPreview` and `quests.claimArenaCheckIn` from `lib/api/quests-api.ts`.
 Use [Platform behavior](/repositories/d-sports-api/platform-infra/behavior#representative-non-admin-platform-routes) for preview routing and the check-in team identifier.
 Use [Gamification API](/api-reference/domains/gamification) for the arena check-in endpoint and daily limit.
-The existing hook passes only the preview's `team.id`. To satisfy the API, the client must also pass the scanned identifier as `arenaId`.
+The existing hook passes only the preview's `team.id`, so the API returns `400`. To satisfy the API, the client must also pass the scanned identifier as `arenaId`.
 It attempts a claim whenever that team ID exists, without gating on `checkInAvailable`; the [iOS Core NFC](#ios-core-nfc-arena-check-in) host does gate on it.
 The server remains authoritative for eligibility and rewards.
 See [NFC behavior](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in) for authentication deferral, feedback, and retry limits.
