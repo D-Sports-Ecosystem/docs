@@ -21,9 +21,17 @@ Shop and wallet pack reveals call `lib/store-review.ts` after a Rare, Epic, Lege
 ## Binder and market
 
 - `app/binder` is the digital binder inventory and transfer surface. It talks to `/api/binders*`.
-- Binder PIN is not the wallet PIN. Native must store the short-lived verify-pin token and send `x-binder-pin-token` on binder reads.
+- Binder PIN is not the wallet PIN. Native must store the short-lived verify-pin token and send `x-binder-pin-token` on owner Binder reads by ID.
 - You browse packs on `market/packs` and trading on `market/trading` so one tab does not lose the other. Listings go through `/api/v1/marketplace/*` (in generated OpenAPI). `listings/mine` still works; `me/listings` is the live path.
 - Card history uses public `GET /api/v1/cards/{id}/provenance`.
+
+### Read-only Binder sharing
+
+Native PR #1464 restores Binder sharing. In a Binder you own, choose **Share** and confirm before creating a link. Choose **Share link** to send the same link again or **Stop sharing** to revoke it.
+
+On Android with NFC, **Share** opens the tap-to-share modal. **Share link instead** opens the system share sheet. On Android without NFC and on iOS, **Share** opens the system share sheet directly. On web, it copies the link to the clipboard.
+
+When you open an active `/binder/shared/<token>` link while signed in, you see a read-only card grid with no edit, move, or transfer controls. You don't need the owner's PIN. If you get a `404`, the link no longer works. You can retry after other request errors. See the [Binder share contract](/repositories/d-sports-engage-native/integration-contracts#binder-share-contract).
 
 ## Quest, Fan Rep, rewards, and pass surfaces
 
@@ -348,7 +356,7 @@ PR #1425 adds **Tap to share** to your own Fan Profile through `features/profile
 The payload is a public HTTPS link such as `https://app.d-sports.org/profile/<handle>`.
 `buildFanProfileNfcUrl` uses the configured app web origin and strips leading `@` characters.
 It does not share private profile data or a signed Wallet pass.
-Binder URL helpers and inbound routing exist, but the merged PR removes the Binder share button pending a public binder endpoint.
+The restored [Binder Share button](#read-only-binder-sharing) reuses the Android tap-to-share modal and sends a revocable share link rather than an owner Binder URL.
 
 In `NfcTapToShareModal.android.tsx`, share mode exposes the URL as an NDEF URI through HCE.
 Scan mode reads physical arena tags or a peer Android phone.
@@ -364,7 +372,7 @@ A ready label therefore does not prove a session started.
 Unsupported reader URLs show an error toast; unreadable tags can remain silent.
 
 `hooks/use-android-nfc-host.android.ts` waits for sign-in/onboarding before routing received links.
-Profile and binder links open their local routes.
+Profile and owner Binder links open their local routes. Shared Binder links open `/binder/shared/<token>`.
 An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
 The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
 If the preview has `checkInAvailable` and `team.id`, it submits an authenticated quest check-in with that team ID and the preview ID as `arenaId`, matching the [iOS Core NFC reader](#ios-core-nfc-arena-check-in).
@@ -396,13 +404,13 @@ Tapping it opens the system NFC sheet for one read.
 The sheet reads arena tags; reading the URL a nearby Android phone shares is intended but unverified on physical devices.
 
 The reader accepts only an HTTPS `app.d-sports.org` (or configured app host) URL of at most 512 characters.
-The path must be one safe identifier after `/clip/arena/`, `/profile/`, or `/binder/`, with no `..`.
+The path must contain no `..` and use either one safe identifier after `/clip/arena/`, `/profile/`, or `/binder/`, or a 32-character base64url token after `/binder/shared/`. Reading a shared Binder link from an NFC tag requires an iOS binary with the updated validator.
 An unsupported tag closes the sheet with an error message and also shows an error toast.
 Timeouts, a busy reader, and read errors show an error toast; cancelling is silent.
 
 The app waits for sign-in/onboarding before routing and keeps only the latest tag.
 The same URL read again within three seconds is ignored.
-Profile and binder links open their local routes.
+Profile and owner Binder links open their local routes. Shared Binder links open the read-only viewer.
 Arena links fetch the public preview and navigate using `resolveHandoffRoute`.
 A missing, invalid, or failed preview shows an error toast without navigating.
 The app submits an authenticated check-in, with the preview ID as `arenaId`, only when the preview has `checkInAvailable` and `team.id`.

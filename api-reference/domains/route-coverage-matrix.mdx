@@ -62,7 +62,7 @@ Route documentation status uses:
 | `/api/games/live/start`, `/api/games/live/{sessionId}/end` | Publish with redaction | Team-manager start/end. Document RBAC only. |
 | `/api/games/pick-em/players` | Publish | Leftover roster helper. Engine Pick'em does not use this path. |
 | `/api/games/daily-spin/reward` | Publish | Deprecated compat adapter in OpenAPI. New clients use `POST /api/games/daily-spin/spin`. |
-| `/api/binders*` | Publish | Digital binder CRUD, card assign/order, transfer, and PIN. Live PIN gate uses `x-binder-pin-token`; OpenAPI descriptions still say `{ granted }` only. |
+| `/api/binders*` | Publish | Digital Binder CRUD, card assign/order, transfer, PIN verification, owner-only share management, and a signed-in read-only view by share token. The live verify-pin response includes the proof token for `x-binder-pin-token`; the OpenAPI verify-pin description still says `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
 | `/api/v1/marketplace/*` | Publish | Expanded catch-all. Native `listings/mine` aliases `me/listings`. Create requires `x-listing-pin-token`. Pack listing can return `409 PACK_NOT_LISTABLE` or `PACK_ALREADY_OPENED`. See [Commerce](/api-reference/domains/commerce). |
 | `/api/v1/kyc/link-token`, `/api/v1/kyc/session/complete`, `/api/v1/user/kyc-status` | Publish | Authenticated KYC session helpers. Status only; no vendor secrets. |

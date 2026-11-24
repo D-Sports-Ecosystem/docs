@@ -8,8 +8,8 @@ description: "Common status code semantics and error-handling expectations for n
 - `200` / `201`: successful read or mutation.
 - `400`: invalid payload or missing required fields.
 - `401`: authentication missing or invalid.
-- `403`: authenticated but not allowed. Binder PIN-protected reads use `PIN_REQUIRED`. Post-as-team uses a generic forbidden when `authorTeamId` is unauthorized.
-- `404`: resource not found. Unknown `/api/*` paths return JSON `{ success: false, error, code: NOT_FOUND }`, not the HTML app 404.
+- `403`: authenticated but not allowed. Owner reads by ID and share creation use `PIN_REQUIRED` when a PIN-protected Binder lacks valid PIN proof. Post-as-team uses a generic forbidden when `authorTeamId` is unauthorized.
+- `404`: resource not found. Unknown `/api/*` paths return JSON `{ success: false, error, code: NOT_FOUND }`, not the HTML app 404. The shared Binder read also returns `404` for a malformed, unknown, or revoked link, or a block between the viewer and owner.
 - `409`: state conflict (when route-specific logic enforces uniqueness/state). Marketplace pack listing uses `PACK_NOT_LISTABLE` and `PACK_ALREADY_OPENED`.
 - `500`: unexpected server-side failure.
 

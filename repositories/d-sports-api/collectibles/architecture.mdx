@@ -20,6 +20,8 @@ icon: "workflow"
 - `app/api/user/featured-collectibles/route.ts`
 - `app/api/binders/[id]/route.ts`
 - `app/api/binders/[id]/verify-pin/route.ts`
+- `app/api/binders/[id]/share/route.ts` — owner-only share management
+- `app/api/binders/shared/[token]/route.ts` — signed-in read-only view
 - `app/api/v1/cards/[id]/provenance/route.ts`
 - `server/binder-actions.ts`
 - `server/card-provenance-actions.ts`
@@ -34,7 +36,7 @@ icon: "workflow"
 - `UserFeaturedCollectible`
 - `MintedNFT`
 - `MarketSale` (provenance transfers)
-- Binder models (`Binder`, binder cards)
+- `Binder` and `BinderCard`. `Binder.shareToken` is nullable and unique; `Binder.shareCreatedAt` is a nullable timestamp. Both are set when the owner enables the link and cleared on revocation.
 
 ## High-level flow
 
@@ -53,6 +55,6 @@ flowchart LR
 - Pack open behavior resolves weighted contents and persists ownership outcomes.
 - Collectible ownership and mint records are related but not identical entities.
 - Featured collectible views are read-optimized on top of core ownership models.
-- Binder PIN proof is a short-lived HMAC token scoped to one binder. It is not the wallet or market PIN token.
+- Binder PIN proof is a short-lived HMAC token scoped to one binder. It is not the wallet or market PIN token. The separate share token is not PIN proof; it identifies the read-only view an owner opted to share.
 - Card provenance is assembled from existing ownership, sale, and mint rows. There is no dedicated provenance table.
 - Binder card league labels come from `Team.leagueRelation`.
