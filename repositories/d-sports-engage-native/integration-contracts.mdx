@@ -79,6 +79,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - `authorTeamId` / `postAsTeamId` is who the post is authored as. Unauthorized callers get `403`.
 - `lineup` on create is persisted and echoed. Fetch players from `GET /api/teams/{id}/roster` instead of fabricating names.
 - Composer drafts use `GET/PUT/DELETE /api/locker-room/posts/draft`.
+- The API accepts up to 500 UTF-16 code units of trimmed alt text per media item. See [media alt-text edits](/repositories/d-sports-api/social-locker-room/behavior#media-alt-text) for the published-post update body, and [cloud alt-text fallback](/api-reference/domains/social-locker-room#cloud-alt-text-fallback) for the opt-in suggestion contract. Manual entry must remain available.
 - `POST /api/locker-room/{id}/like` returns `{ liked, likeCount }` and does not replace `/react`.
 - Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
