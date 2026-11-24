@@ -1,0 +1,18 @@
+---
+title: "Assistant digest behavior"
+description: "How to use the Assistant rollout mode and interpret bounded results."
+---
+
+## Rollout mode
+
+Read `assistantMode` from the authenticated context digest. It reports `cloud`, `quick_chips`, or `hidden`. A valid server-side `ASSISTANT_MODE` takes precedence. When it is unset or invalid, the mode is `hidden` unless the server explicitly enables the `AI_ASSISTANT_CHAT_ENABLED=true` cloud fallback. Set `ASSISTANT_MODE=hidden` to override that fallback.
+
+The mode is a rollout signal, not an authorization gate. The context and collection routes still require a session, and the game brief remains public. A `cloud` result does not mean a digest calls a model.
+
+## Bounded results
+
+- Context can omit detail about followed teams, ranks, quests, or the nearest set; it is not a standalone source for a fan's full activity.
+- The brief may omit older plays to stay within budget. Performer summaries appear only for final games and only when eligible data is available.
+- Collection search checks actual ownership when identifying missing set slots, even when older holdings do not appear in `owned`. An auction's `price` is its buy-now price, if any, not its current bid.
+
+Use the returned app deep links to open the full resource. For route inputs and cache lifetimes, see the [API guide](/api-reference/domains/assistant-digests).

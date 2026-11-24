@@ -2644,7 +2644,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Binder PIN grant from verify-pin; required for a PIN-protected binder."
+            "description": "Binder PIN grant from verify-pin. Optional for reading share state; required to reveal the token and path for a PIN-protected binder."
           }
         ],
         "responses": {
@@ -2946,7 +2946,7 @@
                           "additionalProperties": {
                             "type": "array",
                             "items": {
-                              "type": "object"
+                              "$ref": "#/components/schemas/SharedBinderDisplayCard"
                             }
                           }
                         }
@@ -2956,6 +2956,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Binder not found: the share token is malformed, unknown, or revoked, or the viewer and owner have a block in either direction."
           }
         }
       }
@@ -16780,7 +16783,7 @@
           "Engage"
         ],
         "summary": "Claim arena check-in",
-        "description": "Daily arena check-in for one team. Body: { teamId, arenaId }, where arenaId is the scanned NFC tag / App Clip / arena preview id (GameEvent.id, or the host club Team.id or Team.slug). Granted only while a non-demo fixture at that arena is in its check-in window (live, from 2h before the start, or up to 30 min after the final) and teamId is playing in it; otherwise 403. Revalidates the leaderboard tag on success.",
+        "description": "Daily arena check-in for one team. Body: { teamId, arenaId }, where arenaId is the scanned NFC tag / App Clip / arena preview id (GameEvent.id, or the host club Team.id or Team.slug). Granted only while a non-demo fixture at that arena is in its check-in window (live until 6h after the start, or with no start time; upcoming or delayed from 2h before the start until 6h after it; or a final up to 30 min after it ends) and teamId is playing in it; otherwise 403. Revalidates the leaderboard tag on success.",
         "security": [
           {
             "bearerAuth": []
@@ -25861,7 +25864,7 @@
           "Engage"
         ],
         "summary": "Public App Clip arena preview",
-        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs with a non-demo fixture in its check-in window (live, from 2h before the start, or up to 30 min after the final; for a club id, a home fixture); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
+        "description": "Public, read-only preview for iOS App Clip invocations. id is a GameEvent.id, Team.id or Team.slug (1-128 of A-Z, a-z, 0-9, _ and -); a game is tried first. Returns { success, data: { kind: game_event | team, id, title, subtitle, venue, status, startTime, themeColor, logoUrl, homeTeam, awayTeam, team, checkInAvailable, fullAppUrl, checkInEndpoint } } with no personal data. checkInAvailable is true only for Engage partner clubs with a non-demo fixture in its check-in window (live until 6h after the start, or with no start time; upcoming or delayed from 2h before the start until 6h after it; or a final up to 30 min after it ends; for a club id, a home fixture); check-in itself stays on authenticated POST /api/v1/engage/quests/arena-check-in. Sends a weak ETag and returns 304 on a matching If-None-Match.",
         "parameters": [
           {
             "name": "id",
@@ -26314,6 +26317,227 @@
           }
         }
       }
+    },
+    "/api/v1/assistant/context": {
+      "get": {
+        "tags": [
+          "Assistant"
+        ],
+        "summary": "Read-only fan context digest for the In-App Assistant (AGM)",
+        "description": "Returns a slim (< 1.0 KB), non-PII fan digest (locale, server-driven assistantMode, followed teams, Fan Rep & club ranks, active quests, and collection progress) with a private 60s weak ETag.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: AssistantContextData }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantContextSuccess"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified (If-None-Match matched current ETag)"
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/games/{gameId}/brief": {
+      "get": {
+        "tags": [
+          "Assistant"
+        ],
+        "summary": "Read-only game brief digest for the In-App Assistant and Creator Drafts",
+        "description": "Public / optional-auth slim (< 1.5 KB) game digest (score, status, period/clock, key stats, up to 3 top performers without avatars, win probability, and up to 10 text-only recent plays) with a 15s weak ETag omitting volatile clock fields.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "GameEvent id or vendor-prefixed external game id."
+            },
+            "required": true,
+            "description": "GameEvent id or vendor-prefixed external game id.",
+            "name": "gameId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: AssistantGameBriefData }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantGameBriefSuccess"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified (If-None-Match matched current ETag)"
+          },
+          "400": {
+            "description": "Invalid gameId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/collection/search": {
+      "get": {
+        "tags": [
+          "Assistant"
+        ],
+        "summary": "Read-only collection and active marketplace search digest",
+        "description": "Authenticated slim (< 2.0 KB) search across owned collectibles, missing set slots, and active marketplace listings with canonical app.d-sports.org deep links and <untrusted_text>-wrapped fan-authored strings. Private 30s weak ETag.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "description": "Optional search text matched against owned cards, sets, and missing slots."
+            },
+            "required": false,
+            "description": "Optional search text matched against owned cards, sets, and missing slots.",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "description": "Optional team id filter."
+            },
+            "required": false,
+            "description": "Optional team id filter.",
+            "name": "teamId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "description": "Optional collectible set id filter."
+            },
+            "required": false,
+            "description": "Optional collectible set id filter.",
+            "name": "setId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Max results per section (integer 1-10, default 5)."
+            },
+            "required": false,
+            "description": "Max results per section (integer 1-10, default 5).",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: AssistantCollectionSearchData }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantCollectionSearchSuccess"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified (If-None-Match matched current ETag)"
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26487,6 +26711,193 @@
                 }
               }
             }
+          }
+        }
+      },
+      "SharedBinderDisplayCard": {
+        "description": "Display card in a shared Binder. Listing and offer lock fields are not included.",
+        "type": "object",
+        "required": [
+          "id",
+          "binderId",
+          "collectibleId",
+          "quantity",
+          "shelf",
+          "order",
+          "createdAt",
+          "serial",
+          "value",
+          "valueBreakdown",
+          "collectible",
+          "player"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "binderId": {
+            "type": "string"
+          },
+          "collectibleId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "shelf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "serial": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardSerial"
+              }
+            ]
+          },
+          "value": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "valueBreakdown": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardValueBreakdown"
+              }
+            ]
+          },
+          "collectible": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "image",
+              "imageThumbhash",
+              "finish",
+              "cardTemplate",
+              "rarity",
+              "spinVideoUrl",
+              "modelUrl",
+              "team",
+              "league"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              },
+              "imageThumbhash": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "finish": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Card finish id, or null when no finish is set."
+              },
+              "cardTemplate": {
+                "description": "Null when the card image has no verifiable published render.",
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CardTemplate"
+                  }
+                ]
+              },
+              "rarity": {
+                "type": "string"
+              },
+              "spinVideoUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "modelUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "team": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name",
+                  "slug"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                }
+              },
+              "league": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "player": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardPlayer"
+              }
+            ]
           }
         }
       },
@@ -30442,6 +30853,620 @@
             }
           }
         }
+      },
+      "AssistantContextSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AssistantContextData"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AssistantContextData": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr-CH",
+              "it-IT"
+            ]
+          },
+          "assistantMode": {
+            "$ref": "#/components/schemas/AssistantMode"
+          },
+          "followedTeams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "slug",
+                "name"
+              ]
+            }
+          },
+          "fanRep": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "globalRank": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "clubRanks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "teamId": {
+                      "type": "string"
+                    },
+                    "rank": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "points": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "teamId",
+                    "rank",
+                    "points"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "total",
+              "globalRank",
+              "clubRanks"
+            ]
+          },
+          "activeQuests": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "claimableCount": {
+                "type": "integer"
+              },
+              "top": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "progress": {
+                      "type": "integer"
+                    },
+                    "target": {
+                      "type": "integer"
+                    },
+                    "claimable": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "progress",
+                    "target",
+                    "claimable"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "count",
+              "claimableCount",
+              "top"
+            ]
+          },
+          "collection": {
+            "type": "object",
+            "properties": {
+              "ownedCount": {
+                "type": "integer"
+              },
+              "closestSet": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "owned": {
+                    "type": "integer"
+                  },
+                  "total": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "owned",
+                  "total"
+                ]
+              }
+            },
+            "required": [
+              "ownedCount",
+              "closestSet"
+            ]
+          }
+        },
+        "required": [
+          "locale",
+          "assistantMode",
+          "followedTeams",
+          "fanRep",
+          "activeQuests",
+          "collection"
+        ]
+      },
+      "AssistantMode": {
+        "type": "string",
+        "enum": [
+          "cloud",
+          "quick_chips",
+          "hidden"
+        ]
+      },
+      "AssistantError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "AssistantGameBriefSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AssistantGameBriefData"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AssistantGameBriefData": {
+        "type": "object",
+        "properties": {
+          "gameId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "upcoming",
+              "final",
+              "postponed",
+              "delayed",
+              "suspended",
+              "cancelled"
+            ]
+          },
+          "sport": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "basketball",
+              "soccer",
+              "football",
+              "hockey",
+              "baseball",
+              null
+            ]
+          },
+          "homeTeam": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "score"
+            ]
+          },
+          "awayTeam": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "score"
+            ]
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clock": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "keyStats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "home": {
+                  "type": "string"
+                },
+                "away": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label",
+                "home",
+                "away"
+              ]
+            }
+          },
+          "topPerformers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "side": {
+                  "type": "string",
+                  "enum": [
+                    "home",
+                    "away"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "pos": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "statLine": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "side",
+                "name",
+                "pos",
+                "statLine"
+              ]
+            },
+            "description": "Top persisted performers (up to 3) from final-game player-stat snapshots; empty for non-final games or before snapshots are persisted."
+          },
+          "winProbability": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "home": {
+                "type": "number"
+              },
+              "away": {
+                "type": "number"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "final",
+                  "odds-implied",
+                  "even"
+                ]
+              }
+            },
+            "required": [
+              "home",
+              "away",
+              "model"
+            ],
+            "description": "Read-only win probability derived from persisted game fields without vendor odds writes (100/0 final split for decided finals, even split otherwise)."
+          },
+          "recentPlays": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "time": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "score",
+                    "opponentScore",
+                    "neutral"
+                  ]
+                }
+              },
+              "required": [
+                "time",
+                "text",
+                "tag",
+                "kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "gameId",
+          "status",
+          "sport",
+          "homeTeam",
+          "awayTeam",
+          "period",
+          "clock",
+          "keyStats",
+          "topPerformers",
+          "winProbability",
+          "recentPlays"
+        ]
+      },
+      "AssistantCollectionSearchSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AssistantCollectionSearchData"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AssistantCollectionSearchData": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owned": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "rarity": {
+                  "type": "string"
+                },
+                "teamId": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                },
+                "deepLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "rarity",
+                "teamId",
+                "quantity",
+                "deepLink"
+              ]
+            }
+          },
+          "missingSetSlots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "setId": {
+                  "type": "string"
+                },
+                "setName": {
+                  "type": "string"
+                },
+                "collectibleId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "rarity": {
+                  "type": "string"
+                },
+                "deepLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "setId",
+                "setName",
+                "collectibleId",
+                "name",
+                "rarity",
+                "deepLink"
+              ]
+            }
+          },
+          "marketplace": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "listingId": {
+                  "type": "string"
+                },
+                "collectibleId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "openToTradeOffers": {
+                  "type": "boolean"
+                },
+                "tradeNote": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "deepLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "listingId",
+                "collectibleId",
+                "name",
+                "type",
+                "price",
+                "openToTradeOffers",
+                "tradeNote",
+                "deepLink"
+              ]
+            }
+          }
+        },
+        "required": [
+          "query",
+          "owned",
+          "missingSetSlots",
+          "marketplace"
+        ]
       }
     }
   }

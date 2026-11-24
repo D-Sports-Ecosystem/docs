@@ -53,6 +53,7 @@ docs/
 │       ├── wallet-web3.mdx
 │       ├── commerce.mdx
 │       ├── collectibles.mdx
+│       ├── assistant-digests.mdx
 │       ├── social-locker-room.mdx
 │       ├── moderation.mdx
 │       ├── teams-leagues.mdx
