@@ -38,6 +38,17 @@ Team Management uses the same `SubmissionWorkspace` creator and editor for new a
 
 When your role allows you to manage a team's scheduled social posts, send `mediaAltTexts` on `POST /api/admin/social/posts` or on `PATCH /api/admin/social/posts/{id}` for a scheduled or failed post. Both requests require a nonblank `teamId` string in the JSON body, even for an alt-text-only edit; omitting it returns `400 VALIDATION_ERROR`. The object maps each URL from `mediaUrls` to its screen-reader description. Values must be strings of at most 500 UTF-16 code units after trimming. Blank values are ignored; invalid values or keys outside `mediaUrls` return `400`.
 
+For example, to update only the alt text, send this JSON body to `PATCH /api/admin/social/posts/{id}`. Use a URL already in the post's `mediaUrls`:
+
+```json
+{
+  "teamId": "example-team-id",
+  "mediaAltTexts": {
+    "https://media.example.com/game-day.jpg": "A goalie reaches for the puck."
+  }
+}
+```
+
 On edit, omit the map to keep descriptions for retained URLs, supply a new map to replace them, or pass `null` or `{}` to clear them. The API stores the map with the scheduled post for review.
 
 Editing an eligible failed post requeues it and clears its last error, even if you change only alt text. If its scheduled time has already passed, the next dispatch run can publish it. The API rejects edits if the post has an external ID or the previous publish outcome is unknown.
