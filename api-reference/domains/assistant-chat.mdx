@@ -21,7 +21,7 @@ Send `Content-Type: application/json`, a [Clerk session token](/api-reference/au
 }
 ```
 
-Only `user` and `assistant` roles are accepted. Use `parts` or a `content` string; keep each text value to 4,000 characters. User parts must be text. The server discards non-text parts from prior assistant messages before model execution, so clients cannot replay tool results as trusted data. The optional `context.gameId` and `context.teamId` are hints, not authorization. The server selects the reply locale from `Accept-Language`: `en`, `fr-CH`, or `it-IT`, with English as the fallback.
+Only `user` and `assistant` roles are accepted. Each message needs a nonempty `parts` array or a nonblank `content` string. Send up to 16 text parts in a user message or 32 parts in an assistant message. Keep each text value to 4,000 characters. The server discards non-text parts from prior assistant messages before model execution, so clients cannot replay tool results as trusted data. The optional `context.gameId` and `context.teamId` are hints, not authorization. The server selects the reply locale from `Accept-Language`: `en`, `fr-CH`, or `it-IT`, with English as the fallback.
 
 ## Consume the stream
 
