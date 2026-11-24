@@ -247,7 +247,7 @@ An arena invocation such as `https://app.d-sports.org/clip/arena/<id>` opens the
 
 Choose **Check In & Earn Rep in Engage** when check-in is available, or **Open in D-Sports Engage** otherwise. The clip saves the latest arena/team/game context and requested-check-in flag in the shared App Group, then presents the App Store installation overlay. A successful save displays confirmation. The overlay still runs if saving fails, so installation alone does not prove the context was saved. **Get App** presents the overlay without writing a new arena handoff.
 
-After you install/open Engage and complete sign-in/onboarding, the app validates the saved payload. It discards malformed/empty payloads, invalid IDs/kinds, payloads older than 24 hours, or timestamps over one minute in the future. Games open `/hq/match/<id>`; partner clubs open `/(tabs)/leaderboard/<slug>`; non-partner clubs open `/hq/<slug>`. It derives destinations locally rather than trusting the saved URL. A requested check-in with a team ID sends that team and the saved arena ID through the authenticated quest client. Success or an already-claimed result sets the arena badge, refreshes the daily quest summary, and clears the handoff; success also shows earned Rep. A `VALIDATION_ERROR` (missing or malformed arena ID) shows feedback and clears the handoff, because retrying the same payload cannot succeed. Other errors, including `FORBIDDEN` (not following the club yet, or no event on at the arena yet), show feedback, log the failure, and retain the payload for a later effect retry until the 24-hour expiry, not a timed background queue. Navigation-only handoffs clear after routing.
+After you install/open Engage and complete sign-in/onboarding, the app validates the saved payload. It discards malformed/empty payloads, invalid IDs/kinds, payloads older than 24 hours, or timestamps over one minute in the future. Games open `/hq/match/<id>`; partner clubs open `/(tabs)/leaderboard/<slug>`; non-partner clubs open `/hq/<slug>`. It derives destinations locally rather than trusting the saved URL. A requested check-in with a team ID sends that team and the saved arena ID through the authenticated quest client. Success or an already-claimed result sets the arena badge, refreshes the daily quest summary, and clears the handoff; success also shows earned Rep. A `VALIDATION_ERROR` (missing or malformed arena ID) shows feedback and clears the handoff, because retrying the same payload cannot succeed. Other errors, including `FORBIDDEN` (not following the club yet, or no fixture at the arena in its check-in window yet), show feedback, log the failure, and retain the payload for a later effect retry until the 24-hour expiry, not a timed background queue. Navigation-only handoffs clear after routing.
 
 If full Engage is already installed, incoming clip links instead queue the latest arena ID in memory and land on `/`. The app waits for the same auth/onboarding gate, fetches the public preview, and opens the appropriate route without automatically checking in. This URL-only pending ID is consumed before fetching and is not durably retried on failure. The App Group holds only one saved payload, not a history of visits.
 
@@ -368,7 +368,7 @@ Profile and binder links open their local routes.
 An arena tag carries `https://app.d-sports.org/clip/arena/<id>`.
 The hook resolves the existing public preview and navigates using `resolveHandoffRoute`.
 If the preview has `checkInAvailable` and `team.id`, it submits an authenticated quest check-in with that team ID and the preview ID as `arenaId`, matching the [iOS Core NFC reader](#ios-core-nfc-arena-check-in).
-The server grants it only while an event is on at that arena and the club is playing in it.
+The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) (from 2h before the start until 30 min after the final) and the club is playing in it.
 Success sets the arena badge, refreshes the daily quest summary, and shows earned Rep.
 Already-claimed responses set the badge and refresh the summary without another earn toast.
 Other claim errors show feedback; thrown errors also log.
@@ -407,7 +407,7 @@ Arena links fetch the public preview and navigate using `resolveHandoffRoute`.
 A missing, invalid, or failed preview shows an error toast without navigating.
 The app submits an authenticated check-in, with the preview ID as `arenaId`, only when the preview has `checkInAvailable` and `team.id`.
 Android applies the same gate.
-The server grants it only while an event is on at that arena and the club is playing in it.
+The server grants it only while a fixture at that arena is in its [check-in window](/api-reference/domains/gamification) (from 2h before the start until 30 min after the final) and the club is playing in it.
 Success sets the arena badge, refreshes the daily quest summary, and shows earned Rep.
 Already-claimed responses set the badge and refresh the summary without another earn toast.
 Other claim errors show feedback, and there is no durable retry queue.
