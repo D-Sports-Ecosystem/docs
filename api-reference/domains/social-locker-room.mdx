@@ -29,12 +29,6 @@ Social APIs power locker room activity and user-to-user interactions.
 - `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
 - `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).
 
-## Source language for composed content
-
-Send optional `sourceLocale` when the client detects the original text's language at compose time. The only allowed values are `"en"`, `"fr"`, `"it"`, or `null`; invalid values such as `"fr-CH"` return `400`. The API never infers this field from `Accept-Language` and does not translate the text.
-
-The field applies to Locker Room posts and comments, marketplace listings and trade offers, game chat messages, news articles, and feed prompts. Omit it or send `null` when creating content with unknown source language. If you edit the text of a Locker Room post or comment and omit the field, the API clears the previous value. Explicitly sending `null` clears it even without a text change.
-
 ## Authoring as a team
 
 - `POST /api/locker-room` accepts `teamId` as the about-tag (`LockerRoomPost.teamId`).
@@ -48,6 +42,12 @@ The field applies to Locker Room posts and comments, marketplace listings and tr
 - Comment create may include `mentionedUserIds`. Responses echo `mentions[]`. Edit must send `mentionedUserIds: []` to clear; omitting the field leaves mentions unchanged.
 - `GET /api/user/search` is authenticated. Send required `q`. Default scope matches handle, name, and (when `q` is at least 2 characters) location. `scope=mention` matches handle and name only and drops users without a handle. `limit` is 1–50 (default 20). Each row uses `profileUrl` (not `avatar`) and has no `level`.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
+
+## Source language for composed content
+
+Send optional `sourceLocale` when the client detects the original text's language at compose time. The only allowed values are `"en"`, `"fr"`, `"it"`, or `null`; invalid values such as `"fr-CH"` return `400`. The API never infers this field from `Accept-Language` and does not translate the text.
+
+The field applies to Locker Room posts and comments, marketplace listings and trade offers, game chat messages, news articles, and feed prompts. Omit it or send `null` when creating content with unknown source language. If you edit the text of a Locker Room post or comment and omit the field, the API clears the previous value. Explicitly sending `null` clears it even without a text change.
 
 ## Mute vs block
 
