@@ -47,7 +47,9 @@ Social APIs power locker room activity and user-to-user interactions.
 
 Send optional `sourceLocale` when the client detects the original text's language at compose time. The only allowed values are `"en"`, `"fr"`, `"it"`, or `null`; invalid values such as `"fr-CH"` return `400`. The API never infers this field from `Accept-Language` and does not translate the text.
 
-The field applies to Locker Room posts and comments, marketplace listings and trade offers, game chat messages, news articles, and feed prompts. Omit it or send `null` when creating content with unknown source language. If you edit the text of a Locker Room post or comment and omit the field, the API clears the previous value. Explicitly sending `null` clears it even without a text change.
+The field applies to Locker Room posts and comments, marketplace listings and trade offers, and game chat messages. Omit it or send `null` when creating content with unknown source language. If you edit the text of a Locker Room post or comment and omit the field, the API clears the previous value. Explicitly sending `null` clears it even without a text change.
+
+You may also see `sourceLocale` on news articles and feed prompts. Set it through the admin CMS, not through the read-only public news and prompt endpoints.
 
 ## Mute vs block
 
