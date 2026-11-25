@@ -76,6 +76,7 @@ Route documentation status uses:
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
 | `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
 | `/api/admin/translation-locales/{entityType}/{entityId}` | Shipped | Moderator-gated [authored locale administration](/api-reference/domains/admin-team-management#authored-locale-administration). |
+| `/api/admin/packs/drops`, `/api/admin/packs/drops/{id}` | Shipped | [Pack drop schedules](/api-reference/domains/admin-team-management#pack-drop-schedules): scoped reads and writes; eligible drops feed the widget snapshot. |
 | `/api/admin/stats` | Publish with redaction | High-level contract only, no privileged internals. |
 | `/api/admin/notifications/announce` | Publish with redaction | Behavior-level contract and RBAC only. |
 | `/api/admin/leagues/sync`, `/api/admin/teams/sync` | Publish with redaction | Trigger semantics useful for contributors; keep internals abstracted. |
