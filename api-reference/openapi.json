@@ -1635,6 +1635,377 @@
         }
       }
     },
+    "/api/admin/packs/drops": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Packs"
+        ],
+        "summary": "List scheduled pack drops",
+        "description": "Lists upcoming or past scheduled pack drops (`PackDropSchedule`) that feed `GET /api/v1/widgets/snapshot?include=packs` (`packs.nextDropAt`). Platform admins/superadmins can list all drops or filter by `teamId`; team admins (`owner`, `editor`, `viewer`) can omit `teamId` to list drops across all teams they can access, or filter to a specific `teamId` they can access.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional team ID or slug to filter drops. When omitted, platform admins see all drops and team admins see drops across all teams they can access."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "cancelled"
+              ]
+            },
+            "description": "Optional lifecycle status filter."
+          },
+          {
+            "name": "includePast",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "When true, includes drops whose `dropAt` is in the past."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Maximum number of drops to return (default 50, max 100)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scheduled pack drops list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "drops"
+                      ],
+                      "properties": {
+                        "drops": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PackDropSchedule"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden — admin or team admin access required"
+          },
+          "404": {
+            "description": "Team not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin",
+          "Packs"
+        ],
+        "summary": "Create a scheduled pack drop",
+        "description": "Schedules a future store or club pack drop (`PackDropSchedule`). Global drops (`teamId: null` or omitted) require platform admin/superadmin; team-scoped drops require platform admin/superadmin or team `owner`/`editor` access. JSON body is capped at 8 KiB.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "dropAt"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "dropAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Future ISO 8601 timestamp for the drop."
+                  },
+                  "teamId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Optional team ID or slug. Omit or pass null for a platform-wide drop."
+                  },
+                  "packId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Optional Pack ID linked to this drop."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pack drop scheduled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PackDropSchedule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid JSON, non-future dropAt, or pack/team mismatch)"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden — admin or team editor/owner access required"
+          },
+          "404": {
+            "description": "Team or pack not found"
+          },
+          "413": {
+            "description": "Request body exceeds 8 KiB"
+          }
+        }
+      }
+    },
+    "/api/admin/packs/drops/{id}": {
+      "patch": {
+        "tags": [
+          "Admin",
+          "Packs"
+        ],
+        "summary": "Update or cancel a scheduled pack drop",
+        "description": "Updates `title`, `dropAt`, `status` (`scheduled` or `cancelled`), or `packId` on an existing `PackDropSchedule`. Platform admins/superadmins can edit any drop; team `owner`/`editor` admins can edit drops belonging to their team. JSON body is capped at 8 KiB.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "PackDropSchedule ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "dropAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "scheduled",
+                      "cancelled"
+                    ]
+                  },
+                  "packId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pack drop updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PackDropSchedule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Drop or pack not found"
+          },
+          "413": {
+            "description": "Request body exceeds 8 KiB"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin",
+          "Packs"
+        ],
+        "summary": "Delete a scheduled pack drop",
+        "description": "Permanently deletes a `PackDropSchedule` row. Platform admins/superadmins can delete any drop; team `owner`/`editor` admins can delete drops belonging to their team.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "PackDropSchedule ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pack drop deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "deleted",
+                        "id"
+                      ],
+                      "properties": {
+                        "deleted": {
+                          "type": "boolean",
+                          "const": true
+                        },
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Drop not found"
+          }
+        }
+      }
+    },
     "/api/admin/packs/upload-glb-template": {
       "post": {
         "tags": [
@@ -25875,7 +26246,7 @@
           "Engage"
         ],
         "summary": "Get the signed-in fan’s widget snapshot",
-        "description": "Returns personalized Rank / Fan Rep and HQ Live data. Provide a Clerk session (bearer or cookie) or a widget bearer scoped to `widgets:snapshot:read`. Request `?include=clubs,wallet,packs` (any comma-separated combination) for optional followed-club, D-Sports Cash wallet balance, and pack inventory/free-pack cap slices. Failing optional `wallet` or `packs` reads omit only that section. If a game in the returned snapshot is live, the private cache max age is 60 seconds; otherwise it is 3600, capped at the seconds remaining until `packs.freePack.resetsAt` when free-pack cap data is included. A weak ETag ignores `updatedAt`; a matching `If-None-Match` returns 304 without a body.",
+        "description": "Returns personalized Rank / Fan Rep and HQ Live data. Provide a Clerk session (bearer or cookie) or a widget bearer scoped to `widgets:snapshot:read`. Request `?include=clubs,wallet,packs` (any comma-separated combination) for optional followed-club, D-Sports Cash wallet balance, and pack inventory/free-pack cap/next-drop slices. Pass `?clubIds=` (comma-separated or repeated club IDs or slugs, max 20) to scope `hqLive`, `clubs`, and `packs.nextDropAt` to a pinned subset of the fan’s favorite/followed clubs. Failing optional `wallet` or `packs` reads omit only that section. If a game in the returned snapshot is live, the private cache max age is 60 seconds; otherwise it is 3600, capped at the seconds remaining until `packs.freePack.resetsAt` and/or `packs.nextDropAt` when present. A weak ETag ignores `updatedAt`; a matching `If-None-Match` returns 304 without a body.",
         "security": [
           {
             "bearerAuth": []
@@ -25892,7 +26263,16 @@
             "schema": {
               "type": "string"
             },
-            "description": "Comma-separated optional slices (`clubs`, `wallet`, `packs`). Pass `clubs` for up to six favorite or followed clubs, `wallet` for the fan’s D-Sports Cash balance, and `packs` for unopened pack count and free-pack daily cap status. Omitted when not requested or when an optional slice read fails."
+            "description": "Comma-separated optional slices (`clubs`, `wallet`, `packs`). Pass `clubs` for up to six favorite or followed clubs (with live `lastPlay` and `squadLabel`), `wallet` for the fan’s D-Sports Cash balance, and `packs` for unopened pack count, free-pack daily cap status, and `nextDropAt`. Omitted when not requested or when an optional slice read fails."
+          },
+          {
+            "name": "clubIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional comma-separated (or repeated) club IDs or slugs (max 20) to scope `hqLive`, `clubs`, and `packs.nextDropAt` to a subset of the fan’s favorite/followed clubs. Unfollowed clubs are ignored."
           },
           {
             "name": "If-None-Match",
@@ -25912,7 +26292,7 @@
                 "schema": {
                   "type": "string",
                   "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
-                  "description": "private, max-age=60 when the returned HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack is present, max-age cannot exceed the seconds remaining until packs.freePack.resetsAt."
+                  "description": "private, max-age=60 when the returned HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack.resetsAt or packs.nextDropAt is present, max-age cannot exceed the seconds remaining until the earliest boundary."
                 }
               },
               "ETag": {
@@ -33752,6 +34132,8 @@
               "away",
               "period",
               "clock",
+              "lastPlay",
+              "squadLabel",
               "appDeepLink"
             ],
             "properties": {
@@ -33785,6 +34167,20 @@
                   "string",
                   "null"
                 ]
+              },
+              "lastPlay": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Clamped latest play summary when the game is live; null for upcoming/final games or when unavailable."
+              },
+              "squadLabel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Split-squad label when the game is live and split-squad disambiguation applies; otherwise null."
               },
               "appDeepLink": {
                 "type": "string",
@@ -33906,12 +34302,71 @@
               "null"
             ],
             "format": "date-time",
-            "description": "Next scheduled store drop timestamp (ISO 8601), or null when no drop schedule exists."
+            "description": "Earliest upcoming pack drop timestamp (ISO 8601) from scheduled `PackDropSchedule` rows or public active `Pack.releaseDate` values, or null when no future drop is scheduled."
           },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
             "description": "Packs slice read timestamp (excluded from weak ETag)."
+          }
+        }
+      },
+      "PackDropSchedule": {
+        "type": "object",
+        "required": [
+          "id",
+          "teamId",
+          "packId",
+          "title",
+          "dropAt",
+          "status",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team ID for a club-scoped drop, or null for a platform-wide store drop."
+          },
+          "packId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional linked Pack ID."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "dropAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "cancelled"
+            ]
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
