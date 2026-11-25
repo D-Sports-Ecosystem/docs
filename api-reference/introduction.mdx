@@ -62,6 +62,10 @@ By default, the following categories are excluded from public endpoint docs:
 - [Teams and leagues](/api-reference/domains/teams-leagues)
 - [Route coverage matrix](/api-reference/domains/route-coverage-matrix)
 
+## Content languages
+
+Use `Accept-Language` to request [authored trivia, quest, and achievement copy](/api-reference/domains/gamification#authored-content-locales). The optional [`sourceLocale` on composed content](/api-reference/domains/social-locker-room#source-language-for-composed-content) instead describes the original text.
+
 ## Authentication
 
 d-sports-api uses **Clerk** for authentication. Most protected routes expect `Authorization: Bearer <token>`. Native OAuth can also redeem a one-time `MobileSession` hex token at `POST /api/mobile/exchange` for a Clerk sign-in ticket. Exact per-route security is defined in the OpenAPI spec.

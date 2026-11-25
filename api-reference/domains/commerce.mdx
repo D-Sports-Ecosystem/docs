@@ -7,6 +7,8 @@ description: "Non-admin endpoint guide for checkout, catalog, marketplace, KYC, 
 
 Commerce APIs cover checkout initiation/verification, catalog reads, marketplace listings, KYC session helpers, and balance-aware purchase flows.
 
+Marketplace listing and trade-offer writes can carry optional [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content) for the original text, not the reader's preferred language.
+
 ## Endpoint map
 
 - Checkout: `/api/checkout/crypto`, `/api/checkout/crypto/verify`, `/api/checkout/dsports-cash`. `POST /api/checkout/crypto/verify` confirms pack purchases. `PUT /api/packs/{id}/purchase` is `410 GONE`.

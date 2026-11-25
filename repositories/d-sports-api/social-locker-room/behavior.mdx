@@ -63,6 +63,10 @@ The API verifies the object belongs to the caller. You can retry completion for 
 - Social actions can trigger quest progression checks in onboarding/gamification flows.
 - Team follow actions can influence team-scoped user experiences.
 
+## Source language metadata
+
+Post and comment create and edit payloads accept optional [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content). On edits, the API preserves it when text is unchanged and you omit the field; changed text without a new value clears it. Feed items can expose source language for posts, news, prompts, and promoted chat. This metadata does not translate the content.
+
 ## Known caveats
 
 - Stream endpoints are transport-sensitive and clients should support reconnection behavior.

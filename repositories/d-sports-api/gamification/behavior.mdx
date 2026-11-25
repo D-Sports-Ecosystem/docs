@@ -25,6 +25,10 @@ Detailed behavior docs:
 - Reward claim/redeem decision paths
 - Fan Rep is a separate ledger — see [Fan Rep](/repositories/d-sports-api/fan-rep/index)
 
+See [authored content locales](/api-reference/domains/gamification#authored-content-locales) for locale selection, response headers, and English fallback on quest, trivia, and achievement reads.
+
+The app-open aggregate (`GET /api/v1/engage/app-open`) labels its response with the negotiated request locale, even if all authored text in `user` and `dailyQuest` falls back to English. Its section errors use the negotiated locale.
+
 ## End-to-end quest lifecycle
 
 1. Fetch active quests and eligibility context.
