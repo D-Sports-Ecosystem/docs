@@ -19,7 +19,7 @@ The request `locale` (or `Accept-Language`) resolves to `en`, `fr-CH`, or `it-IT
 
 ## Prompt safety
 
-Briefs, existing text, and context are passed to the model as untrusted input that it must not follow as instructions. Logs record surface, mode, model, locale, token counts, latency, and outcome, never prompts or output.
+Briefs, existing text, and context are passed to the model as untrusted input that it must not follow as instructions. Generation logs never include prompts or output. In production only upstream failures are logged.
 
 ## Failure modes
 
