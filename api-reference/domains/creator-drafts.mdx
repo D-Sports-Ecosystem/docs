@@ -10,7 +10,7 @@ Creator Drafts give composers two contracts:
 - `POST /api/v1/creator/drafts/generate` generates, rewrites, or shortens a post draft with the cloud AI model.
 - `GET/PUT/DELETE /api/v1/teams/{teamId}/drafts?surface=team_hq|admin_social` saves one manual draft per team, manager, and surface.
 
-Both need a signed-in fan (Clerk session or native bearer token) and return `Cache-Control: private, no-store`.
+Both need a signed-in fan (Clerk session cookie or Clerk bearer token) and return `Cache-Control: private, no-store`.
 
 ## Generate a draft
 
@@ -46,7 +46,7 @@ The response data is:
 - `body` is trimmed to the character cap, at a word boundary when possible.
 - `hashtags` are deduplicated, start with one `#`, and are capped at 6.
 - `pollQuestion` and 2–4 `pollOptions` appear only when `includePoll` is `true` and the model returned a poll.
-- `platformVariants` appear only when `generatePlatformVariants` is `true`. Keys are limited to `context.targetPlatforms` (all platforms when omitted) and capped at: `x` 280, `farcaster` 320, `locker_room` 1,000, `discord` 2,000, `instagram` and `tiktok` 2,200.
+- `platformVariants` appear only when `generatePlatformVariants` is `true`. Keys are limited to `context.targetPlatforms` (all platforms when it is omitted or empty) and capped at: `x` 280, `farcaster` 320, `locker_room` 1,000, `discord` 2,000, `instagram` and `tiktok` 2,200.
 
 ### Locale lock
 
