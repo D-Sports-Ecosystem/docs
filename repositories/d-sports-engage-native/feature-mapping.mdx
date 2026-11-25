@@ -344,6 +344,8 @@ Add **D-Sports Rank** or the standard **D-Sports Live** widget from the Android 
 
 Android 15 (API 35) and newer can show generated picker previews for these widgets. Previews use sample data, not your scores or rank. Older versions use the static preview layout or image. See [Android widget configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration).
 
+**HQ Live Large** club rows show the squad label beside the club abbreviation and the latest play below the matchup details when the game supplies them. **Packs** refreshes the unopened count and can show the next drop time when available. The **D-Sports Coins** widget can use a locally stored balance; Android widget refresh does not request a new balance.
+
 ### Widget refresh
 
 The **D-Sports Rank** and **D-Sports Live** widgets use native Jetpack Glance receivers. **Refresh** (`↻`) runs without opening the app: `RefreshWidgetAction` dispatches to `WidgetRefreshRequests`, which queues native WorkManager refresh when a valid installation widget bearer is stored. This can run without React Native JS. Without that token, the callback marks the data stale, notifies the active JS listener if present, and redraws cached state. The JS path can use the cached, unexpired Clerk bearer. Body taps still open package-scoped app links through normal route/auth gates; live layouts show last-play text when space permits.
