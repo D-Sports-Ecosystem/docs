@@ -52,6 +52,7 @@ icon: "server"
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
 - Marketplace pack listing rejects `processing` purchases with `409 PACK_NOT_LISTABLE`. Native `listings/mine` aliases `me/listings`.
+- Server-side trimmed UGC length caps are enforced on Marketplace `tradeCriteria.description` (500), trade offer `message` (500), and Locker Room comments (1000) with localized `400 VALIDATION_ERROR`, and `POST /api/v1/ai/writing-assist` adds gated (`AI_FEATURES_ENABLED` + `AI_WRITING_ENABLED`, default off) `rewrite` (30/hr) and `smart_replies` (60/hr) cloud writing assist.
 - Unknown `/api/*` paths return JSON `404`, not the HTML app 404.
 - Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.
 - Prisma is **7.9.1**.

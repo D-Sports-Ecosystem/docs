@@ -65,6 +65,7 @@ Route documentation status uses:
 | `/api/binders*` | Publish | Digital Binder CRUD, card assign/order, transfer, PIN verification, owner-only share management, and a signed-in read-only view by share token. The live verify-pin response includes the proof token for `x-binder-pin-token`; the OpenAPI verify-pin description still says `{ granted }` only. |
 | `/api/v1/cards/{id}/provenance` | Publish | Public ownership / sale / mint history. |
 | `/api/v1/marketplace/*` | Publish | Expanded catch-all. Native `listings/mine` aliases `me/listings`. Create requires `x-listing-pin-token`. Pack listing can return `409 PACK_NOT_LISTABLE` or `PACK_ALREADY_OPENED`. See [Commerce](/api-reference/domains/commerce). |
+| `POST /api/v1/ai/writing-assist` | Shipped, OpenAPI pending | Authenticated cloud writing assist (`mode: "rewrite"` at 30/hr, `mode: "smart_replies"` at 60/hr; 8 KiB body cap; `AI_FEATURES_ENABLED` + `AI_WRITING_ENABLED` default off; locale lock; `422 AI_CONTENT_BLOCKED` on `rewrite` safety blocks, `200 { replies: [] }` on `smart_replies` safety blocks). |
 | `/api/v1/kyc/link-token`, `/api/v1/kyc/session/complete`, `/api/v1/user/kyc-status` | Publish | Authenticated KYC session helpers. Status only; no vendor secrets. |
 | `/api/admin/games*`, `/api/admin/teams/[teamId]/games` | Publish with redaction | Catalogue management and team game selection; redact ops internals. |
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
