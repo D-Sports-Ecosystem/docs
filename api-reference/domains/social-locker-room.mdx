@@ -26,8 +26,24 @@ Social APIs power locker room activity and user-to-user interactions.
 
 - `GET /api/locker-room` is public. Send an optional Bearer token so viewer filters (`analyticsPersonalization`) apply.
 - `GET /api/locker-room/{id}` is public and returns a single post.
-- `PUT /api/locker-room/{id}` updates post content (bearer auth, owner).
+- `PUT /api/locker-room/{id}` updates content and optionally [media alt text](/repositories/d-sports-api/social-locker-room/behavior#media-alt-text). Sign in as the author or a caller allowed to manage the team-authored post, and accept the current UGC terms.
 - `DELETE /api/locker-room/{id}` deletes the post (bearer auth, owner).
+
+## Cloud alt-text fallback
+
+`POST /api/v1/ai/alt-text` suggests screen-reader alt text for an uploaded Locker Room image when on-device generation is unavailable. It does not save the suggestion or modify a post. The fallback is **off by default**. Always let the user write or edit alt text manually.
+
+Send a Clerk bearer token or session cookie and a JSON body of at most 4 KiB. The required `mediaUrl` is the HTTPS Locker Room upload URL. It must be on an allowed host and match an upload recorded for the signed-in fan. Optional fields are `locale` (`en`, `fr-CH`, or `it-IT`; defaults from `Accept-Language`), `teamName` (1–80 characters), `captionHint` (1–300 characters), and integer `maxLength` (50–300, default 180). On success, read `data.altText`, let the fan review it, then send it with the post or a media edit.
+
+| Status and code | Meaning |
+| --- | --- |
+| `400 VALIDATION_ERROR` | Invalid request or the media URL is not an allowed upload belonging to the caller. |
+| `401 UNAUTHORIZED` | Sign-in required. |
+| `413 PAYLOAD_TOO_LARGE` | The JSON request exceeds 4 KiB. |
+| `429 RATE_LIMITED` | The fan has used the 20 requests in the current fixed one-hour window. Do not retry immediately. |
+| `502 UPSTREAM_ERROR` | The provider failed or did not return usable alt text. |
+| `503 AI_DISABLED` | The fallback is disabled or missing its Gateway API key. Continue with manual entry. |
+| `503 RATE_LIMITER_UNAVAILABLE` | The quota could not be checked and the model was not called. |
 
 ## Authoring as a team
 

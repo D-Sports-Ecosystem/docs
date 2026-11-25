@@ -48,6 +48,23 @@ icon: "list-checks"
 - Mute is one-way and silent (`UserMute`). Block is stronger (`UserBlock`) and removes the blocked user from the blocker's social surfaces.
 - Mute/block target refs resolve by `User.id` or handle. Missing targets return `404`. Self-target returns `400`.
 
+## Media alt text
+
+On post creation, send `altText` on each described item in `media`. The API trims each description and accepts up to 500 UTF-16 code units after trimming. Blank or omitted text leaves the media without a description.
+
+To edit alt text after publishing, send `PUT /api/locker-room/{id}` with the current or updated `content` and `mediaAltTexts` as an array of `{ mediaId, altText }` objects. Use an ID from the post's `media` array, not an upload URL. For example, edit a photo-only post without adding a caption:
+
+```json
+{
+  "content": "",
+  "mediaAltTexts": [
+    { "mediaId": "existing-media-id", "altText": "A goalie reaches for the puck." }
+  ]
+}
+```
+
+An empty caption is allowed with a non-empty update array. Each ID must belong to the post; otherwise the request returns `400 VALIDATION_ERROR` without applying the edits. Use a blank string or `null` for an item's `altText` to clear it. Omit the array or pass `null` to preserve the descriptions. An empty array makes no media changes. A non-null array returns refreshed `data.media`; media without a description omit `altText`.
+
 ## Direct video uploads
 
 Use `POST /api/upload/locker-media/video` with a Clerk session that has accepted the current UGC terms. The endpoint accepts MP4, MOV, and WebM up to 50 MiB.
