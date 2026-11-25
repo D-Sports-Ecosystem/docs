@@ -70,6 +70,10 @@ Current checks include:
 - Earn points threshold
 - Reach leaderboard rank threshold
 
+## Authored quest and trivia copy
+
+`QuestLocale` and `QuestStepLocale` supply translated titles and descriptions. `DailyQuestQuestionLocale` supplies translated question text and ordered options without changing scoring. Published `fr-CH` and `it-IT` rows override English copy for the matching request locale; missing or unpublished rows fall back to English. See [authored content locales](/api-reference/domains/gamification#authored-content-locales) for response headers and affected routes.
+
 ## Known caveats
 
 - Some step resolution currently relies on matching step titles. This is fragile if copy changes.

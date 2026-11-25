@@ -11,6 +11,14 @@ Non-admin API clients should assume conservative retry behavior:
 - Do not blind-retry writes unless route behavior is idempotent or guarded by server checks.
 - Avoid concurrent duplicate writes for the same user action.
 
+### AI calls
+
+An endpoint that uses the shared AI limiter can enforce a quota per fan, feature, and optionally operation. The feature sets the limit and window. `429 RATE_LIMITED` means the quota is exhausted; `503 RATE_LIMITER_UNAVAILABLE` means the quota could not be checked and the call is blocked before generation.
+
+On `429 RATE_LIMITED`, stop immediate retries. The shared limiter does not provide a `Retry-After` header or reset time. Honor timing information if the endpoint provides it; otherwise, show a try-again-later message and let the user retry later.
+
+Do not automatically retry `503 AI_DISABLED` or retry unchanged input after `422 AI_CONTENT_BLOCKED`. See [AI error codes](/api-reference/errors-and-status-codes#ai-error-codes).
+
 ## Stream endpoints
 
 For SSE endpoints (leaderboard and locker room streams):

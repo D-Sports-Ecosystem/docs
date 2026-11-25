@@ -39,6 +39,8 @@ icon: "list-checks"
 - `POST /{id}/like` is additive (`{ liked, likeCount }`) and does not replace `/react`.
 - Comment and reaction routes mutate child entities tied to post IDs.
 - Comment create may send `mentionedUserIds`. Edit must send `mentionedUserIds: []` to clear mentions.
+- Comment `content` is capped at **1000** trimmed characters on both create and edit (localized `400 VALIDATION_ERROR` across `en`, `fr-CH`, `it-IT`; empty comments continue to return `400`).
+- `POST /api/v1/ai/writing-assist` (`mode: "smart_replies"`, surfaces `locker_comment` and `match_chat`) provides 0–3 contextual suggestions behind `AI_FEATURES_ENABLED` + `AI_WRITING_ENABLED` (default off), with a 60/hr fail-closed per-fan limit, 8 KiB body cap (`413`), locale lock, and `{ replies: [] }` (`200`) on upstream safety blocks.
 - `GET /api/user/search` requires `q`. Default scope also matches location when `q` is at least 2 characters. `scope=mention` matches handle and name only and omits users without a handle. `limit` is 1–50 (default 20). Rows use `profileUrl`, not `avatar`.
 - Follow routes enforce self-consistency and update follower/following graph edges.
 - `TeamFollow` stays social-only. Leaderboard join uses `/api/teams/{id}/join`.
@@ -60,6 +62,10 @@ The API verifies the object belongs to the caller. You can retry completion for 
 
 - Social actions can trigger quest progression checks in onboarding/gamification flows.
 - Team follow actions can influence team-scoped user experiences.
+
+## Source language metadata
+
+Post and comment create and edit payloads accept optional [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content). On edits, the API preserves it when text is unchanged and you omit the field; changed text without a new value clears it. Feed items can expose source language for posts, news, prompts, and promoted chat. This metadata does not translate the content.
 
 ## Known caveats
 
