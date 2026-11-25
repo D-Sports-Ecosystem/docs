@@ -25875,7 +25875,7 @@
           "Engage"
         ],
         "summary": "Get the signed-in fan’s widget snapshot",
-        "description": "Returns personalized Rank / Fan Rep and HQ Live data. Provide a Clerk session (bearer or cookie) or a widget bearer scoped to `widgets:snapshot:read`. Request `?include=clubs` for up to six favorite or followed clubs. If a game in the returned snapshot is live, the private cache max age is 60 seconds; otherwise it is 3600. A weak ETag ignores `updatedAt`; a matching `If-None-Match` returns 304 without a body.",
+        "description": "Returns personalized Rank / Fan Rep and HQ Live data. Provide a Clerk session (bearer or cookie) or a widget bearer scoped to `widgets:snapshot:read`. Request `?include=clubs,wallet,packs` (any comma-separated combination) for optional followed-club, D-Sports Cash wallet balance, and pack inventory/free-pack cap slices. Failing optional `wallet` or `packs` reads omit only that section. If a game in the returned snapshot is live, the private cache max age is 60 seconds; otherwise it is 3600, capped at the seconds remaining until `packs.freePack.resetsAt` when free-pack cap data is included. A weak ETag ignores `updatedAt`; a matching `If-None-Match` returns 304 without a body.",
         "security": [
           {
             "bearerAuth": []
@@ -25892,7 +25892,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Comma-separated optional slices. Pass `clubs` to add up to six favorite or followed clubs. Without it, the clubs field is omitted."
+            "description": "Comma-separated optional slices (`clubs`, `wallet`, `packs`). Pass `clubs` for up to six favorite or followed clubs, `wallet` for the fan’s D-Sports Cash balance, and `packs` for unopened pack count and free-pack daily cap status. Omitted when not requested or when an optional slice read fails."
           },
           {
             "name": "If-None-Match",
@@ -25911,10 +25911,8 @@
               "Cache-Control": {
                 "schema": {
                   "type": "string",
-                  "enum": [
-                    "private, max-age=60",
-                    "private, max-age=3600"
-                  ]
+                  "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
+                  "description": "private, max-age=60 when a followed game is live, else private, max-age=3600, capped to seconds remaining until packs.freePack.resetsAt when free-pack cap data is included."
                 }
               },
               "ETag": {
@@ -25944,10 +25942,8 @@
               "Cache-Control": {
                 "schema": {
                   "type": "string",
-                  "enum": [
-                    "private, max-age=60",
-                    "private, max-age=3600"
-                  ]
+                  "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
+                  "description": "private, max-age=60 when a followed game is live, else private, max-age=3600, capped to seconds remaining until packs.freePack.resetsAt when free-pack cap data is included."
                 }
               },
               "ETag": {
@@ -33799,6 +33795,126 @@
           }
         }
       },
+      "WidgetWalletSnapshot": {
+        "type": "object",
+        "required": [
+          "dsportsCash",
+          "currency",
+          "updatedAt"
+        ],
+        "properties": {
+          "dsportsCash": {
+            "type": "integer",
+            "description": "Authoritative D-Sports Cash / coin balance (`User.dsportsCash`; may be negative after a refund of spent coins)."
+          },
+          "currency": {
+            "type": "string",
+            "const": "DSC",
+            "description": "Currency identifier for D-Sports Cash / coins."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Wallet slice read timestamp (excluded from weak ETag)."
+          }
+        }
+      },
+      "WidgetFreePackTeamSnapshot": {
+        "type": "object",
+        "required": [
+          "teamId",
+          "limit",
+          "used",
+          "remaining"
+        ],
+        "properties": {
+          "teamId": {
+            "type": "string",
+            "description": "Club team ID with an active free pack."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Daily free-pack cap enforced for this club."
+          },
+          "used": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Free packs acquired by this fan from this club in the current UTC day."
+          },
+          "remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Remaining free packs for this club in the current UTC day (`max(0, limit - used)`)."
+          }
+        }
+      },
+      "WidgetPacksSnapshot": {
+        "type": "object",
+        "required": [
+          "unopenedCount",
+          "freePack",
+          "nextDropAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "unopenedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of unopened `PackPurchase` rows (`openedAt` null and status in `pending`, `processing`, `completed`)."
+          },
+          "freePack": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "remaining",
+              "limit",
+              "resetsAt",
+              "teams"
+            ],
+            "properties": {
+              "remaining": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Sum of remaining free packs across all clubs with an active free pack today."
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Combined daily cap across active free-pack clubs."
+              },
+              "resetsAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Next UTC midnight ISO 8601 timestamp when the daily cap resets."
+              },
+              "teams": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WidgetFreePackTeamSnapshot"
+                },
+                "description": "Per-club free-pack cap rows sorted by `teamId`."
+              }
+            },
+            "description": "Active free-pack daily cap summary, or null when no club currently has an active free pack."
+          },
+          "nextDropAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Next scheduled store drop timestamp (ISO 8601), or null when no drop schedule exists."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Packs slice read timestamp (excluded from weak ETag)."
+          }
+        }
+      },
       "WidgetSnapshotSuccess": {
         "type": "object",
         "required": [
@@ -33931,6 +34047,14 @@
                   "$ref": "#/components/schemas/WidgetClubSnapshot"
                 },
                 "description": "Present only with `include=clubs`. Up to six favorite or followed clubs, ordered by live games, upcoming games, final games, then clubs without an eligible game."
+              },
+              "wallet": {
+                "$ref": "#/components/schemas/WidgetWalletSnapshot",
+                "description": "Present only with `include=wallet` when the wallet read succeeds. Omitted on read failure so clients keep last-good state."
+              },
+              "packs": {
+                "$ref": "#/components/schemas/WidgetPacksSnapshot",
+                "description": "Present only with `include=packs` when the packs read succeeds. Omitted on read failure so clients keep last-good state."
               }
             }
           }
