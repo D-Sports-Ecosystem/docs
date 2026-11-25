@@ -24,12 +24,15 @@ icon: "server"
 | Payments   | RevenueCat (purchases-js)     |
 | State      | TanStack Query, TanStack Store |
 | Observability | Sentry                     |
+| Server-side AI | Vercel AI SDK and AI Gateway |
 | Secrets    | Infisical                     |
 | Package    | Bun                           |
 
 <Note>
   Every `dev` / `db:*` / build script runs through `infisical run --env=<env>`. You do not copy `.env` files by hand.
 </Note>
+
+The [shared AI SDK foundation](/repositories/d-sports-api/platform-infra/architecture#shared-ai-sdk-foundation) is off by default and adds no API endpoints. Its [runtime configuration](/repositories/d-sports-api/platform-infra/architecture#ai-runtime-configuration) is server-side only.
 
 ## Features
 
@@ -46,17 +49,23 @@ icon: "server"
 ## What changed since last docs sync
 
 - OpenAPI is **350** paths, synced from `d-sports-api` `main` (including the Binder share routes from PR #1189). Internal `/api/cron/*` operations are not published. Published surfaces include HQ starred teams, `GET /api/teams/{id}`, the locker-singularity idle ledger, and wallet attestation at `/api/wallets/{address}/attestation` (the path value is the wallet database id). `PUT /api/packs/{id}/purchase` is in the spec as removed (`410`); confirm with `POST /api/checkout/crypto/verify`. `GET /api/user/all` and per-card `finish` / `cardTemplate` are in the spec.
+- [Creator Drafts](/api-reference/domains/creator-drafts): `POST /api/v1/creator/drafts/generate` writes AI post drafts when `AI_FEATURES_ENABLED` and `AI_CREATOR_DRAFTS_ENABLED` are on. Team HQ and admin social drafts save per manager at `/api/v1/teams/{teamId}/drafts`.
 - HQ stars (`/api/me/starred-teams`) are bookmarks, not follows, with a 50-club cap.
 - Binder PIN is a short-lived token: `POST /api/binders/{id}/verify-pin` returns `{ granted, token, expiresIn: 300 }`. On the owner-only `GET /api/binders/{id}`, send `x-binder-pin-token` for a PIN-protected Binder or the API returns `403 PIN_REQUIRED` without shelves.
 - [Binder share links](/api-reference/domains/collectibles#read-only-binder-share-links) are opt-in and revocable. Owners manage them at `/api/binders/{id}/share`; signed-in fans with an active link can read a limited view at `/api/binders/shared/{token}` without the owner's PIN.
 - Sports catalog, team search, slug lookup, roster, and leaderboard join/leave are in OpenAPI. `TeamFollow` stays social-only.
 - `POST /api/locker-room` persists `lineup` and allows attachment-only posts. `authorTeamId` (alias `postAsTeamId`) is distinct from the about-tag `teamId` and returns `403` when unauthorized.
 - Marketplace pack listing rejects `processing` purchases with `409 PACK_NOT_LISTABLE`. Native `listings/mine` aliases `me/listings`.
+- Server-side trimmed UGC length caps are enforced on Marketplace `tradeCriteria.description` (500), trade offer `message` (500), and Locker Room comments (1000) with localized `400 VALIDATION_ERROR`, and `POST /api/v1/ai/writing-assist` adds gated (`AI_FEATURES_ENABLED` + `AI_WRITING_ENABLED`, default off) `rewrite` (30/hr) and `smart_replies` (60/hr) cloud writing assist.
 - Unknown `/api/*` paths return JSON `404`, not the HTML app 404.
 - Secrets moved to **Infisical**. HashiCorp Vault is no longer the documented local path.
 - Prisma is **7.9.1**.
 - Custodial wallets sign on the server. `POST /api/wallets/private-key` is deprecated and PIN-gated.
 - Fan Rep is a first-class ledger. `dsportsDirectRep` sums `repType = Direct` rows from admin grants.
+
+### Source language and authored locales
+
+The API accepts optional [UGC source language metadata](/api-reference/domains/social-locker-room#source-language-for-composed-content) separately from [authored trivia, quest, and achievement locales](/api-reference/domains/gamification#authored-content-locales). Moderators manage variants through the [translation locales API](/api-reference/domains/admin-team-management#authored-locale-administration).
 
 ## Getting started
 
@@ -120,6 +129,9 @@ This app is the primary API surface for the D-Sports platform. The [API referenc
   </Card>
   <Card title="Social and locker room" icon="messages-square" href="/repositories/d-sports-api/social-locker-room/index">
     Posts, comments, reactions, follow graph, and per-post CRUD.
+  </Card>
+  <Card title="Creator Drafts" icon="pen-line" href="/repositories/d-sports-api/creator-drafts/index">
+    AI post drafts and saved Team HQ and admin social drafts.
   </Card>
   <Card title="Commerce and purchases" icon="shopping-bag" href="/repositories/d-sports-api/commerce/index">
     Catalog, checkout, purchases, dsports-cash, and entitlement flows.

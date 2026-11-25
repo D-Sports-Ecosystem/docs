@@ -26,6 +26,14 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - Reward claim/redeem behavior must use server responses as truth for user-facing state.
 - Pass-related gating (global/event) is evaluated server-side and reflected in client rendering.
 
+## API content languages
+
+The app sends its active locale in `Accept-Language`. Quest and daily trivia responses use [authored variants and English fallback](/api-reference/domains/gamification#authored-content-locales); use `Content-Language` to identify the applied response locale, not the language of every individual record.
+
+`GET /api/v1/engage/app-open` also selects authored copy in its `user` and `dailyQuest` sections. Its `Content-Language` instead reflects the negotiated request locale because section errors can use that locale even when authored copy falls back to English.
+
+The app does not send [`sourceLocale`](/api-reference/domains/social-locker-room#source-language-for-composed-content) today. This optional UGC field describes the language detected in the text at compose time; it is never inferred from the UI language and does not translate user text.
+
 ## Apple Wallet and App Clip contracts
 
 - Add a pass to Apple Wallet with `POST /api/v1/passes/apple-wallet` and a Clerk bearer token. Send `{ "passKind": "fan_id" | "club_membership" | "arena_event", "teamId"?, "gameId"?, "format": "base64" }` then decode `data.pkpassBase64` to bytes, build a `PKPass` from that `Data`, and present it with `PKAddPassesViewController`. `club_membership` needs the `teamId` of an Engage partner club the fan has joined; a non-partner club or an unjoined club returns `403`. Unknown body fields return `400`.
@@ -82,6 +90,7 @@ description: "Backend-facing contracts and behavior expectations for native clie
 - The API accepts up to 500 UTF-16 code units of trimmed alt text per media item. See [media alt-text edits](/repositories/d-sports-api/social-locker-room/behavior#media-alt-text) for the published-post update body, and [cloud alt-text fallback](/api-reference/domains/social-locker-room#cloud-alt-text-fallback) for the opt-in suggestion contract. Manual entry must remain available.
 - `POST /api/locker-room/{id}/like` returns `{ liked, likeCount }` and does not replace `/react`.
 - Comment create may send `mentionedUserIds`. Responses include `mentions[]`. Edit must send `mentionedUserIds: []` to clear mentions; omitting the field leaves existing mentions in place.
+- Comment `content` on create and edit is capped at **1000** trimmed characters (`400 VALIDATION_ERROR`, localized across `en`, `fr-CH`, and `it-IT`).
 - For mention typeahead, call `GET /api/user/search?q=...&scope=mention&limit=6`. Read `profileUrl` for the avatar. `handle` is a non-empty string on that scope.
 - Tapping `@handle` opens that fan's profile.
 
@@ -91,12 +100,27 @@ On iOS and Android, the share target stages a local video file and opens the Loc
 
 On publish, use [the direct upload flow](/repositories/d-sports-api/social-locker-room/behavior#direct-video-uploads) for native video files up to 50 MiB. Keep the Clerk token on the API calls only. Add the finalized video URL and any extracted thumbnail URL to the existing post body. Do not attach a placeholder as a thumbnail.
 
+## Creator Draft contracts
+
+- Call [`POST /api/v1/creator/drafts/generate`](/api-reference/domains/creator-drafts#generate-a-draft) from the Locker Room, Team HQ, and admin social composers. Send the app locale; the API tells the model to write in that language but does not verify the output.
+- Treat `503 AI_DISABLED` as "AI drafting off": hide the AI action and keep manual drafting. Show `429 RATE_LIMITED` as a quota message, and do not retry `422 AI_CONTENT_BLOCKED` with the same input.
+- Save Team HQ and admin social drafts with [`/api/v1/teams/{teamId}/drafts`](/api-reference/domains/creator-drafts#save-team-drafts). `PUT` replaces the whole draft, `GET` returns `404` when none exists, and these routes work with AI off.
+
 ## Marketplace contracts
 
 - Prefer `GET /api/v1/marketplace/me/listings`. `GET /api/v1/marketplace/listings/mine` is a native alias for the same handler. Create listings with `x-listing-pin-token`.
 - Listing a `processing` pack returns `409 PACK_NOT_LISTABLE`.
 - `GET /api/v1/cards/{id}/provenance` is public ownership / sale / mint history.
 - Treat `GET /api/user/packs` status as the per-purchase source of truth.
+- `tradeCriteria.description` (listing create/update) and trade offer `message` (offer send/counter) enforce a **500**-character trimmed limit (`400 VALIDATION_ERROR`, localized across `en`, `fr-CH`, and `it-IT`).
+
+## AI writing assist contract
+
+- `POST /api/v1/ai/writing-assist` is the authenticated cloud fallback for Android parity, ineligible iOS devices, and Web. It is gated behind `AI_FEATURES_ENABLED` and `AI_WRITING_ENABLED` (default off; `503 AI_DISABLED` when disabled).
+- Combined UTF-8 JSON request bodies are capped at **8 KiB** (`413 PAYLOAD_TOO_LARGE`). Unknown fields return `400 VALIDATION_ERROR`.
+- `mode: "rewrite"` (`30/hr` per fan, fail-closed) takes `draft` (4–500 trimmed chars), `tone` (`clear` | `concise` | `friendly` | `hype`), `context` (`listingType`, `itemName`, and `itemType` or `itemKind`, plus optional rarity/team/pack hints), and optional `surface` (`listing_rewrite` | `offer_pitch_rewrite`) and `maxCharacters` (40–500, default 500). Returns `{ rewrittenText, suggestedRarities?, suggestedAcceptPacks? }`; safety blocks return `422 AI_CONTENT_BLOCKED`.
+- `mode: "smart_replies"` (`60/hr` per fan, fail-closed) takes top-level `surface` (`match_chat` | `locker_comment` | `trade_counter`) and optional top-level fields (`recentMessages` up to 5, `replyTarget`, `postText`, `contextSummary`, `matchSummary`, `offerSummary`, `maxCharactersPerReply` 20–200, default 120) — do not nest them under `context`. Returns `{ replies }` (0–3 deduplicated strings) and degrades gracefully to `200 { replies: [] }` on upstream safety blocks.
+- Output locale locks to `en`, `fr-CH`, or `it-IT` from body `locale` or `Accept-Language`. Exceeded quotas return `429 RATE_LIMITED`; limiter outages return `503 RATE_LIMITER_UNAVAILABLE`.
 
 ## Games catalog contract
 
