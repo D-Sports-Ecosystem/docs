@@ -27,6 +27,8 @@ This guide documents approved admin/team-management routes with behavior-level d
 
 ## Submission workflow
 
+V2 card-front layouts and example images exist, but the v2 templates are not registered or offered in the submission picker. New card-front submissions still select v1.
+
 Team Management uses the same `SubmissionWorkspace` creator and editor for new and existing submissions. Open `/team-mgmt/{teamId}/submissions/new`, choose a saved pack, collectible, or team-default target, and preview a design before creating a draft. **Render new front** in the collectible editor opens this creator with the collectible selected; it no longer creates a draft immediately.
 
 - `GET /api/admin/submissions/templates?teamId=…&selection=latest` selects the latest compatible version per key. Add `targetKind=pack|collectible|team_default`; packs and collectibles require a team-scoped `targetRef`. `sourceHasTransparency=true|false` is only valid for collectible targets. The response may include `recommendedTemplateId` and `unavailableTemplateKeys`. Without `selection`, the endpoint returns all eligible active versions and rejects target-selection parameters.
