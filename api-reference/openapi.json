@@ -26272,7 +26272,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Optional comma-separated (or repeated) club IDs or slugs (max 20) to scope `hqLive`, `clubs`, and `packs.nextDropAt` to a subset of the fan’s favorite/followed clubs. Unfollowed clubs are ignored."
+            "description": "Optional comma-separated or repeated club IDs or slugs (up to 20 distinct nonblank values). Omitted or blank-only values leave the snapshot unfiltered. Only the fan’s favorite or followed clubs can match. A nonblank filter with no matches gives null `hqLive` and an empty `clubs` array if requested. Limits club-specific candidates for `packs.nextDropAt`; platform-wide scheduled drops remain eligible. Does not filter rank, wallet, unopened count, or free-pack allowance."
           },
           {
             "name": "If-None-Match",
@@ -26323,7 +26323,7 @@
                 "schema": {
                   "type": "string",
                   "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
-                  "description": "Recalculated for this revalidation: private, max-age=60 when the current HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack is present, max-age cannot exceed the seconds remaining until packs.freePack.resetsAt."
+                  "description": "Recalculated for this revalidation: private, max-age=60 when the current HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack.resetsAt or packs.nextDropAt is present, max-age cannot exceed the seconds remaining until the earliest boundary."
                 }
               },
               "ETag": {
@@ -34302,7 +34302,7 @@
               "null"
             ],
             "format": "date-time",
-            "description": "Earliest upcoming pack drop timestamp (ISO 8601) from scheduled `PackDropSchedule` rows or public active `Pack.releaseDate` values, or null when no future drop is scheduled."
+            "description": "Earliest eligible future timestamp (ISO 8601) across scheduled drops not linked to internal-only packs and public active pack releases that do not expire at or before release. With `clubIds`, includes matching club-specific drops and releases and any platform-wide scheduled drops. Null if no eligible timestamp is available."
           },
           "updatedAt": {
             "type": "string",
