@@ -1,0 +1,36 @@
+---
+title: "Creator Drafts architecture"
+description: "Request flow, data model, and server flags behind Creator Drafts."
+---
+
+## Request flow
+
+1. The route handler checks the body size (12 KiB) and parses JSON.
+2. The Zod contract validates the request, including the conditional `brief`, `existingText`, and `teamId` rules.
+3. The Creator Draft server action resolves the fan from the Clerk session.
+4. For generation, it checks the server flags, team access for manager surfaces, and the hourly quota, then calls the cloud model through the shared AI client.
+5. The result is trimmed to caps and returned with `Cache-Control: private, no-store`.
+
+## Data model
+
+Saved drafts use the `TeamPostDraft` table:
+
+| Field | Notes |
+| --- | --- |
+| `teamId`, `authorId`, `surface` | Unique together: one draft per team, manager, and surface. |
+| `content`, `hashtags`, `platforms` | Draft text, tags, and chosen platforms. |
+| `platformVariants`, `media`, `poll` | JSON values, nullable. |
+| `channel`, `scheduledAt` | Optional composer settings. Stored only. |
+| `createdAt`, `updatedAt` | Timestamps. |
+
+Deleting the team or the user deletes their drafts.
+
+## Server flags
+
+| Variable | Effect |
+| --- | --- |
+| `AI_FEATURES_ENABLED` | Master AI switch. Must be `true`. |
+| `AI_CREATOR_DRAFTS_ENABLED` | Creator Drafts switch. Must be `true`. |
+| `AI_MODEL_CREATOR` | Optional model override. Default `google/gemini-2.5-flash`. |
+
+The flags gate generation only. Saved drafts work with AI off.
