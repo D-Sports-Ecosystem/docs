@@ -330,6 +330,15 @@ Add tiles with Android's Quick Settings editor; Engage does not auto-place them 
 
 Locked taps request device unlock, then launch the app through existing route/auth guards. They do not run the scanner inside the shade, bypass sign-in, or guarantee every cold signed-out destination is restored. State comes from foreground match polling or a successful headless HQ refresh, not a separate live tile subscription. Leaving a live screen preserves the tile snapshot; an observed final clears it on the ended-game path. There is no separate sign-out/expiry cleanup, so an apparently active tile can be stale. Compare the [iOS Control Center scanner](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar).
 
+### Widget setup
+
+Add **D-Sports Rank** or the standard **D-Sports Live** widget from the Android launcher. On Android 12 (API 31) or newer, a supporting launcher can add the widget with defaults and let you open its settings later. Each placement has its own settings:
+
+- **Rank:** Choose whether to start on **Rank** or **Fan Rep**. The widget falls back to the other metric if the selected one is unavailable.
+- **Live:** Pin any of the clubs listed from your follows. Leave the list empty to show the usual HQ game. A pinned placement hides a cached game with a known nonmatching club; a push update without a club slug can still show. Pins filter the local display, not the API request.
+
+Android 15 (API 35) and newer can show generated picker previews for these widgets. Previews use sample data, not your scores or rank. Older versions use the static preview layout or image. See [Android widget configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration).
+
 ### Widget refresh
 
 The **D-Sports Rank** and **D-Sports Live** widgets use native Jetpack Glance receivers. **Refresh** (`↻`) runs without opening the app: `RefreshWidgetAction` dispatches to `WidgetRefreshRequests`, which queues native WorkManager refresh when a valid installation widget bearer is stored. This can run without React Native JS. Without that token, the callback marks the data stale, notifies the active JS listener if present, and redraws cached state. The JS path can use the cached, unexpired Clerk bearer. Body taps still open package-scoped app links through normal route/auth gates; live layouts show last-play text when space permits.
