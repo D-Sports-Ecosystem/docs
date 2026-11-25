@@ -92,7 +92,7 @@ On publish, use [the direct upload flow](/repositories/d-sports-api/social-locke
 
 ## Creator Draft contracts
 
-- Call [`POST /api/v1/creator/drafts/generate`](/api-reference/domains/creator-drafts#generate-a-draft) from the Locker Room, Team HQ, and admin social composers. Send the app locale; the draft stays in that language.
+- Call [`POST /api/v1/creator/drafts/generate`](/api-reference/domains/creator-drafts#generate-a-draft) from the Locker Room, Team HQ, and admin social composers. Send the app locale; the API tells the model to write in that language but does not verify the output.
 - Treat `503 AI_DISABLED` as "AI drafting off": hide the AI action and keep manual drafting. Show `429 RATE_LIMITED` as a quota message, and do not retry `422 AI_CONTENT_BLOCKED` with the same input.
 - Save Team HQ and admin social drafts with [`/api/v1/teams/{teamId}/drafts`](/api-reference/domains/creator-drafts#save-team-drafts). `PUT` replaces the whole draft, `GET` returns `404` when none exists, and these routes work with AI off.
 
