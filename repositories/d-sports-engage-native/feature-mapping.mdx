@@ -226,6 +226,7 @@ You can retry when the ID is valid.
 Loading the preview never submits a check-in.
 
 Once signed in and onboarded (`gates.inApp`), tapping the primary CTA claims only if `checkInAvailable` and `preview.team.id` are present, sending the preview ID as `arenaId`.
+For game previews this uses the home club only, as in the [App Clip and NFC check-in contract](/repositories/d-sports-engage-native/integration-contracts#apple-wallet-and-app-clip-contracts).
 Success/already-claimed responses set the arena badge and invalidate the daily quest summary cache.
 Success also shows earned Rep.
 Other failures show feedback, and thrown failures log.
