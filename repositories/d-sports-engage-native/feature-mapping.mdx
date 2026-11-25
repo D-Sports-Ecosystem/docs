@@ -195,7 +195,7 @@ The **Add to Apple Wallet** button is available on the fan's own profile for a F
 
 On tap, the hook prevents concurrent requests, fetches a signed pass through the authenticated API client, and presents Apple's native confirmation sheet. The client does not generate/sign passes or add them silently. Native completion checks whether the pass is in Wallet; dismissing the sheet is not itself success. The hook can recheck the returned identity, updates local added state, and shows localized success/error feedback, including a configuration message for a 503. The shipped CTA does not supply the optional known-pass identity for an initial Wallet check, so added state is not a persistent cross-mount status cache. There is no automatic pass refresh. Android has a separate Google Wallet integration below.
 
-See [native configuration](/repositories/d-sports-engage-native/architecture#apple-wallet-pass-configuration) for the module and entitlement. The issuance contract is owned by [d-sports-api PR #1167](https://github.com/D-Sports-Ecosystem/d-sports-api/pull/1167) and [Platform and infrastructure API](/api-reference/domains/platform-infra).
+See [native configuration](/repositories/d-sports-engage-native/architecture#apple-wallet-pass-configuration) for the module and entitlement, and [Platform and infrastructure API](/api-reference/domains/platform-infra) for the issuance contract.
 
 ## Google Wallet passes
 
@@ -252,7 +252,7 @@ For the browser/Android counterpart, see [arena web preview and install handoff]
 
 For the full app's tag reader using the same arena URL family, see [iOS Core NFC arena check-in](#ios-core-nfc-arena-check-in) and Android's separate [NFC arena check-in](/repositories/d-sports-engage-native/feature-mapping#android-nfc-sharing-and-arena-check-in).
 
-An arena invocation such as `https://app.d-sports.org/clip/arena/<id>` opens the iOS 17+ **D-Sports Arena** clip without installing full Engage. Its SwiftUI card displays a public event/club preview, including available team branding, status, venue/start time, and match scores. It does not sign you in, subscribe to live scores, claim a check-in, or award Rep. Invalid links, missing arenas, and network/server failures show **Couldn't Load Arena**; **Try Again** appears when a valid arena ID was extracted. API requests use 10-second request and 15-second resource timeouts.
+With a published App Clip experience, an arena invocation such as `https://app.d-sports.org/clip/arena/<id>` can open the iOS 17+ **D-Sports Arena** clip without installing full Engage. Its SwiftUI card displays a public event/club preview, including available team branding, status, venue/start time, and match scores. It does not sign you in, subscribe to live scores, claim a check-in, or award Rep. An invocation without an arena ID (such as bare `/clip` or the homepage via Safari's Smart App Banner) shows the scan prompt without fetching a preview. Malformed candidate IDs, missing arenas, and network/server failures show **Couldn't Load Arena**; **Try Again** appears when a valid arena ID was extracted. API requests use 10-second request and 15-second resource timeouts.
 
 Choose **Check In & Earn Rep in Engage** when check-in is available, or **Open in D-Sports Engage** otherwise. The clip saves the latest arena/team/game context and requested-check-in flag in the shared App Group, then presents the App Store installation overlay. A successful save displays confirmation. The overlay still runs if saving fails, so installation alone does not prove the context was saved. **Get App** presents the overlay without writing a new arena handoff.
 
@@ -329,6 +329,15 @@ The Android tab bar is now a floating Compose capsule with native ripples, selec
 Add tiles with Android's Quick Settings editor; Engage does not auto-place them or expose an in-app add button. **Scan Arena QR** opens `engagenative://leaderboard/scan-qr`; its **Check in** subtitle does not mean a check-in is submitted. **Live Game** opens `engagenative://hq/match/<encoded-id>` (optional encoded `slug`) when its cached snapshot is active with an ID. Otherwise it opens `engagenative://locker-room` and shows **Open Locker Room**. Tile labels are currently English resources; an active tile can show the cached score/status.
 
 Locked taps request device unlock, then launch the app through existing route/auth guards. They do not run the scanner inside the shade, bypass sign-in, or guarantee every cold signed-out destination is restored. State comes from foreground match polling or a successful headless HQ refresh, not a separate live tile subscription. Leaving a live screen preserves the tile snapshot; an observed final clears it on the ended-game path. There is no separate sign-out/expiry cleanup, so an apparently active tile can be stale. Compare the [iOS Control Center scanner](/repositories/d-sports-engage-native/feature-mapping#native-media-widgets-and-calendar).
+
+### Widget setup
+
+Add **D-Sports Rank** or the standard **D-Sports Live** widget from the Android launcher. On Android 12 (API 31) or newer, a supporting launcher can add the widget with defaults and let you open its settings later. Each placement has its own settings:
+
+- **Rank:** Choose whether to start on **Rank** or **Fan Rep**. The widget falls back to the other metric if the selected one is unavailable.
+- **Live:** Pin clubs from your followed list to hide games with known club slugs that don't match a pin. Leave the selection empty to show the usual HQ game. Without the followed list, only pins already saved as matching slugs work. A push update without a club slug can still show. Pins filter the local display, not the API request.
+
+Android 15 (API 35) and newer can show generated picker previews for these widgets. Previews use sample data, not your scores or rank. Older versions use the static preview layout or image. See [Android widget configuration](/repositories/d-sports-engage-native/architecture#android-tier-2-configuration).
 
 ### Widget refresh
 
