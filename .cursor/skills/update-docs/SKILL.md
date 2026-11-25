@@ -110,7 +110,7 @@ Always refresh when facts changed:
 - `api-reference/domains/route-coverage-matrix.mdx`
 - `repositories/d-sports-api/gamification/coverage-status.mdx`
 
-Coverage statuses: `Publish` | `Publish with redaction` | `Shipped, OpenAPI pending` | `Exclude`.
+Coverage statuses: `Publish` | `Publish with redaction` | `Shipped` | `Shipped, OpenAPI pending` | `Exclude`. Use `Shipped` only when the operation is present in both the API and the synced spec; do not leave it marked OpenAPI pending after sync.
 
 ## Step 6 — Nav and agent guidance
 

@@ -3972,6 +3972,33 @@
           "200": {
             "description": "{ success, data }"
           }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "replyToId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6137,6 +6164,9 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -6345,12 +6375,43 @@
                     "type": "string"
                   },
                   "mentionedUserIds": {
-                    "type": "array",
-                    "nullable": true,
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "description": "Omit or null leaves existing tags unchanged. [] clears them. A non-array is 400.",
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "mediaAltTexts": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "description": "Omit or send null to leave descriptions unchanged. An entry's null or blank altText clears that description; replacements are limited to 500 characters. Every mediaId must belong to this post.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "mediaId",
+                        "altText"
+                      ],
+                      "properties": {
+                        "mediaId": {
+                          "type": "string"
+                        },
+                        "altText": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 500
+                        }
+                      }
+                    }
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -6364,7 +6425,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ success, data: { id, content, updatedAt, mentions } }"
+            "description": "{ success, data: { id, content, updatedAt, mentions, media? } }"
           },
           "400": {
             "description": "Validation error"
@@ -6476,6 +6537,9 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -14652,6 +14716,9 @@
                   },
                   "tradeCriteria": {
                     "type": "object"
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -14847,6 +14914,9 @@
                   },
                   "tradeCriteria": {
                     "type": "object"
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 },
                 "additionalProperties": false
@@ -15094,6 +15164,9 @@
                       14,
                       30
                     ]
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -15473,6 +15546,9 @@
                       14,
                       30
                     ]
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
                   }
                 }
               }
@@ -17300,6 +17376,36 @@
         "responses": {
           "200": {
             "description": "{ success, data }"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  },
+                  "mentionedUserIds": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "sourceLocale": {
+                    "$ref": "#/components/schemas/SourceLocale"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -21045,6 +21151,17 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "mediaAltTexts": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Optional map of mediaUrl -> altText (max 500 chars each). Keys must match entries in mediaUrls.",
+                    "additionalProperties": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
                   }
                 }
               }
@@ -21111,6 +21228,17 @@
                     "type": "array",
                     "items": {
                       "type": "string"
+                    }
+                  },
+                  "mediaAltTexts": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Optional map of mediaUrl -> altText (max 500 chars each; null clears). Keys must match entries in mediaUrls.",
+                    "additionalProperties": {
+                      "type": "string",
+                      "maxLength": 500
                     }
                   },
                   "status": {
@@ -26318,6 +26446,231 @@
         }
       }
     },
+    "/api/v1/ai/alt-text": {
+      "post": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Generate screen-reader alt-text for an uploaded Locker Room image",
+        "description": "Cloud vision fallback for devices without on-device multimodal alt-text generation (FR-CH/IT-IT, non-AICore Android, older iPhones, Web). Ships dark behind AI_ALT_TEXT_ENABLED=false. Requires Clerk auth (Bearer token or session cookie), enforces a strict D-Sports Blob/CDN allowlist plus upload-ledger ownership check, and is rate-limited to 20 requests/hour/fan.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiAltTextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated screen-reader alt-text in the requested locale.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AiAltTextResponseData"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or non-allowlisted/unowned mediaUrl",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds 4 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-fan hourly AI alt-text rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream vision provider failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI alt-text kill switch is off or rate limiter unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assistant/context": {
       "get": {
         "tags": [
@@ -26330,9 +26683,59 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Weak ETag from a previous response for the same representation."
+            },
+            "required": false,
+            "description": "Weak ETag from a previous response for the same representation.",
+            "name": "If-None-Match",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Preferred language: en, fr-CH, or it-IT. Falls back to en."
+            },
+            "required": false,
+            "description": "Preferred language: en, fr-CH, or it-IT. Falls back to en.",
+            "name": "Accept-Language",
+            "in": "header"
+          }
+        ],
         "responses": {
           "200": {
             "description": "{ success: true, data: AssistantContextData }",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=60"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie, Accept-Language"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -26342,7 +26745,35 @@
             }
           },
           "304": {
-            "description": "Not Modified (If-None-Match matched current ETag)"
+            "description": "Not Modified (If-None-Match matched current ETag)",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=60"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie, Accept-Language"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
+              }
+            }
           },
           "401": {
             "description": "Authentication required",
@@ -26373,7 +26804,8 @@
           "Assistant"
         ],
         "summary": "Read-only game brief digest for the In-App Assistant and Creator Drafts",
-        "description": "Public / optional-auth slim (< 1.5 KB) game digest (score, status, period/clock, key stats, up to 3 top performers without avatars, win probability, and up to 10 text-only recent plays) with a 15s weak ETag omitting volatile clock fields.",
+        "description": "Public slim (< 1.5 KB) game digest (score, status, period/clock, key stats, up to 3 top performers without avatars, win probability, and up to 10 text-only recent plays). The 15s weak ETag includes the displayed period and clock; the digest does not contain serverTime or periodEndsAt.",
+        "security": [],
         "parameters": [
           {
             "schema": {
@@ -26386,11 +26818,40 @@
             "description": "GameEvent id or vendor-prefixed external game id.",
             "name": "gameId",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Weak ETag from a previous response for the same representation."
+            },
+            "required": false,
+            "description": "Weak ETag from a previous response for the same representation.",
+            "name": "If-None-Match",
+            "in": "header"
           }
         ],
         "responses": {
           "200": {
             "description": "{ success: true, data: AssistantGameBriefData }",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -26400,7 +26861,26 @@
             }
           },
           "304": {
-            "description": "Not Modified (If-None-Match matched current ETag)"
+            "description": "Not Modified (If-None-Match matched current ETag)",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              }
+            }
           },
           "400": {
             "description": "Invalid gameId",
@@ -26484,17 +26964,57 @@
           {
             "schema": {
               "type": "string",
-              "description": "Max results per section (integer 1-10, default 5)."
+              "pattern": "^(?:[1-9]|10)$",
+              "default": "5",
+              "description": "Maximum results per section (integer 1–10)."
             },
             "required": false,
-            "description": "Max results per section (integer 1-10, default 5).",
+            "description": "Maximum results per section (integer 1–10).",
             "name": "limit",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Weak ETag from a previous response for the same representation."
+            },
+            "required": false,
+            "description": "Weak ETag from a previous response for the same representation.",
+            "name": "If-None-Match",
+            "in": "header"
           }
         ],
         "responses": {
           "200": {
             "description": "{ success: true, data: AssistantCollectionSearchData }",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -26504,7 +27024,35 @@
             }
           },
           "304": {
-            "description": "Not Modified (If-None-Match matched current ETag)"
+            "description": "Not Modified (If-None-Match matched current ETag)",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Weak validator for the current representation."
+                },
+                "required": true,
+                "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
+              }
+            }
           },
           "400": {
             "description": "Invalid query parameters",
@@ -26546,7 +27094,7 @@
         ],
         "operationId": "postAssistantChat",
         "summary": "Stream a read-only AI Assistant (AGM) chat turn",
-        "description": "Requires a Clerk session and `AI_FEATURES_ENABLED=true` + `AI_ASSISTANT_CHAT_ENABLED=true`. Streams Vercel AI SDK v7 UI message stream SSE events (`text/event-stream`) using strictly read-only tools (`getFanContext`, `getGameBrief`, `searchCollection`, `getTeamRosterAndStandings`) capped at 4 steps and 800 output tokens. Stateless: accepts a rolling window of up to 12 messages (24 KiB max raw body) and stores zero chat transcripts. Response language is locked server-side from `Accept-Language` (`en`, `fr-CH`, `it-IT`). Per-fan atomic quotas enforce 10 turns/hour and 25 turns/day.",
+        "description": "Requires a Clerk session and `AI_FEATURES_ENABLED=true` + `AI_ASSISTANT_CHAT_ENABLED=true`. Streams Vercel AI SDK v7 UI message stream SSE events (`text/event-stream`) using strictly read-only tools (`getFanContext`, `getGameBrief`, `searchCollection`, `getTeamRosterAndStandings`) with up to 4 model steps and an 800-output-token limit per generation. Stateless: accepts a rolling window of up to 12 messages (24 KiB max raw body) and stores zero chat transcripts. Response language is locked server-side from `Accept-Language` (`en`, `fr-CH`, `it-IT`). Per-fan atomic quotas enforce 10 turns/hour and 25 turns/day.",
         "security": [
           {
             "bearerAuth": []
@@ -26613,6 +27161,23 @@
                           },
                           "required": [
                             "role"
+                          ],
+                          "anyOf": [
+                            {
+                              "required": [
+                                "parts"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "content"
+                              ],
+                              "properties": {
+                                "content": {
+                                  "pattern": "\\S"
+                                }
+                              }
+                            }
                           ]
                         },
                         {
@@ -26678,6 +27243,23 @@
                           },
                           "required": [
                             "role"
+                          ],
+                          "anyOf": [
+                            {
+                              "required": [
+                                "parts"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "content"
+                              ],
+                              "properties": {
+                                "content": {
+                                  "pattern": "\\S"
+                                }
+                              }
+                            }
                           ]
                         }
                       ]
@@ -26939,6 +27521,2066 @@
           },
           "503": {
             "description": "Assistant chat is disabled (`AI_DISABLED`) or rate-limit store is unavailable (`RATE_LIMITER_UNAVAILABLE`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/translation-locales/{entityType}/{entityId}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List authored locale variants for a quest, step, daily trivia question, or achievement key",
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "daily-quest-question",
+                "quest",
+                "quest-step",
+                "achievement"
+              ]
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "description": "Entity ID (or stable achievementKey / badgeId when entityType is achievement).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authored locale variants"
+          },
+          "403": {
+            "description": "Moderator access required"
+          },
+          "404": {
+            "description": "Parent entity not found"
+          },
+          "503": {
+            "description": "Authored locale table migration not yet deployed"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Create or update an authored fr-CH or it-IT locale variant",
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "daily-quest-question",
+                "quest",
+                "quest-step",
+                "achievement"
+              ]
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "description": "Entity ID (or stable achievementKey / badgeId when entityType is achievement).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "locale"
+                ],
+                "properties": {
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "fr-CH",
+                      "it-IT"
+                    ]
+                  },
+                  "questionText": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "publish": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upserted locale variant"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Moderator access required"
+          },
+          "404": {
+            "description": "Parent entity not found"
+          },
+          "503": {
+            "description": "Authored locale table migration not yet deployed"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete an authored locale variant",
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "daily-quest-question",
+                "quest",
+                "quest-step",
+                "achievement"
+              ]
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fr-CH",
+                "it-IT"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Moderator access required"
+          },
+          "404": {
+            "description": "Locale variant not found"
+          },
+          "503": {
+            "description": "Authored locale table migration not yet deployed"
+          }
+        }
+      }
+    },
+    "/api/v1/creator/drafts/generate": {
+      "post": {
+        "tags": [
+          "Creator Drafts"
+        ],
+        "summary": "Generate, rewrite, or shorten a creator post draft",
+        "description": "Cloud AI draft generation for Fan Locker Room (`locker_room`, 20 req/hr) and Team HQ / Admin Social (`team_hq` | `admin_social`, 60 req/hr, requires `canManageTeam`). Enforces a 12 KiB inbound body cap, `AI_CREATOR_DRAFTS_ENABLED` kill switch, per-platform character caps, and `en` / `fr-CH` / `it-IT` locale locking.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "surface": {
+                    "type": "string",
+                    "enum": [
+                      "admin_social",
+                      "team_hq",
+                      "locker_room"
+                    ]
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "generate",
+                      "rewrite",
+                      "shorten"
+                    ],
+                    "default": "generate"
+                  },
+                  "brief": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "existingText": {
+                    "type": "string",
+                    "maxLength": 2500
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": [
+                      "hype",
+                      "official",
+                      "analytical",
+                      "casual"
+                    ]
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr",
+                      "it",
+                      "fr-CH",
+                      "it-IT"
+                    ]
+                  },
+                  "maxCharacters": {
+                    "type": "integer",
+                    "minimum": 50,
+                    "maximum": 2200
+                  },
+                  "teamId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "gameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "includePoll": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "generatePlatformVariants": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "context": {
+                    "type": "object",
+                    "properties": {
+                      "teamName": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "gameLabel": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "channel": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "isHotTake": {
+                        "type": "boolean"
+                      },
+                      "targetPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "farcaster",
+                            "locker_room",
+                            "discord",
+                            "instagram",
+                            "tiktok"
+                          ]
+                        },
+                        "maxItems": 6
+                      },
+                      "linkedEntity": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "label": {
+                            "type": "string",
+                            "maxLength": 160
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "surface",
+                  "tone"
+                ],
+                "description": "Creator draft generation request. Conditional requirements enforced server-side: `brief` is required when `mode` is `generate`; `existingText` is required when `mode` is `rewrite` or `shorten`; `teamId` is required when `surface` is `team_hq` or `admin_social`."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated creator draft payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "body": {
+                          "type": "string"
+                        },
+                        "hashtags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "pollQuestion": {
+                          "type": "string"
+                        },
+                        "pollOptions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 2,
+                          "maxItems": 4
+                        },
+                        "platformVariants": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "cloud-api"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "body",
+                        "hashtags",
+                        "provider"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (caller cannot manage the requested team)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds 12 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Draft blocked by safety guardrails (`AI_CONTENT_BLOCKED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Hourly generation rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected generation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream AI model generation failure (`UPSTREAM_ERROR`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI creator drafts disabled (`AI_DISABLED`) or rate limiter unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teams/{teamId}/drafts": {
+      "get": {
+        "tags": [
+          "Creator Drafts"
+        ],
+        "summary": "Fetch the caller's persisted team post draft for a surface",
+        "description": "Returns the caller's saved `TeamPostDraft` for `(teamId, authorId, surface)`. Requires `canManageTeam`. Returns 404 if no draft exists.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "team_hq",
+                "admin_social"
+              ]
+            },
+            "required": true,
+            "name": "surface",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved team post draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "teamId": {
+                          "type": "string"
+                        },
+                        "authorId": {
+                          "type": "string"
+                        },
+                        "surface": {
+                          "type": "string",
+                          "enum": [
+                            "team_hq",
+                            "admin_social"
+                          ]
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "hashtags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "platforms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "platformVariants": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "media": {},
+                        "poll": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "options": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 100
+                              },
+                              "maxItems": 4
+                            }
+                          }
+                        },
+                        "channel": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "scheduledAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "teamId",
+                        "authorId",
+                        "surface",
+                        "content",
+                        "hashtags",
+                        "platforms",
+                        "platformVariants",
+                        "poll",
+                        "channel",
+                        "scheduledAt",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid surface query parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller cannot manage this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No saved draft for this team and surface",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Creator Drafts"
+        ],
+        "summary": "Create or update the caller's team post draft for a surface",
+        "description": "Upserts `TeamPostDraft` keyed by `(teamId, authorId, surface)` so `team_hq` and `admin_social` drafts never overwrite each other. Requires `canManageTeam`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "team_hq",
+                "admin_social"
+              ]
+            },
+            "required": true,
+            "name": "surface",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "maxLength": 2500
+                  },
+                  "hashtags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    },
+                    "maxItems": 15
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "x",
+                        "farcaster",
+                        "locker_room",
+                        "discord",
+                        "instagram",
+                        "tiktok"
+                      ]
+                    },
+                    "maxItems": 6
+                  },
+                  "platformVariants": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "string",
+                      "maxLength": 2200
+                    }
+                  },
+                  "media": {},
+                  "poll": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "question": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "maxItems": 4
+                      }
+                    }
+                  },
+                  "channel": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "scheduledAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved draft identifier and timestamp.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "teamId": {
+                          "type": "string"
+                        },
+                        "surface": {
+                          "type": "string",
+                          "enum": [
+                            "team_hq",
+                            "admin_social"
+                          ]
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "teamId",
+                        "surface",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid surface or draft body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller cannot manage this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Creator Drafts"
+        ],
+        "summary": "Delete the caller's team post draft for a surface",
+        "description": "Deletes `TeamPostDraft` for `(teamId, authorId, surface)`. Requires `canManageTeam`. Returns 204 even if no draft existed.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "team_hq",
+                "admin_social"
+              ]
+            },
+            "required": true,
+            "name": "surface",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Draft deleted (or did not exist)."
+          },
+          "400": {
+            "description": "Invalid surface query parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller cannot manage this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/writing-assist": {
+      "post": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Rewrite listing/offer text or generate contextual smart replies",
+        "description": "Single discriminated AI writing-assist endpoint for Android parity, ineligible iOS devices, and Web. Gated by `AI_FEATURES_ENABLED` and `AI_WRITING_ENABLED`. Enforces an 8 KiB combined UTF-8 JSON request body ceiling across all fields (clients combining `postText`, `recentMessages`, and summaries should trim context to stay within 8 KiB) and fail-closed per-fan hourly rate limits (30/hr for `rewrite`, 60/hr for `smart_replies`). Locks output to `en`, `fr-CH`, or `it-IT`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "rewrite"
+                        ]
+                      },
+                      "draft": {
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 500
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "clear",
+                          "concise",
+                          "friendly",
+                          "hype"
+                        ]
+                      },
+                      "locale": {
+                        "type": "string",
+                        "enum": [
+                          "en",
+                          "fr-CH",
+                          "it-IT"
+                        ]
+                      },
+                      "maxCharacters": {
+                        "type": "integer",
+                        "minimum": 40,
+                        "maximum": 500
+                      },
+                      "surface": {
+                        "type": "string",
+                        "enum": [
+                          "listing_rewrite",
+                          "offer_pitch_rewrite"
+                        ]
+                      },
+                      "context": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "listingType": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "itemName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 160
+                              },
+                              "rarity": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64
+                              },
+                              "teamName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "acceptedRarities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "maxItems": 10
+                              },
+                              "wantedRarities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "maxItems": 10
+                              },
+                              "acceptPacks": {
+                                "type": "boolean"
+                              },
+                              "itemType": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "itemKind": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              }
+                            },
+                            "required": [
+                              "listingType",
+                              "itemName",
+                              "itemType"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "listingType": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "itemName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 160
+                              },
+                              "rarity": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64
+                              },
+                              "teamName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "acceptedRarities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "maxItems": 10
+                              },
+                              "wantedRarities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "maxItems": 10
+                              },
+                              "acceptPacks": {
+                                "type": "boolean"
+                              },
+                              "itemType": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "itemKind": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              }
+                            },
+                            "required": [
+                              "listingType",
+                              "itemName",
+                              "itemKind"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "draft",
+                      "tone",
+                      "context"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "smart_replies"
+                        ]
+                      },
+                      "surface": {
+                        "type": "string",
+                        "enum": [
+                          "match_chat",
+                          "locker_comment",
+                          "trade_counter"
+                        ]
+                      },
+                      "locale": {
+                        "type": "string",
+                        "enum": [
+                          "en",
+                          "fr-CH",
+                          "it-IT"
+                        ]
+                      },
+                      "maxCharactersPerReply": {
+                        "type": "integer",
+                        "minimum": 20,
+                        "maximum": 200
+                      },
+                      "recentMessages": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "author": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 80
+                                },
+                                "text": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 500
+                                }
+                              },
+                              "required": [
+                                "text"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "maxItems": 5,
+                        "default": []
+                      },
+                      "replyTarget": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "postText": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      },
+                      "contextSummary": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "matchSummary": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "offerSummary": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "surface"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rewritten text (`mode: rewrite`) or 0..3 smart replies (`mode: smart_replies`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "rewrittenText": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            "suggestedRarities": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64
+                              },
+                              "maxItems": 10
+                            },
+                            "suggestedAcceptPacks": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "rewrittenText"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "replies": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              "maxItems": 3
+                            }
+                          },
+                          "required": [
+                            "replies"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON body or schema validation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Combined UTF-8 JSON request body exceeds the 8 KiB ceiling",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Upstream safety filter blocked rewrite content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-fan hourly rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream AI provider call failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI writing feature is disabled or rate limiter is unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -28859,6 +31501,16 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "mediaAltTexts": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
             }
           },
           "scheduledAt": {
@@ -31284,6 +33936,55 @@
           }
         }
       },
+      "AiAltTextResponseData": {
+        "type": "object",
+        "properties": {
+          "altText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "altText"
+        ]
+      },
+      "AiAltTextRequest": {
+        "type": "object",
+        "properties": {
+          "mediaUrl": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr-CH",
+              "it-IT"
+            ]
+          },
+          "teamName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "captionHint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "maxLength": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 300
+          }
+        },
+        "required": [
+          "mediaUrl"
+        ]
+      },
       "AssistantContextSuccess": {
         "type": "object",
         "properties": {
@@ -31689,7 +34390,6 @@
                 "type": "string",
                 "enum": [
                   "final",
-                  "odds-implied",
                   "even"
                 ]
               }
@@ -31699,7 +34399,7 @@
               "away",
               "model"
             ],
-            "description": "Read-only win probability derived from persisted game fields without vendor odds writes (100/0 final split for decided finals, even split otherwise)."
+            "description": "Read-only win probability derived from persisted scores: final for completed games with scores (100/0 for a winner, 50/50 for a tie), even otherwise. This digest does not emit odds-implied."
           },
           "recentPlays": {
             "type": "array",
@@ -31896,6 +34596,400 @@
           "owned",
           "missingSetSlots",
           "marketplace"
+        ]
+      },
+      "SourceLocale": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "en",
+          "fr",
+          "it",
+          null
+        ],
+        "description": "Optional client-supplied ISO 639-1 source language of the authored text (\"en\", \"fr\", or \"it\"). Never inferred from Accept-Language; null when omitted or uncertain."
+      },
+      "CreatorDraftGenerateRequest": {
+        "type": "object",
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "admin_social",
+              "team_hq",
+              "locker_room"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "generate",
+              "rewrite",
+              "shorten"
+            ],
+            "default": "generate"
+          },
+          "brief": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "existingText": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "hype",
+              "official",
+              "analytical",
+              "casual"
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr",
+              "it",
+              "fr-CH",
+              "it-IT"
+            ]
+          },
+          "maxCharacters": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 2200
+          },
+          "teamId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "gameId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "includePoll": {
+            "type": "boolean",
+            "default": false
+          },
+          "generatePlatformVariants": {
+            "type": "boolean",
+            "default": false
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "teamName": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "gameLabel": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "channel": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "isHotTake": {
+                "type": "boolean"
+              },
+              "targetPlatforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "x",
+                    "farcaster",
+                    "locker_room",
+                    "discord",
+                    "instagram",
+                    "tiktok"
+                  ]
+                },
+                "maxItems": 6
+              },
+              "linkedEntity": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "type",
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "surface",
+          "tone"
+        ],
+        "description": "Creator draft generation request. Conditional requirements enforced server-side: `brief` is required when `mode` is `generate`; `existingText` is required when `mode` is `rewrite` or `shorten`; `teamId` is required when `surface` is `team_hq` or `admin_social`."
+      },
+      "CreatorDraftResult": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pollQuestion": {
+            "type": "string"
+          },
+          "pollOptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 4
+          },
+          "platformVariants": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "cloud-api"
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "hashtags",
+          "provider"
+        ]
+      },
+      "TeamPostDraftUpsert": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "maxItems": 15
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "x",
+                "farcaster",
+                "locker_room",
+                "discord",
+                "instagram",
+                "tiktok"
+              ]
+            },
+            "maxItems": 6
+          },
+          "platformVariants": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 2200
+            }
+          },
+          "media": {},
+          "poll": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "question": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "maxItems": 4
+              }
+            }
+          },
+          "channel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "scheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamPostDraft": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "team_hq",
+              "admin_social"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "platformVariants": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "media": {},
+          "poll": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "question": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "maxItems": 4
+              }
+            }
+          },
+          "channel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "teamId",
+          "authorId",
+          "surface",
+          "content",
+          "hashtags",
+          "platforms",
+          "platformVariants",
+          "poll",
+          "channel",
+          "scheduledAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TeamPostDraftUpsertResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "team_hq",
+              "admin_social"
+            ]
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "teamId",
+          "surface",
+          "updatedAt"
         ]
       }
     }

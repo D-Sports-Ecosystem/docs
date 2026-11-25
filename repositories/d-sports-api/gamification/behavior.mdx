@@ -25,6 +25,8 @@ Detailed behavior docs:
 - Reward claim/redeem decision paths
 - Fan Rep is a separate ledger — see [Fan Rep](/repositories/d-sports-api/fan-rep/index)
 
+`POST /api/v1/engage/quests/arena-check-in` requires both `teamId` and `arenaId`. A claim counts once per team per UTC day, and only while an eligible fixture at the scanned arena is in its check-in window and that team is playing. See the [daily quest contract](/api-reference/domains/gamification#daily-quest-session-contract) for arena IDs, time windows, and errors.
+
 See [authored content locales](/api-reference/domains/gamification#authored-content-locales) for locale selection, response headers, and English fallback on quest, trivia, and achievement reads.
 
 The app-open aggregate (`GET /api/v1/engage/app-open`) labels its response with the negotiated request locale, even if all authored text in `user` and `dailyQuest` falls back to English. Its section errors use the negotiated locale.
