@@ -13,6 +13,17 @@ description: "Common status code semantics and error-handling expectations for n
 - `409`: state conflict (when route-specific logic enforces uniqueness/state). Marketplace pack listing uses `PACK_NOT_LISTABLE` and `PACK_ALREADY_OPENED`.
 - `500`: unexpected server-side failure.
 
+## AI error codes
+
+These codes apply when an endpoint uses the shared AI foundation. The foundation does not add endpoints by itself.
+
+| Status | Code | What to do |
+| --- | --- | --- |
+| `503` | `AI_DISABLED` | The feature is switched off or Gateway credentials are unavailable at preflight. Offer a non-AI path where available; do not automatically retry. |
+| `422` | `AI_CONTENT_BLOCKED` | A model or safety filter blocked the request or output. Do not retry the same request unchanged. |
+
+Check the machine-readable `code`, not the localized error message. A quota check can instead return `429 RATE_LIMITED` or `503 RATE_LIMITER_UNAVAILABLE`; see [rate limits and retries](/api-reference/rate-limits-and-retries).
+
 ## Error handling guidance
 
 - Treat all writes as potentially retriable only when idempotency is guaranteed by route semantics.
