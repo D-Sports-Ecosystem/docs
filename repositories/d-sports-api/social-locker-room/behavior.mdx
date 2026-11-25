@@ -65,6 +65,8 @@ To edit alt text after publishing, send `PUT /api/locker-room/{id}` with the cur
 
 An empty caption is allowed with a non-empty update array. Each ID must belong to the post; otherwise the request returns `400 VALIDATION_ERROR` without applying the edits. Use a blank string or `null` for an item's `altText` to clear it. Omit the array or pass `null` to preserve the descriptions. An empty array makes no media changes. A non-null array returns refreshed `data.media`; media without a description omit `altText`.
 
+For each replacement, trim the string and count UTF-16 code units (JavaScript's `altText.trim().length`). The server rejects values over 500 units with `400 VALIDATION_ERROR`. OpenAPI's `maxLength` counts untrimmed Unicode code points, so use the server rule for client validation.
+
 ## Direct video uploads
 
 Use `POST /api/upload/locker-media/video` with a Clerk session that has accepted the current UGC terms. The endpoint accepts MP4, MOV, and WebM up to 50 MiB.
