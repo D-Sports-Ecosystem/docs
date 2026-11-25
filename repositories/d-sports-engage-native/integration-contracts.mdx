@@ -233,6 +233,7 @@ During a standard Live refresh, an explicit `hqLive: null` idles an active live 
 It preserves a retained final card.
 HQ Live Large mirrors the standard hero only while the game is live. Rank does not perform an idle reset.
 Wallet displays a device-local visibility preference shared through App Group UserDefaults. Hidden is a display rule, not a change to authorization or to the balance returned by the API.
+If a successful response omits `wallet`, the extension keeps the existing Wallet timeline and its display state. It doesn't clear the balance or mark it stale solely because the slice is missing.
 See [iOS widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for cadence, rebuild requirements, and test limits.
 Android's file storage, WorkManager, backoff, and total JS timeout budget below do not describe iOS.
 
