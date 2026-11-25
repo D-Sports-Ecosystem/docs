@@ -20,6 +20,7 @@ icon: "list-checks"
 - `POST /api/v1/user/verify-pin`
 - `GET /api/v1/cards/{id}/provenance`
 - `/api/v1/marketplace/*` (published in OpenAPI)
+- `POST /api/v1/ai/writing-assist` (authenticated cloud fallback for listing/offer rewrites and trade counter smart replies)
 - `POST /api/v1/kyc/link-token`, `POST /api/v1/kyc/session/complete`, `GET /api/v1/user/kyc-status`
 
 ## Runtime behavior highlights
@@ -33,6 +34,8 @@ icon: "list-checks"
 - Listing a pack still in `processing` returns `409 PACK_NOT_LISTABLE`. An opened pack returns `409 PACK_ALREADY_OPENED`.
 - Auction `reservePrice` is optional and auction-only. Missed reserve ends as `ended-reserve-not-met`.
 - Card provenance is public and assembled from existing ownership, sale, and mint rows.
+- `MarketListing.tradeCriteria.description` (create/update) and `MarketTradeOffer.message` (send/counter) enforce a **500**-character trimmed cap, returning localized `400 VALIDATION_ERROR` (`en`, `fr-CH`, `it-IT`).
+- `POST /api/v1/ai/writing-assist` requires a Clerk session and both `AI_FEATURES_ENABLED` and `AI_WRITING_ENABLED` (default off; `503 AI_DISABLED` when disabled). It enforces an **8 KiB** combined UTF-8 JSON body cap (`413 PAYLOAD_TOO_LARGE`), fail-closed per-fan hourly rate limits (`30/hr` for `rewrite`, `60/hr` for `smart_replies`; `429 RATE_LIMITED` / `503 RATE_LIMITER_UNAVAILABLE`), locale locking (`en`, `fr-CH`, `it-IT` from body `locale` or `Accept-Language`), and `422 AI_CONTENT_BLOCKED` on `rewrite` safety refusals (`smart_replies` degrades to `{ replies: [] }` with `200`).
 
 ## Side effects and dependencies
 

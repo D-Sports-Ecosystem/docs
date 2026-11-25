@@ -40,6 +40,8 @@ Social APIs power locker room activity and user-to-user interactions.
 - `POST /api/locker-room/{id}/like` is additive and returns `{ liked, likeCount }`. It does not replace `/react`.
 - `GET/PUT/DELETE /api/locker-room/posts/draft` is the authenticated composer draft. GET is `404` when none exists. DELETE is `204` even if none existed.
 - Comment create may include `mentionedUserIds`. Responses echo `mentions[]`. Edit must send `mentionedUserIds: []` to clear; omitting the field leaves mentions unchanged.
+- Comment `content` on create and edit enforces a **1000**-character trimmed ceiling (alongside the 2000-character post ceiling), returning localized `400 VALIDATION_ERROR` across `en`, `fr-CH`, and `it-IT`.
+- Cloud smart replies (`POST /api/v1/ai/writing-assist` with `mode: "smart_replies"`, surfaces `locker_comment` and `match_chat`) are gated by `AI_FEATURES_ENABLED` and `AI_WRITING_ENABLED` (default off), limited to 60/hr per fan with an 8 KiB combined body cap (`413`), locked to `en`/`fr-CH`/`it-IT`, and return `200` with `{ replies: [] }` if upstream safety filters block sports banter.
 - `GET /api/user/search` is authenticated. Send required `q`. Default scope matches handle, name, and (when `q` is at least 2 characters) location. `scope=mention` matches handle and name only and drops users without a handle. `limit` is 1–50 (default 20). Each row uses `profileUrl` (not `avatar`) and has no `level`.
 - `TeamFollow` stays social-only. Following a team does not grant post-as-team.
 

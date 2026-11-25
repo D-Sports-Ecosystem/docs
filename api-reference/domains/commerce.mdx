@@ -31,6 +31,8 @@ Commerce APIs cover checkout initiation/verification, catalog reads, marketplace
 - Featured listings (`GET /api/v1/marketplace/featured`) are cacheable and public. Team promos are `GET /api/v1/marketplace/promos`. There is no combined shop featured feed.
 - List and detail GETs (`/marketplace`, `/listings`, listing by id, collectible listings, listing bids, `top-bids`) accept an optional Bearer token and personalize when a session is present. `featured` and `price-suggestion` stay public-only.
 - Staff-only `POST /featured` and `POST /promos` are not in generated OpenAPI.
+- `tradeCriteria.description` (on listing create and update) and trade offer `message` (on offer send and counter) enforce a **500**-character trimmed limit, returning localized `400 VALIDATION_ERROR` across `en`, `fr-CH`, and `it-IT`.
+- Cloud writing assist (`POST /api/v1/ai/writing-assist`, behind `AI_FEATURES_ENABLED` and `AI_WRITING_ENABLED`, default off) supports `mode: "rewrite"` (`listing_rewrite` / `offer_pitch_rewrite`, tones `clear` | `concise` | `friendly` | `hype`, 30/hr) and `mode: "smart_replies"` (`trade_counter`, 60/hr), with an 8 KiB body cap (`413`), locale lock (`en`, `fr-CH`, `it-IT`), and `{ replies: [] }` on `smart_replies` safety blocks (`422 AI_CONTENT_BLOCKED` on `rewrite`).
 
 ## KYC notes
 
