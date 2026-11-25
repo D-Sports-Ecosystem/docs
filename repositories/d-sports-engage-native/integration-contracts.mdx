@@ -217,6 +217,7 @@ Non-secret metadata lives in App Group UserDefaults.
 Rank and standard Live use the base snapshot without `include`, including when refreshed by the host JS listener. The native HQ Live Large refresher adds `?include=clubs`; the native Wallet refresher adds `?include=wallet`. Current iOS refreshes do not send `clubIds` or request `packs`. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for the server's live club fields, drop timing, and filter and cache rules.
 
 The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
+For HQ Live Large club rows, it reads `clubs[].game.lastPlay` and prefers `clubs[].game.squadLabel` over the club-level `clubs[].squadLabel` fallback. These fields are optional; the medium layout does not render club rows.
 The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
 A 401/403 clears the native token.
 The host JS provider does not retry that request with Clerk.
