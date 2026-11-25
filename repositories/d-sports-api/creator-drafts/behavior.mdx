@@ -7,7 +7,7 @@ description: "Caps, quotas, locale handling, and failure modes for Creator Draft
 
 - Default `maxCharacters`: `locker_room` 280, `team_hq` 1,000, `admin_social` 280. Callers may set 50–2,200.
 - Platform variants are capped per platform: `x` 280, `farcaster` 320, `locker_room` 1,000, `discord` 2,000, `instagram` and `tiktok` 2,200.
-- Text is cut at a word boundary when possible and never splits an emoji or other surrogate pair.
+- Text is cut at a word boundary when possible and never splits a UTF-16 surrogate pair. Multi-code-point emoji, such as flags or skin-tone variants, can still be cut.
 
 ## Quotas
 
