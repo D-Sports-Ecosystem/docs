@@ -243,6 +243,7 @@
               "api-reference/domains/moderation",
               "api-reference/domains/platform-infra",
               "api-reference/domains/admin-team-management",
+              "api-reference/domains/creator-drafts",
               "api-reference/domains/teams-leagues",
               "api-reference/domains/route-coverage-matrix"
             ]

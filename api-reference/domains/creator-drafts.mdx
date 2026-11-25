@@ -1,0 +1,96 @@
+---
+title: "Creator Drafts API"
+description: "AI post draft generation for Locker Room, Team HQ, and admin social composers, plus saved team drafts."
+---
+
+## Scope
+
+Creator Drafts give composers two contracts:
+
+- `POST /api/v1/creator/drafts/generate` generates, rewrites, or shortens a post draft with the cloud AI model.
+- `GET/PUT/DELETE /api/v1/teams/{teamId}/drafts?surface=team_hq|admin_social` saves one manual draft per team, manager, and surface.
+
+Both need a signed-in fan (Clerk session or native bearer token) and return `Cache-Control: private, no-store`.
+
+## Generate a draft
+
+Send a JSON body of at most 12 KiB. Larger bodies return `413 PAYLOAD_TOO_LARGE`.
+
+| Field | Rules |
+| --- | --- |
+| `surface` | Required: `locker_room` (fan), `team_hq`, or `admin_social` (manager). |
+| `mode` | `generate` (default), `rewrite`, or `shorten`. |
+| `brief` | Up to 500 characters. Required for `generate`. |
+| `existingText` | Up to 2,500 characters. Required for `rewrite` and `shorten`. |
+| `tone` | Required: `hype`, `official`, `analytical`, or `casual`. |
+| `locale` | Optional `en`, `fr`, `it`, `fr-CH`, or `it-IT`. `fr` and `it` normalize to `fr-CH` and `it-IT`. Omitted uses `Accept-Language`, then `en`. |
+| `maxCharacters` | Integer 50–2,200. Defaults: `locker_room` 280, `team_hq` 1,000, `admin_social` 280. |
+| `teamId` | Team ID or public ref. Required for `team_hq` and `admin_social`; the caller must manage the team or gets `403 FORBIDDEN`. |
+| `gameId` | Optional. Grounds the draft in that game's teams, score, period, clock, and venue. |
+| `includePoll`, `generatePlatformVariants` | Optional booleans, default `false`. |
+| `context` | Optional `teamName`, `gameLabel`, `channel`, `isHotTake`, `targetPlatforms` (up to 6), and `linkedEntity`. |
+
+The response data is:
+
+```json
+{
+  "body": "Puck drops at 7! Who's ready?",
+  "hashtags": ["#GameDay"],
+  "pollQuestion": "Who scores first?",
+  "pollOptions": ["Home", "Away"],
+  "platformVariants": { "x": "Puck drops at 7!" },
+  "provider": "cloud-api"
+}
+```
+
+- `body` is trimmed to the character cap, at a word boundary when possible.
+- `hashtags` are deduplicated, start with one `#`, and are capped at 6.
+- `pollQuestion` and 2–4 `pollOptions` appear only when `includePoll` is `true` and the model returned a poll.
+- `platformVariants` appear only when `generatePlatformVariants` is `true`. Keys are limited to `context.targetPlatforms` (all platforms when omitted) and capped at: `x` 280, `farcaster` 320, `locker_room` 1,000, `discord` 2,000, `instagram` and `tiktok` 2,200.
+
+### Locale lock
+
+The model is told to write only in the resolved locale (English, Swiss French, or Italian) and not to switch languages except for proper nouns.
+
+### Availability and quotas
+
+Generation is off unless the server enables both `AI_FEATURES_ENABLED` and `AI_CREATOR_DRAFTS_ENABLED`; otherwise it returns `503 AI_DISABLED`. Hide or disable the AI action on that error and keep manual drafting.
+
+Each fan gets 20 generations per hour on `locker_room`, and 60 per hour across `team_hq` and `admin_social`.
+
+| Status | Code | Client action |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | Fix the request: bad JSON, unknown value, or missing `brief`, `existingText`, or `teamId`. |
+| 401 | `UNAUTHORIZED` | Sign in again. |
+| 403 | `FORBIDDEN` | Caller cannot manage the team. |
+| 413 | `PAYLOAD_TOO_LARGE` | Shorten the request. |
+| 422 | `AI_CONTENT_BLOCKED` | The safety filter blocked it. Do not retry the same input. |
+| 429 | `RATE_LIMITED` | Hourly quota used up. Retry later. |
+| 502 | `UPSTREAM_ERROR` | Model failure or timeout. Retry with backoff. |
+| 503 | `AI_DISABLED` | AI drafting is switched off. |
+| 503 | `RATE_LIMITER_UNAVAILABLE` | Quota could not be checked. Retry later. |
+
+## Save team drafts
+
+`/api/v1/teams/{teamId}/drafts` requires `surface=team_hq` or `surface=admin_social`. `{teamId}` accepts an ID or public ref. The caller must manage the team, and each manager has their own draft per surface. These routes work when AI generation is off.
+
+- `GET` returns the saved draft (`id`, `teamId`, `authorId`, `surface`, `content`, `hashtags`, `platforms`, `platformVariants`, `media`, `poll`, `channel`, `scheduledAt`, `createdAt`, `updatedAt`) or `404 NOT_FOUND`.
+- `PUT` creates or replaces the draft and returns `{ id, teamId, surface, updatedAt }`. Send every field you want to keep: omitted fields reset to empty. The body is capped at 12 KiB.
+- `DELETE` returns `204`, whether or not a draft existed.
+
+| `PUT` field | Limit |
+| --- | --- |
+| `content` | 2,500 characters. |
+| `hashtags` | Up to 15, each 1–64 characters. |
+| `platforms` | Up to 6 of `x`, `farcaster`, `locker_room`, `discord`, `instagram`, `tiktok`. |
+| `platformVariants` | Map of platform to text, each up to 2,200 characters, or `null`. |
+| `poll` | `{ question, options }`: question up to 200 characters, up to 4 options of 100 characters, or `null`. |
+| `channel` | Up to 64 characters, or `null`. |
+| `scheduledAt` | ISO 8601 date-time, or `null`. Stored only; saving does not publish or schedule a post. |
+| `media` | Any JSON. |
+
+## Related docs
+
+- [Social and locker room API](/api-reference/domains/social-locker-room)
+- [Admin and team management API](/api-reference/domains/admin-team-management)
+- [Route coverage matrix](/api-reference/domains/route-coverage-matrix)

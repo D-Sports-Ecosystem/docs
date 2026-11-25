@@ -23,6 +23,7 @@ Route documentation status uses:
 | `/api/user/mutes`, `/api/user/blocks` | Publish | Authenticated one-way mute and stronger block; handle or User.id refs. |
 | `/api/user/featured-collectibles` | Publish | Public profile showcase + authenticated replace (max 12). |
 | `/api/locker-room*` | Publish | Includes per-post GET/PUT/DELETE. |
+| `POST /api/v1/creator/drafts/generate`, `/api/v1/teams/{teamId}/drafts` | Publish | [Creator Drafts](/api-reference/domains/creator-drafts): AI post drafts, gated by server flags, and saved per-manager team drafts. |
 | `/api/leaderboard*` (non-reset internal paths) | Publish | Core ranking/season behavior for clients. |
 | `/api/quests*` | Publish | Core quest progression contracts and side effects. |
 | `/api/v1/engage/quests/*` | Publish | Daily quiz sessions, forfeit, arena check-in, daily summary. Canonical `/api` prefix. |
