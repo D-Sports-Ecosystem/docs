@@ -293,6 +293,8 @@ An explicit `hqLive: null` differs between refresh paths. Native `WidgetSnapshot
 
 The local `hq_live` snapshot can include a JS-mirrored `follows` array (`id`, `slug`, `name`, nullable `logo`). It seeds the standard HQ widget's club picker and maps its saved pin IDs to game slugs. Native refresh carries forward the existing block; the API does not send it, and it is distinct from the API's opt-in `clubs` slice. When the HQ JSON exceeds 4 KiB in UTF-8, both writers first set the follow logos to `null`, then omit `follows` entirely if needed. If the snapshot still exceeds the limit, they skip the write.
 
+Without the mirror, saved pins stay in placement settings, but a game with a known slug only matches if that slug is itself a saved pin. A game without a slug is not filtered out.
+
 ### Live Update tone
 
 Read the optional `live_notification.event_updates.semanticTone` on Android Live Update pushes as an Android 17 ProgressStyle color hint. See the [backend tone mapping](/repositories/d-sports-api/platform-infra/behavior#android-live-update-tone) for the four values. Keep using the actual game status for game state. If the hint is absent or unsupported, keep the existing styling.
