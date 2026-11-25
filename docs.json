@@ -95,6 +95,14 @@
                     ]
                   },
                   {
+                    "group": "Creator Drafts",
+                    "pages": [
+                      "repositories/d-sports-api/creator-drafts/index",
+                      "repositories/d-sports-api/creator-drafts/architecture",
+                      "repositories/d-sports-api/creator-drafts/behavior"
+                    ]
+                  },
+                  {
                     "group": "Commerce and purchases",
                     "pages": [
                       "repositories/d-sports-api/commerce/index",
@@ -243,6 +251,7 @@
               "api-reference/domains/moderation",
               "api-reference/domains/platform-infra",
               "api-reference/domains/admin-team-management",
+              "api-reference/domains/creator-drafts",
               "api-reference/domains/teams-leagues",
               "api-reference/domains/route-coverage-matrix"
             ]

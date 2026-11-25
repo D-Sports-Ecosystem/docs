@@ -1,0 +1,19 @@
+---
+title: "Creator Drafts"
+description: "Overview of AI post draft generation and saved team drafts in d-sports-api."
+icon: "pen-line"
+---
+
+## Scope
+
+This section covers how `d-sports-api` serves Creator Drafts:
+
+- AI draft generation for Locker Room, Team HQ, and admin social composers (`POST /api/v1/creator/drafts/generate`)
+- saved manual drafts for Team HQ and admin social (`GET/PUT/DELETE /api/v1/teams/{teamId}/drafts`)
+
+## Pages
+
+- [Architecture](/repositories/d-sports-api/creator-drafts/architecture): request flow, data model, and server flags
+- [Behavior](/repositories/d-sports-api/creator-drafts/behavior): caps, quotas, locale handling, and failure modes
+
+For the request and response contract, see the [Creator Drafts API](/api-reference/domains/creator-drafts).
