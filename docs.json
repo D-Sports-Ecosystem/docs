@@ -135,6 +135,14 @@
                     ]
                   },
                   {
+                    "group": "In-App Assistant",
+                    "pages": [
+                      "repositories/d-sports-api/assistant-digests/index",
+                      "repositories/d-sports-api/assistant-digests/architecture",
+                      "repositories/d-sports-api/assistant-digests/behavior"
+                    ]
+                  },
+                  {
                     "group": "Platform and infrastructure",
                     "pages": [
                       "repositories/d-sports-api/platform-infra/index",
@@ -249,6 +257,8 @@
               "api-reference/domains/collectibles",
               "api-reference/domains/wallet-web3",
               "api-reference/domains/moderation",
+                  "api-reference/domains/assistant-digests",
+                  "api-reference/domains/assistant-chat",
               "api-reference/domains/platform-infra",
               "api-reference/domains/admin-team-management",
               "api-reference/domains/creator-drafts",

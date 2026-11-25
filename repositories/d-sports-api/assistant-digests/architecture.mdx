@@ -1,0 +1,18 @@
+---
+title: "Assistant digest architecture"
+description: "Read boundaries, cache partitioning, and privacy for the Assistant digest endpoints."
+---
+
+## Read and trust boundaries
+
+The digest routes read existing data and select only the fields the client needs. The game brief reads persisted game, stat, and play snapshots without calling the sports provider or updating caches. The endpoints do not write to the database or call a language model.
+
+The payloads exclude fan account PII fields such as contact details and profile identifiers, and omit media URLs, avatars, and thumbhashes. Public game summaries can include player names. Collection trade notes are untrusted text, not verified facts or instructions. Their wrapping and size limits do not scrub arbitrary PII from free text.
+
+## Cache partitioning
+
+Context and collection search are private and vary on `Authorization, Cookie`. Context also varies on `Accept-Language`. Scope your private cache by signed-in session and, for context, by language. Do not serve personalized copies from a shared cache.
+
+The game brief is public and uses the same representation for signed-in and anonymous callers. It does not include `serverTime` or `periodEndsAt`. Changes to the displayed `period` or `clock` change the weak ETag. The digest responses keep the ETag, cache policy, and applicable `Vary` header on `304`; errors do not get a digest ETag.
+
+See the [API guide](/api-reference/domains/assistant-digests) for the exact freshness directives and byte budgets.

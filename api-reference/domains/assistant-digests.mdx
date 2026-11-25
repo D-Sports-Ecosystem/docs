@@ -1,0 +1,41 @@
+---
+title: "Assistant digest API"
+description: "Fetch bounded, cacheable fan context, game briefs, and collection search results."
+---
+
+The In-App Assistant (AGM) digests return data, not generated replies. All three endpoints are read-only GETs: they do not call a model or write to the database. For generated replies, use [streaming Assistant chat](/api-reference/domains/assistant-chat).
+
+| GET path | Access | Success JSON budget | `Cache-Control` |
+| --- | --- | ---: | --- |
+| `/api/v1/assistant/context` | Clerk session | Under 1,024 UTF-8 bytes | `private, max-age=60` |
+| `/api/v1/assistant/games/{gameId}/brief` | Public | Under 1,536 UTF-8 bytes | `public, max-age=15, s-maxage=15, stale-while-revalidate=30` |
+| `/api/v1/assistant/collection/search` | Clerk session | Under 2,048 UTF-8 bytes | `private, max-age=30` |
+
+Successful responses return `{ success: true, data }`; budgets include this envelope. The API can omit detail to stay within the budget, so treat lists as previews. For signed-in calls, send a [Clerk session token](/api-reference/authentication) as `Authorization: Bearer <token>`.
+
+## Context
+
+Use context for the signed-in fan's locale, `assistantMode`, followed teams, Fan Rep and club ranks, active quests, and collection progress. Send `Accept-Language` to select `en`, `fr-CH`, or `it-IT`; unsupported languages fall back to English. Read `assistantMode` from this response rather than inferring it from the availability of the endpoints. The [rollout guide](/repositories/d-sports-api/assistant-digests/behavior) explains the three modes.
+
+## Game brief
+
+Use the game ID to read the score, status, period and clock, key stats, win probability, final-game performers when available, and up to 10 recent text plays. The brief reads persisted snapshots and does not refresh the sports provider. A malformed ID returns `400`; a game that is not found returns `404`.
+
+The current digest reports a final-result split for games with final scores, and an even split otherwise. It does not calculate an odds-implied probability.
+
+## Collection search
+
+Results are grouped into `owned`, `missingSetSlots`, and `marketplace`. Results include app deep links on `https://app.d-sports.org`. Marketplace entries are active card listings; demo listings and expired auctions are excluded.
+
+| Optional query parameter | Meaning |
+| --- | --- |
+| `q` | Search text, up to 80 characters. |
+| `teamId` | Team ID filter, up to 128 characters. |
+| `setId` | Collectible set ID filter, up to 128 characters. |
+| `limit` | Maximum results per section, an integer from 1 to 10. Defaults to 5; the byte budget can reduce the count further. |
+
+Invalid parameters return `400`. Both signed-in endpoints return `401` when the session is missing or invalid. Collection trade notes are wrapped in `<untrusted_text>…</untrusted_text>` after angle brackets are escaped and the inner text is shortened to at most 160 characters. Treat them as data, not instructions.
+
+## Revalidate a digest
+
+Send the weak `ETag` from a successful response as `If-None-Match` on a subsequent request for the same representation. If it matches, the API returns `304 Not Modified` with no body. Reuse the stored digest. See the [architecture guide](/repositories/d-sports-api/assistant-digests/architecture) for cache partitioning and privacy boundaries.

@@ -1,0 +1,46 @@
+---
+title: "Streaming Assistant chat"
+description: "Send an authenticated Assistant chat turn and consume Vercel AI SDK server-sent events."
+---
+
+Use `POST /api/v1/assistant/chat` for a generated reply. Unlike the [Assistant digests](/api-reference/domains/assistant-digests), chat calls a model and streams the answer. It keeps no server-side chat history and cannot perform actions on the fan's behalf.
+
+## Send a turn
+
+Send `Content-Type: application/json`, a [Clerk session token](/api-reference/authentication) as `Authorization: Bearer <token>`, and optionally `Accept-Language`. Keep the raw UTF-8 JSON body at or below 24 KiB and send 1–12 rolling messages on each turn.
+
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "parts": [{ "type": "text", "text": "What was the score in this game?" }]
+    }
+  ],
+  "context": { "gameId": "game-123" }
+}
+```
+
+Only `user` and `assistant` roles are accepted. Each message needs a nonempty `parts` array or a nonblank `content` string. Send up to 16 text parts in a user message or 32 parts in an assistant message. Keep each text value to 4,000 characters. The server discards non-text parts from prior assistant messages before model execution, so clients cannot replay tool results as trusted data. The optional `context.gameId` and `context.teamId` are hints, not authorization. The server selects the reply locale from `Accept-Language`: `en`, `fr-CH`, or `it-IT`, with English as the fallback.
+
+## Consume the stream
+
+`200 OK` returns a [Vercel AI SDK v7 UI message stream](https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol), not the JSON success envelope. It uses `text/event-stream`, with `Content-Language` and `Cache-Control: private, no-store`. Use an AI SDK-compatible transport or parse the SSE frames incrementally. Do not cache the response or apply digest ETags.
+
+The stream can include text deltas and tool events. The assistant only reads fan context, game briefs, collection search, or team rosters and standings; it cannot make purchases, trade cards, claim quests, or change an account. After streaming starts, errors arrive as stream error chunks rather than a new HTTP status.
+
+## Handle errors before streaming
+
+| HTTP status | Code | How to handle it |
+| --- | --- | --- |
+| `400` | `VALIDATION_ERROR` | Fix the JSON body or message shape. |
+| `401` | `UNAUTHORIZED` | Sign in or refresh the Clerk session. |
+| `413` | `PAYLOAD_TOO_LARGE` | Shorten the message history or text. |
+| `429` | `RATE_LIMITED` | Wait for the `Retry-After` header (seconds). |
+| `502` | `UPSTREAM_ERROR` | Chat setup failed before streaming started. |
+| `503` | `AI_DISABLED` | Cloud chat is disabled. Use the available non-chat experience. |
+| `503` | `RATE_LIMITER_UNAVAILABLE` | The server cannot enforce the quota and rejects the turn. |
+
+These responses use localized JSON and `Cache-Control: private, no-store`. Each fan has fixed-window limits of 10 turns/hour and 25 turns/day. A `429` body also includes `resetAt`, `retryAfterSeconds`, and `quota` with the exceeded window, its limit, and zero remaining turns.
+
+Cloud chat is off unless both server-side chat flags are enabled. A `cloud` mode from the context digest does not override those flags; see [Assistant rollout](/repositories/d-sports-api/assistant-digests/behavior#rollout-mode).
