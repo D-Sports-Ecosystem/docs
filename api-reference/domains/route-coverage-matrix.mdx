@@ -76,6 +76,7 @@ Route documentation status uses:
 | `/api/admin/teams*` | Publish with redaction | Contributor-needed team management behavior; redact sensitive ops internals. |
 | `/api/admin/team-assignments` | Publish with redaction | RBAC and assignment flow are needed for contributors. |
 | `/api/admin/translation-locales/{entityType}/{entityId}` | Shipped | Moderator-gated [authored locale administration](/api-reference/domains/admin-team-management#authored-locale-administration). |
+| `/api/admin/packs/drops`, `/api/admin/packs/drops/{id}` | Shipped | [Pack drop schedules](/api-reference/domains/admin-team-management#pack-drop-schedules): scoped reads and writes; eligible drops feed the widget snapshot. |
 | `/api/admin/stats` | Publish with redaction | High-level contract only, no privileged internals. |
 | `/api/admin/notifications/announce` | Publish with redaction | Behavior-level contract and RBAC only. |
 | `/api/admin/leagues/sync`, `/api/admin/teams/sync` | Publish with redaction | Trigger semantics useful for contributors; keep internals abstracted. |
@@ -94,7 +95,7 @@ Route documentation status uses:
 | `/api/wallets/link-external`, `/link-challenge`, `/reset-pin`, `/{address}/attestation` | Publish | Wallet link/reset helpers. Attestation path value is the wallet database id. |
 | `/api/health`, `/api/mobile/version`, `/api/mobile/wallet-callback` | Publish | Liveness and mobile helpers. |
 | `POST /api/v1/passes/google-wallet` | Publish | Authenticated Google Wallet pass issuance. |
-| `GET /api/v1/widgets/snapshot` | Publish | Clerk or scoped widget bearer; optional clubs, wallet, and packs; conditional caching capped at the free-pack reset. |
+| `GET /api/v1/widgets/snapshot` | Shipped | Clerk or scoped widget bearer; optional clubs, wallet, and packs; club filtering; conditional caching capped at the next free-pack reset or pack drop. |
 | `POST /api/v1/widgets/token`, `DELETE /api/v1/widgets/token` | Publish | Issue with Clerk; revoke with Clerk or the presented widget bearer. |
 | `GET /.well-known/assetlinks.json` | Publish | Public Digital Asset Links statement; documented in the platform guide. |
 | `/api/news*`, `/api/pins`, `/api/prompts`, `/api/commerce` | Publish | Public CMS/commerce reads. |

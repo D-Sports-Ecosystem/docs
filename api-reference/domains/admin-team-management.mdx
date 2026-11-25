@@ -27,6 +27,8 @@ This guide documents approved admin/team-management routes with behavior-level d
 
 ## Submission workflow
 
+V2 card-front layouts and example images exist, but the v2 templates are not registered or offered in the submission picker. New card-front submissions still select v1.
+
 Team Management uses the same `SubmissionWorkspace` creator and editor for new and existing submissions. Open `/team-mgmt/{teamId}/submissions/new`, choose a saved pack, collectible, or team-default target, and preview a design before creating a draft. **Render new front** in the collectible editor opens this creator with the collectible selected; it no longer creates a draft immediately.
 
 - `GET /api/admin/submissions/templates?teamId=…&selection=latest` selects the latest compatible version per key. Add `targetKind=pack|collectible|team_default`; packs and collectibles require a team-scoped `targetRef`. `sourceHasTransparency=true|false` is only valid for collectible targets. The response may include `recommendedTemplateId` and `unavailableTemplateKeys`. Without `selection`, the endpoint returns all eligible active versions and rejects target-selection parameters.
@@ -34,6 +36,10 @@ Team Management uses the same `SubmissionWorkspace` creator and editor for new a
 - For card fronts, send `cardFrontCollectibleId` instead of explicit `templateKey`/`templateVersion`. Optional `expectedTemplateKey` and `expectedTemplateVersion` must be supplied together and only with a card-front target. They assert the previewed recommendation, not a template override. If selection changed, creation returns `409`; refresh the preview before retrying.
 - `PATCH /api/admin/submissions/{id}` accepts only `{ "title": "New title" }`. Titles are trimmed and must be 1–120 characters. The authenticated manager must be authorized for the team. IDs or team-scoped slugs are accepted (use `?teamId=…` for slug disambiguation). Only `draft` submissions can be renamed; non-drafts and concurrent changes return `409`. Success returns `{ success: true, data: { title, updatedAt } }`. Renaming records `draft_title_updated` without changing pinned render inputs or version. Invalid/extra fields return `400`.
 - Saved-artwork scene renders use `POST /api/admin/collectibles/{id}/render-spin` and `POST /api/admin/packs/{id}/render-opening`, not a new generic render URL. Both share `lib/saved-artwork-render-route.ts` (`queueSavedArtworkRender`). An optional JSON body supplies a trimmed 1–120 character `title`; omit the body to keep the default title. Bodies over 1 KiB return `413`; malformed JSON or invalid titles return `400`. Optional `expectedTemplateVersion` is a positive-integer query parameter; a changed template returns `409`. A newly queued request returns `202` and an idempotently reused request returns `200`. The server derives collectible name, rarity, team branding, and pack reveal size from the saved target, not client metadata.
+
+## Pack drop schedules
+
+Use `GET /api/admin/packs/drops` to list schedules and `POST /api/admin/packs/drops` to create one. Update or cancel a schedule with `PATCH /api/admin/packs/drops/{id}`; remove it with `DELETE` on the same path. Team access limits club-specific schedules, and only platform admins and superadmins can manage platform-wide schedules. Eligible future scheduled drops can populate [`packs.nextDropAt`](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot).
 
 ## Scheduled social post alt text
 

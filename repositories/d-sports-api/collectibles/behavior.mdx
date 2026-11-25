@@ -53,6 +53,8 @@ Pack open (including replays), `GET /api/user/packs/opened`, `GET /api/user/coll
 - `cardTemplate` is `null` unless the image came from a published render that still matches the stored image. It is additive and read-only, with no allowlist or kill switch.
 - Card fronts come from ten v1 templates chosen by rarity: Common `contour`; Rare `sidebar`; Epic `facet`, `holo`; Legendary `arch`, `burst`, `rail`; Mythic `aurora`, `eclipse`, `rays`. Keys are `card-front-<rarity>-<name>`.
 
+The v2 design bundles and layout validation do not change card images or the `cardTemplate` response. New card-front renders still use v1.
+
 ## Side effects and dependencies
 
 - Purchase/open flows may integrate with checkout, wallet, and minting subsystems.

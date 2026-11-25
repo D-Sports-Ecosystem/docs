@@ -214,9 +214,10 @@ These fields apply only to token minting, not snapshot fetching.
 The app shares the bearer through the App Group Data Protection Keychain.
 Non-secret metadata lives in App Group UserDefaults.
 
-Rank and standard Live use the base snapshot without `include`, including when refreshed by the host JS listener. The native HQ Live Large refresher adds `?include=clubs`; the native Wallet refresher adds `?include=wallet`. Neither requests `packs`. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for the server contract.
+Rank and standard Live use the base snapshot without `include`, including when refreshed by the host JS listener. The native HQ Live Large refresher adds `?include=clubs`; the native Wallet refresher adds `?include=wallet`. Current iOS refreshes do not send `clubIds` or request `packs`. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for the server's live club fields, drop timing, and filter and cache rules.
 
 The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
+For HQ Live Large club rows, it reads `clubs[].game.lastPlay` and prefers `clubs[].game.squadLabel` over the club-level `clubs[].squadLabel` fallback. These fields are optional; the medium layout does not render club rows.
 The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
 A 401/403 clears the native token.
 The host JS provider does not retry that request with Clerk.
@@ -291,7 +292,7 @@ An explicit `503 CONFIGURATION_ERROR` hides the CTA for that mounted hook and sh
 
 Android refresh uses `GET /api/v1/widgets/snapshot` with the stored scoped widget bearer; the JS auth provider falls back to the unexpired cached Clerk bearer. The mounted `useAndroidWidgetTokenSync` hook ensures an installation token on sign-in/account changes and app foreground. Sign-out/account-switch cleanup attempts server revocation and clears native credentials, validators, snapshots, and WorkManager jobs. Token storage is Android Keystore-encrypted under `noBackupFilesDir/widgets/widget-token.enc`. Follow the existing [widget API](/api-reference/domains/platform-infra#widget-api) and [backend snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for issuance, authorization, response fields, caching, and errors (d-sports-api #1180; docs #327).
 
-The native HQ Live Large refresh adds `?include=clubs`; the current JS refresh uses the base snapshot. Android Wallet and Packs refresh targets can read their respective optional slices, but neither current request path adds those opt-ins.
+The native HQ Live Large refresh adds `?include=clubs`; the current JS refresh uses the base snapshot. Neither refresh sends `clubIds`: standard Live pins are applied locally. Android Wallet and Packs targets can parse their respective optional slices, including `packs.nextDropAt`, but neither request path adds those opt-ins, so backend drop availability alone does not populate the widget.
 
 `lib/widget-snapshot-api.ts` and native `WidgetSnapshotApiParser` unwrap `{ success, data }` and consume nested home/away scores, slug, colors, HTTPS logos, last-play text, squad label, and the HQ app deep link. Missing decorations fall back only to the same cached game, then defaults. Per-target ETags support 304 revalidation; HQ freshness also requires the validator's game ID to match stored data. Failed refresh retains data and marks it stale. The JS fallback shares a four-second budget across auth lookup, fetch, and JSON parsing. Native 401/403 clears credentials and validators for re-minting on foreground; 429 records Retry-After backoff. Refresh does not navigate through sign-in or bypass server authorization.
 
