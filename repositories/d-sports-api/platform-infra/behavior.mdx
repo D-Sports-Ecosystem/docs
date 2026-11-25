@@ -14,7 +14,7 @@ icon: "list-checks"
 - `POST /api/cron/sync-trends`
 - feature-specific sync routes such as quest/leaderboard synchronization paths
 - Apple Wallet: `POST /api/v1/passes/apple-wallet` (authenticated, Node runtime) signs fan ID, club membership, and arena event `.pkpass` files (club membership passes only for an Engage partner club the caller has joined, else `403`); `format: "base64"` returns JSON for native clients.
-- App Clips: `GET /api/v1/app-clips/arena/{id}` (public) returns a read-only arena preview for the iOS App Clip, with a weak ETag. Its `team` is the check-in club (the home club for a game event). When `checkInAvailable` is true, send a Clerk bearer token and both `teamId` (the preview's `team.id`) and `arenaId` (the ID from the invocation URL: game event ID, team ID, or team slug) to `POST /api/v1/engage/quests/arena-check-in`.
+- App Clips: `GET /api/v1/app-clips/arena/{id}` (public) returns a read-only arena preview for the iOS App Clip, with a weak ETag. Its `team` is the check-in club (the home club for a game event). When `checkInAvailable` is true, send a Clerk bearer token and both `teamId` (the preview's `team.id`) and `arenaId` (the preview's `id`) to `POST /api/v1/engage/quests/arena-check-in`. For a game event, the preview's `id` is the game event ID. For a team ID or slug link, it is the club's team ID, and the URL's ID resolves to the same arena. `checkInAvailable` uses the same fixture check-in window as that claim.
 
 ## Runtime behavior highlights
 
