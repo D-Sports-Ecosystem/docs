@@ -6375,17 +6375,21 @@
                     "type": "string"
                   },
                   "mentionedUserIds": {
-                    "type": "array",
-                    "nullable": true,
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "description": "Omit or null leaves existing tags unchanged. [] clears them. A non-array is 400.",
                     "items": {
                       "type": "string"
                     }
                   },
                   "mediaAltTexts": {
-                    "type": "array",
-                    "nullable": true,
-                    "description": "Optional post-publish alt-text updates (max 500 chars each; null or blank clears). Every mediaId must belong to this post.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "description": "Omit or send null to leave descriptions unchanged. An entry's null or blank altText clears that description; replacements are limited to 500 characters. Every mediaId must belong to this post.",
                     "items": {
                       "type": "object",
                       "required": [
@@ -6397,8 +6401,10 @@
                           "type": "string"
                         },
                         "altText": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "maxLength": 500
                         }
                       }
@@ -26710,6 +26716,24 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=60"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie, Accept-Language"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
               }
             },
             "content": {
@@ -26730,6 +26754,24 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=60"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie, Accept-Language"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
               }
             }
           },
@@ -26799,6 +26841,15 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
               }
             },
             "content": {
@@ -26819,6 +26870,15 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
               }
             }
           },
@@ -26935,6 +26995,24 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
               }
             },
             "content": {
@@ -26955,6 +27033,24 @@
                 },
                 "required": true,
                 "description": "Weak validator for the current representation."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "description": "Caching policy for this digest.",
+                  "example": "private, max-age=30"
+                },
+                "required": true,
+                "description": "Caching policy for this digest."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string",
+                  "description": "Request headers that select the digest representation.",
+                  "example": "Authorization, Cookie"
+                },
+                "required": true,
+                "description": "Request headers that select the digest representation."
               }
             }
           },
