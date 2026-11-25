@@ -25912,7 +25912,7 @@
                 "schema": {
                   "type": "string",
                   "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
-                  "description": "private, max-age=60 when a followed game is live, else private, max-age=3600, capped to seconds remaining until packs.freePack.resetsAt when free-pack cap data is included."
+                  "description": "private, max-age=60 when the returned HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack is present, max-age cannot exceed the seconds remaining until packs.freePack.resetsAt."
                 }
               },
               "ETag": {
@@ -25943,7 +25943,7 @@
                 "schema": {
                   "type": "string",
                   "pattern": "^private, max-age=(?:0|[1-9][0-9]*)$",
-                  "description": "private, max-age=60 when a followed game is live, else private, max-age=3600, capped to seconds remaining until packs.freePack.resetsAt when free-pack cap data is included."
+                  "description": "Recalculated for this revalidation: private, max-age=60 when the current HQ Live card or an included club game is live, otherwise private, max-age=3600. When packs.freePack is present, max-age cannot exceed the seconds remaining until packs.freePack.resetsAt."
                 }
               },
               "ETag": {

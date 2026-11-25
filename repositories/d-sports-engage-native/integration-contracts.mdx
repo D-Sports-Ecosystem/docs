@@ -214,7 +214,7 @@ These fields apply only to token minting, not snapshot fetching.
 The app shares the bearer through the App Group Data Protection Keychain.
 Non-secret metadata lives in App Group UserDefaults.
 
-The iOS rank and HQ refreshers use the base snapshot without `include`. The API offers opt-in `clubs`, `wallet`, and `packs` slices; consumers can combine them with `?include=clubs,wallet,packs`. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for fields, omission on optional-read failure, and the free-pack reset cache cap.
+Rank and standard Live use the base snapshot without `include`, including when refreshed by the host JS listener. The native HQ Live Large refresher adds `?include=clubs`; the native Wallet refresher adds `?include=wallet`. Neither requests `packs`. See [widget snapshot behavior](/repositories/d-sports-api/platform-infra/behavior#widget-snapshot) for the server contract.
 
 The patched `expo-widgets` AppIntent/timeline refresher calls the snapshot endpoint without JS.
 The host JS provider selects a cached Clerk JWT only when the Keychain read returns no token.
@@ -229,11 +229,19 @@ Offline/server failures retain stale data.
 Sign-out/account changes attempt revocation.
 They wipe local credentials, validators, and timelines.
 
-During an HQ refresh, an explicit `hqLive: null` idles an active live card.
+During a standard Live refresh, an explicit `hqLive: null` idles an active live card.
 It preserves a retained final card.
-A rank refresh does not perform this idle reset.
+HQ Live Large mirrors the standard hero only while the game is live. Rank does not perform an idle reset.
+Wallet displays a device-local visibility preference shared through App Group UserDefaults. Hidden is a display rule, not a change to authorization or to the balance returned by the API.
+If a successful response omits `wallet`, the extension keeps the existing Wallet timeline and its display state. It doesn't clear the balance or mark it stale solely because the slice is missing.
 See [iOS widget configuration](/repositories/d-sports-engage-native/architecture#widget-controls-and-interaction-configuration) for cadence, rebuild requirements, and test limits.
 Android's file storage, WorkManager, backoff, and total JS timeout budget below do not describe iOS.
+
+## iOS widget analytics
+
+On cold start and foreground, the app counts installed widgets by kind and family. On iOS 18+, it also counts controls under the `control` family. The first successful read seeds a local baseline without events. Later successful reads emit one `widget.added` or `widget.removed` per count change, with platform, kind, family, and OS version. Failed reads preserve the baseline rather than reporting removals. These are observed count changes, not per-placement IDs or system add/remove callbacks.
+
+Widget and control links carry `source` (`widget` or `control_widget`), `kind`, and `family` when available. At native intent entry, the shared parser validates attribution and emits `widget.opened`. On iOS, repeated delivery of the same canonical link within a sliding 10-second window is suppressed. A different link is tracked separately.
 
 ## iOS Core NFC arena check-in
 
